@@ -12,12 +12,18 @@ Full-stack Flutter & Node project
    - Navigate to `client` and run `flutter pub get` (usually happens automatically).
    - Use `flutter run` to launch the app or the **Run Flutter** task.
 
-### VS Code helpers
+### Clone and run the project
 
-* Tasks are defined in `.vscode/tasks.json`:
-  * **Run Node Server** – starts the back end
-  * **Run Flutter** – launches the mobile/desktop app
-  * **Run Client & Server** – compound task that starts both in sequence
+ - to clone the repo 
+
+```
+git clone https://github.com/NamNam9252/Farmer.git
+```
+ - to run 
+
+```
+./run
+```
 
 * A debug configuration for the server is available in `.vscode/launch.json`.
 * Recommended extensions are listed in `.vscode/extensions.json`.
