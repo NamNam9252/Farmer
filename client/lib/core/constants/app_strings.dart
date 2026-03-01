@@ -1,0 +1,81 @@
+class AppStrings {
+  AppStrings._();
+
+  // App
+  static const String appName = 'Kisan Saathi';
+  static const String appNameHindi = 'किसान साथी';
+
+  // Bottom Nav
+  static const String navHome = 'Home';
+  static const String navHomeHindi = 'होम';
+  static const String navDisease = 'Disease';
+  static const String navDiseaseHindi = 'रोग';
+  static const String navMarket = 'Market';
+  static const String navMarketHindi = 'बाज़ार';
+  static const String navHelp = 'Help';
+  static const String navHelpHindi = 'मदद';
+
+  // Disease Screen
+  static const String diseaseTitle = 'Disease Analyser';
+  static const String diseaseTitleHindi = 'रोग परीक्षण';
+  static const String diseaseSubtitle = 'Show Your Crop';
+  static const String diseaseSubtitleHindi = 'अपनी फसल दिखाएं';
+  static const String diseaseTapHint = 'Tap a button to check your plant';
+  static const String diseaseTapHintHindi = 'पौधे की जांच के लिए बटन दबाएं';
+  static const String takePhoto = 'Take Photo';
+  static const String takePhotoHindi = 'फोटो लें';
+  static const String recordVideo = 'Record Video';
+  static const String recordVideoHindi = 'वीडियो लें';
+  static const String uploadGallery = 'Upload from Gallery';
+  static const String uploadGalleryHindi = 'गैलरी से चुनें';
+  static const String pastReports = 'Past Reports';
+  static const String pastReportsHindi = 'पुरानी रिपोर्ट';
+  static const String analyze = 'Analyze';
+  static const String analyzeHindi = 'जांच करें';
+  static const String analyzing = 'Analyzing...';
+  static const String analyzingHindi = 'जांच हो रही है...';
+  static const String noReports = 'No reports yet';
+  static const String noReportsHindi = 'अभी कोई रिपोर्ट नहीं';
+  static const String diseaseFound = 'Disease Detected';
+  static const String diseaseFoundHindi = 'रोग मिला';
+  static const String healthy = 'Healthy Plant';
+  static const String healthyHindi = 'स्वस्थ पौधा';
+  static const String confidence = 'Confidence';
+  static const String confidenceHindi = 'सटीकता';
+  static const String treatment = 'Treatment';
+  static const String treatmentHindi = 'उपचार';
+  static const String prevention = 'Prevention';
+  static const String preventionHindi = 'बचाव';
+  static const String cropType = 'Crop Type';
+  static const String cropTypeHindi = 'फसल का प्रकार';
+  static const String severity = 'Severity';
+  static const String severityHindi = 'गंभीरता';
+  static const String high = 'High';
+  static const String highHindi = 'अधिक';
+  static const String medium = 'Medium';
+  static const String mediumHindi = 'मध्यम';
+  static const String low = 'Low';
+  static const String lowHindi = 'कम';
+  static const String none = 'None';
+  static const String noneHindi = 'नहीं';
+  static const String viewDetails = 'View Details';
+  static const String viewDetailsHindi = 'विवरण देखें';
+  static const String retake = 'Retake';
+  static const String retakeHindi = 'फिर लें';
+  static const String saveReport = 'Save Report';
+  static const String saveReportHindi = 'रिपोर्ट सहेजें';
+  static const String photoTip = 'Keep the leaf in center and make sure there is enough light.';
+  static const String photoTipHindi = 'पत्ती को बीच में रखें और रोशनी पर्याप्त हो।';
+  static const String errorNetwork = 'Network error. Please try again.';
+  static const String errorNetworkHindi = 'नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।';
+  static const String errorAnalysis = 'Analysis failed. Please try again.';
+  static const String errorAnalysisHindi = 'जांच असफल हुई। कृपया पुनः प्रयास करें।';
+  static const String tryAgain = 'Try Again';
+  static const String tryAgainHindi = 'फिर कोशिश करें';
+  static const String reportSaved = 'Report saved successfully!';
+  static const String reportSavedHindi = 'रिपोर्ट सफलतापूर्वक सहेजी गई!';
+  static const String today = 'Today';
+  static const String todayHindi = 'आज';
+  static const String yesterday = 'Yesterday';
+  static const String yesterdayHindi = 'कल';
+}

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemone index.js",
+    "start": "tsx index.ts",
+    "dev": "nodemon --exec tsx index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,17 +13,24 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "6.19",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.22.1",
+    "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.0",
     "nodemon": "^3.1.14",
     "openai": "^6.25.0",
+    "uuid": "^13.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/multer": "^2.0.0",
     "@types/node": "^25.3.2",
+    "@types/uuid": "^10.0.0",
     "mongodb": "^7.1.0",
     "prisma": "6.19",
     "tsx": "^4.21.0",

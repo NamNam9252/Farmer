@@ -57,3 +57,10 @@ node_modules
 .env
 
 /generated/prisma
+/server/uploads/
+*.log
+
+# Test images (do not commit)
+test_*.jpg
+tomato_leaf.jpg
+wheat_disease.jpg
