@@ -4,9 +4,8 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
 }
-
 
 // ─────────────────────────────────────────────
 // ENUMS
@@ -194,9 +193,9 @@ enum DiseaseSeverity {
 }
 
 enum AIConfidenceLevel {
-  LOW    // confidence_score < 0.50
+  LOW // confidence_score < 0.50
   MEDIUM // confidence_score 0.50-0.80
-  HIGH   // confidence_score > 0.80
+  HIGH // confidence_score > 0.80
 }
 
 enum DiseaseType {
@@ -484,7 +483,6 @@ enum PermissionAction {
   EXPORT
 }
 
-
 // ─────────────────────────────────────────────
 // GEO LAYER
 // ─────────────────────────────────────────────
@@ -492,23 +490,22 @@ enum PermissionAction {
 model State {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  code      String   @unique  // "MH", "UP", "KA"
+  code      String   @unique // "MH", "UP", "KA"
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
 
   // Relations
-  districts           District[]
-  pincodes            Pincode[]
-  users               User[]                @relation("UserPrimaryState")
-  locations           Location[]
-  diseaseReports      DiseaseReport[]       @relation("DiseaseReportState")
-  diseaseAggregates   DiseaseAggregateDaily[]
-  governmentSchemes   GovernmentScheme[]
-  newsArticles        NewsArticle[]
-  alerts              Alert[]               @relation("AlertState")
-  communities         Community[]           @relation("CommunityState")
-  blogs               Blog[]                @relation("BlogState")
-
+  districts         District[]
+  pincodes          Pincode[]
+  users             User[]                  @relation("UserPrimaryState")
+  locations         Location[]
+  diseaseReports    DiseaseReport[]         @relation("DiseaseReportState")
+  diseaseAggregates DiseaseAggregateDaily[]
+  governmentSchemes GovernmentScheme[]
+  newsArticles      NewsArticle[]
+  alerts            Alert[]                 @relation("AlertState")
+  communities       Community[]             @relation("CommunityState")
+  blogs             Blog[]                  @relation("BlogState")
 
   @@index([isDeleted])
   @@map("states")
@@ -522,20 +519,20 @@ model District {
   createdAt DateTime @default(now())
 
   // Relations
-  state               State                 @relation(fields: [stateId], references: [id])
+  state               State                   @relation(fields: [stateId], references: [id])
   pincodes            Pincode[]
-  users               User[]                @relation("UserPrimaryDistrict")
+  users               User[]                  @relation("UserPrimaryDistrict")
   locations           Location[]
   marketPrices        MarketPrice[]
-  diseaseReports      DiseaseReport[]       @relation("DiseaseReportDistrict")
+  diseaseReports      DiseaseReport[]         @relation("DiseaseReportDistrict")
   diseaseAggregates   DiseaseAggregateDaily[]
   laborProfiles       LaborProfile[]
-  alerts              Alert[]               @relation("AlertDistrict")
-  communities         Community[]           @relation("CommunityDistrict")
-  blogs               Blog[]                @relation("BlogDistrict")
+  alerts              Alert[]                 @relation("AlertDistrict")
+  communities         Community[]             @relation("CommunityDistrict")
+  blogs               Blog[]                  @relation("BlogDistrict")
   marketplaceListings MarketplaceListing[]
-  governmentSchemes   GovernmentScheme[]    @relation("DistrictGovernmentScheme")
-  newsArticles        NewsArticle[]         @relation("DistrictNewsArticle")
+  governmentSchemes   GovernmentScheme[]      @relation("DistrictGovernmentScheme")
+  newsArticles        NewsArticle[]           @relation("DistrictNewsArticle")
   userEvents          UserEvent[]
 
   @@unique([stateId, name])
@@ -562,81 +559,78 @@ model Pincode {
   locations Location[]
   alerts    Alert[]    @relation("AlertPincode")
 
-
   @@index([stateId])
   @@index([districtId])
-  @@index([latitude, longitude])  // 2dsphere
+  @@index([latitude, longitude]) // 2dsphere
   @@index([isDeleted])
   @@map("pincodes")
 }
-
 
 // ─────────────────────────────────────────────
 // USERS & AUTH
 // ─────────────────────────────────────────────
 
 model User {
-  id                 String     @id @default(auto()) @map("_id") @db.ObjectId
-  name               String
-  email              String?    @unique
-  phone              String     @unique
-  passwordHash       String
-  role               UserRole
-  status             UserStatus @default(PENDING_VERIFICATION)
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String?    @unique
+  phone        String     @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(PENDING_VERIFICATION)
 
-  preferredLanguage  String     @default("hi")
-  profileImageUrl    String?
-  bio                String?
+  preferredLanguage String  @default("hi")
+  profileImageUrl   String?
+  bio               String?
 
   // Denorm primary location — for fast alert fan-out
-  primaryStateId     String?    @db.ObjectId
-  primaryDistrictId  String?    @db.ObjectId
-  primaryPincodeId   String?    @db.ObjectId
-  primaryLatitude    Float?
-  primaryLongitude   Float?
+  primaryStateId    String? @db.ObjectId
+  primaryDistrictId String? @db.ObjectId
+  primaryPincodeId  String? @db.ObjectId
+  primaryLatitude   Float?
+  primaryLongitude  Float?
 
-  isPhoneVerified    Boolean    @default(false)
-  isEmailVerified    Boolean    @default(false)
-  lastLoginAt        DateTime?
+  isPhoneVerified Boolean   @default(false)
+  isEmailVerified Boolean   @default(false)
+  lastLoginAt     DateTime?
 
   // Fraud detection
-  lastLoginIp        String?
-  lastLoginDevice    String?
-  failedLoginCount   Int        @default(0)
-  isFlagged          Boolean    @default(false)
-  flaggedReason      String?
+  lastLoginIp      String?
+  lastLoginDevice  String?
+  failedLoginCount Int     @default(0)
+  isFlagged        Boolean @default(false)
+  flaggedReason    String?
 
   // Soft delete
-  isDeleted          Boolean    @default(false)
-  deletedAt          DateTime?
-  deletedBy          String?    @db.ObjectId
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
 
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations — primary geo
-  primaryState       State?     @relation("UserPrimaryState",    fields: [primaryStateId],    references: [id])
-  primaryDistrict    District?  @relation("UserPrimaryDistrict", fields: [primaryDistrictId], references: [id])
-  primaryPincode     Pincode?   @relation("UserPrimaryPincode",  fields: [primaryPincodeId],  references: [id])
+  primaryState    State?    @relation("UserPrimaryState", fields: [primaryStateId], references: [id])
+  primaryDistrict District? @relation("UserPrimaryDistrict", fields: [primaryDistrictId], references: [id])
+  primaryPincode  Pincode?  @relation("UserPrimaryPincode", fields: [primaryPincodeId], references: [id])
 
   // Relations — owned
-  locations                  Location[]
-  farmerProfile              FarmerProfile?
-  laborProfile               LaborProfile?
-  expertProfile              ExpertProfile?
-  deviceTokens               UserDeviceToken[]
-  verifications              UserVerification[]
-  notifications              Notification[]
-
+  locations     Location[]
+  farmerProfile FarmerProfile?
+  laborProfile  LaborProfile?
+  expertProfile ExpertProfile?
+  deviceTokens  UserDeviceToken[]
+  verifications UserVerification[]
+  notifications Notification[]
 
   // Relations — authored / performed
-  createdCommunities         Community[]               @relation("CommunityCreatedBy")
+  createdCommunities         Community[]                 @relation("CommunityCreatedBy")
   communityMemberships       CommunityMember[]
   communityPosts             CommunityPost[]
   communityPostReactions     CommunityPostReaction[]
   communityComments          CommunityComment[]
-  chatRoomsCreated           CommunityChatRoom[]       @relation("ChatRoomCreatedBy")
-  chatMessages               CommunityChatMessage[]    @relation("ChatMessageSender")
+  chatRoomsCreated           CommunityChatRoom[]         @relation("ChatRoomCreatedBy")
+  chatMessages               CommunityChatMessage[]      @relation("ChatMessageSender")
   chatMessageEdits           CommunityChatMessageEdit[]
   chatReadReceipts           CommunityChatReadReceipt[]
   blogs                      Blog[]
@@ -644,39 +638,39 @@ model User {
   blogComments               BlogComment[]
   blogBookmarks              BlogBookmark[]
   blogViews                  BlogView[]
-  contentReports             ContentReport[]           @relation("ContentReportReporter")
-  contentReviewedReports     ContentReport[]           @relation("ContentReportReviewer")
+  contentReports             ContentReport[]             @relation("ContentReportReporter")
+  contentReviewedReports     ContentReport[]             @relation("ContentReportReviewer")
   loanPledges                LoanPledge[]
   loanVotes                  LoanVote[]
-  ordersBuyer                Order[]                   @relation("OrderBuyer")
-  orderReviewsGiven          OrderReview[]             @relation("OrderReviewReviewer")
-  orderReviewsReceived       OrderReview[]             @relation("OrderReviewReviewee")
-  disputesRaised             OrderDispute[]            @relation("DisputeRaisedBy")
-  disputesAssigned           OrderDispute[]            @relation("DisputeAssignedTo")
-  disputesResolved           OrderDispute[]            @relation("DisputeResolvedBy")
-  expertConsultsAnswered     DiseaseExpertConsult[]    @relation("ExpertConsultExpert")
-  treatmentsVerified         TreatmentCatalog[]        @relation("TreatmentVerifiedBy")
-  diseaseReportsExpert       DiseaseReport[]           @relation("DiseaseReportExpert")
-  alertsCreated              Alert[]                   @relation("AlertCreatedBy")
-  schemeApplications         SchemeApplication[]        @relation("SchemeApplicationUser")
-  milestonesApproved         LoanMilestone[]           @relation("MilestoneApprovedBy")
+  ordersBuyer                Order[]                     @relation("OrderBuyer")
+  orderReviewsGiven          OrderReview[]               @relation("OrderReviewReviewer")
+  orderReviewsReceived       OrderReview[]               @relation("OrderReviewReviewee")
+  disputesRaised             OrderDispute[]              @relation("DisputeRaisedBy")
+  disputesAssigned           OrderDispute[]              @relation("DisputeAssignedTo")
+  disputesResolved           OrderDispute[]              @relation("DisputeResolvedBy")
+  expertConsultsAnswered     DiseaseExpertConsult[]      @relation("ExpertConsultExpert")
+  treatmentsVerified         TreatmentCatalog[]          @relation("TreatmentVerifiedBy")
+  diseaseReportsExpert       DiseaseReport[]             @relation("DiseaseReportExpert")
+  alertsCreated              Alert[]                     @relation("AlertCreatedBy")
+  schemeApplications         SchemeApplication[]         @relation("SchemeApplicationUser")
+  milestonesApproved         LoanMilestone[]             @relation("MilestoneApprovedBy")
   repaymentDistributions     LoanRepaymentDistribution[]
   userEvents                 UserEvent[]
   auditLogsPerformed         AuditLog[]
   adminActivities            AdminActivityLog[]
   rolePermissionsCreated     RolePermission[]
-  permissionOverrides        UserPermissionOverride[]  @relation("PermissionOverrideUser")
-  permissionOverridesGranted UserPermissionOverride[]  @relation("PermissionOverrideGrantedBy")
+  permissionOverrides        UserPermissionOverride[]    @relation("PermissionOverrideUser")
+  permissionOverridesGranted UserPermissionOverride[]    @relation("PermissionOverrideGrantedBy")
   featureFlagsCreated        FeatureFlag[]
   globalConfigUpdated        GlobalConfig[]
-  stockLogsPerformed         ListingStockLog[]          @relation("StockLogPerformedBy")
+  stockLogsPerformed         ListingStockLog[]           @relation("StockLogPerformedBy")
   rateLimitLogs              RateLimitLog[]
 
   @@index([role])
   @@index([status])
   @@index([isDeleted])
   @@index([isFlagged])
-  @@index([primaryLatitude, primaryLongitude])  // 2dsphere
+  @@index([primaryLatitude, primaryLongitude]) // 2dsphere
   @@index([primaryDistrictId])
   @@index([primaryPincodeId])
   @@map("users")
@@ -699,14 +693,14 @@ model UserVerification {
 }
 
 model UserDeviceToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  token      String   @unique
-  platform   String?  // "android" | "ios" | "web"
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  token      String    @unique
+  platform   String? // "android" | "ios" | "web"
   deviceId   String?
-  isActive   Boolean  @default(true)
+  isActive   Boolean   @default(true)
   lastUsedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -714,7 +708,6 @@ model UserDeviceToken {
   @@index([isActive])
   @@map("user_device_tokens")
 }
-
 
 // ─────────────────────────────────────────────
 // LOCATIONS
@@ -757,28 +750,27 @@ model Location {
   @@index([userId])
   @@index([userId, isPrimary])
   @@index([isDeleted])
-  @@index([latitude, longitude])  // 2dsphere
+  @@index([latitude, longitude]) // 2dsphere
   @@index([districtId])
   @@index([pincodeId])
   @@index([type])
   @@map("locations")
 }
 
-
 // ─────────────────────────────────────────────
 // FARMER PROFILE
 // ─────────────────────────────────────────────
 
 model FarmerProfile {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String   @unique @db.ObjectId
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @unique @db.ObjectId
   totalLandArea     Float?
   experienceYears   Int?
   aadhaarLast4      String?
-  isKycVerified     Boolean  @default(false)
-  trustScore        Float    @default(5.0)
-  totalLoansTaken   Int      @default(0)
-  loansRepaidOnTime Int      @default(0)
+  isKycVerified     Boolean @default(false)
+  trustScore        Float   @default(5.0)
+  totalLoansTaken   Int     @default(0)
+  loansRepaidOnTime Int     @default(0)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -789,42 +781,40 @@ model FarmerProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user                  User                    @relation(fields: [userId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id])
   lands                 Land[]
   marketplaceListings   MarketplaceListing[]
-  ordersAsSeller        Order[]                 @relation("OrderFarmer")
+  ordersAsSeller        Order[]                @relation("OrderFarmer")
   diseaseReports        DiseaseReport[]
   diseaseReportUpdates  DiseaseReportUpdate[]
-  expertConsults        DiseaseExpertConsult[]  @relation("ExpertConsultFarmer")
+  expertConsults        DiseaseExpertConsult[] @relation("ExpertConsultFarmer")
   farmerAlerts          FarmerAlert[]
   loanRequests          LoanRequest[]
   loanRepayments        LoanRepayment[]
   warehouseItems        WarehouseItem[]
-  chatSessions          ChatSession[]           @relation("ChatSessionFarmer")
+  chatSessions          ChatSession[]          @relation("ChatSessionFarmer")
   schemeApplications    SchemeApplication[]
-  laborBookingsAsFarmer LaborBooking[]          @relation("LaborBookingFarmer")
-
+  laborBookingsAsFarmer LaborBooking[]         @relation("LaborBookingFarmer")
 
   @@index([trustScore])
   @@index([isDeleted])
   @@map("farmer_profiles")
 }
 
-
 // ─────────────────────────────────────────────
 // LAND & CROPS
 // ─────────────────────────────────────────────
 
 model Land {
-  id             String         @id @default(auto()) @map("_id") @db.ObjectId
-  farmerId       String         @db.ObjectId
-  locationId     String         @db.ObjectId
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId       String          @db.ObjectId
+  locationId     String          @db.ObjectId
   name           String
   areaAcres      Float
   landType       LandType
   soilType       SoilType?
   irrigationType IrrigationType?
-  isOrganic      Boolean        @default(false)
+  isOrganic      Boolean         @default(false)
   surveyNumber   String?
 
   // Soft delete
@@ -849,13 +839,13 @@ model Land {
 }
 
 model CropCatalog {
-  id               String       @id @default(auto()) @map("_id") @db.ObjectId
-  name             String       @unique
-  localNames       String?      // JSON: {"hi":"गेहूं","mr":"गहू"}
-  category         CropCategory
-  typicalSeasons   String[]     @default([])
-  avgDurationDays  Int?
-  imageUrl         String?
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  name            String       @unique
+  localNames      String? // JSON: {"hi":"गेहूं","mr":"गहू"}
+  category        CropCategory
+  typicalSeasons  String[]     @default([])
+  avgDurationDays Int?
+  imageUrl        String?
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -865,11 +855,11 @@ model CropCatalog {
   createdAt DateTime @default(now())
 
   // Relations
-  crops              Crop[]
-  marketPrices       MarketPrice[]
-  communities        Community[]     @relation("CommunityCatalog")
-  diseaseTreatments  DiseaseCatalogTreatment[] @relation("CropCatalogDiseaseTreatment")
-  blogs              Blog[]          @relation("BlogCropCatalog")
+  crops             Crop[]
+  marketPrices      MarketPrice[]
+  communities       Community[]               @relation("CommunityCatalog")
+  diseaseTreatments DiseaseCatalogTreatment[] @relation("CropCatalogDiseaseTreatment")
+  blogs             Blog[]                    @relation("BlogCropCatalog")
 
   @@index([category])
   @@index([isDeleted])
@@ -877,20 +867,20 @@ model CropCatalog {
 }
 
 model Crop {
-  id               String       @id @default(auto()) @map("_id") @db.ObjectId
-  landId           String       @db.ObjectId
-  catalogId        String?      @db.ObjectId
-  cropName         String       // denorm snapshot
-  category         CropCategory?
-  season           Season?
-  sowingDate       DateTime?
-  expectedHarvest  DateTime?
-  actualHarvest    DateTime?
-  status           CropStatus   @default(SOWN)
-  areaAcres        Float?
-  expectedYieldKg  Float?
-  actualYieldKg    Float?
-  notes            String?
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  landId          String        @db.ObjectId
+  catalogId       String?       @db.ObjectId
+  cropName        String // denorm snapshot
+  category        CropCategory?
+  season          Season?
+  sowingDate      DateTime?
+  expectedHarvest DateTime?
+  actualHarvest   DateTime?
+  status          CropStatus    @default(SOWN)
+  areaAcres       Float?
+  expectedYieldKg Float?
+  actualYieldKg   Float?
+  notes           String?
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -901,11 +891,11 @@ model Crop {
   updatedAt DateTime @updatedAt
 
   // Relations
-  land               Land                 @relation(fields: [landId], references: [id])
-  catalog            CropCatalog?         @relation(fields: [catalogId], references: [id])
+  land                Land                 @relation(fields: [landId], references: [id])
+  catalog             CropCatalog?         @relation(fields: [catalogId], references: [id])
   marketplaceListings MarketplaceListing[]
-  warehouseItems     WarehouseItem[]
-  diseaseReports     DiseaseReport[]
+  warehouseItems      WarehouseItem[]
+  diseaseReports      DiseaseReport[]
 
   @@index([landId])
   @@index([catalogId])
@@ -915,26 +905,25 @@ model Crop {
   @@map("crops")
 }
 
-
 // ─────────────────────────────────────────────
 // DISEASE INTELLIGENCE
 // ─────────────────────────────────────────────
 
 model DiseaseCatalog {
-  id                    String      @id @default(auto()) @map("_id") @db.ObjectId
-  name                  String      @unique
-  localNames            String?
-  scientificName        String?
-  diseaseType           DiseaseType
-  affectedCategories    String[]    // CropCategory values
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  name               String      @unique
+  localNames         String?
+  scientificName     String?
+  diseaseType        DiseaseType
+  affectedCategories String[] // CropCategory values
 
-  symptomsDescription   String
-  visualSigns           String?
-  identificationImages  String[]    @default([])
-  spreadMechanism       String?
-  favorableConditions   String?
-  incubationPeriod      String?
-  isOutbreakNotifiable  Boolean     @default(false)
+  symptomsDescription  String
+  visualSigns          String?
+  identificationImages String[] @default([])
+  spreadMechanism      String?
+  favorableConditions  String?
+  incubationPeriod     String?
+  isOutbreakNotifiable Boolean  @default(false)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -949,7 +938,6 @@ model DiseaseCatalog {
   diseaseReports    DiseaseReport[]
   diseaseAggregates DiseaseAggregateDaily[]
 
-
   @@index([diseaseType])
   @@index([isOutbreakNotifiable])
   @@index([isDeleted])
@@ -957,10 +945,10 @@ model DiseaseCatalog {
 }
 
 model TreatmentCatalog {
-  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String
-  treatmentType        TreatmentType
-  applicableStage      TreatmentStage
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  treatmentType   TreatmentType
+  applicableStage TreatmentStage
 
   productName          String?
   activeIngredient     String?
@@ -970,20 +958,20 @@ model TreatmentCatalog {
   applicationFrequency String?
   waitingPeriodDays    Int?
 
-  isOrganic            Boolean        @default(false)
-  safetyPrecautions    String?
-  phiDays              Int?           // pre-harvest interval
+  isOrganic         Boolean @default(false)
+  safetyPrecautions String?
+  phiDays           Int? // pre-harvest interval
 
-  referenceLinks       String[]       @default([])
-  videoUrl             String?
-  costRange            String?
-  availability         String?
+  referenceLinks String[] @default([])
+  videoUrl       String?
+  costRange      String?
+  availability   String?
 
-  isVerified           Boolean        @default(false)
-  verifiedById         String?        @db.ObjectId
+  isVerified   Boolean @default(false)
+  verifiedById String? @db.ObjectId
 
-  efficacyRate         Float?         // 0.0–1.0, recomputed from report outcomes
-  efficacySampleSize   Int            @default(0)
+  efficacyRate       Float? // 0.0–1.0, recomputed from report outcomes
+  efficacySampleSize Int    @default(0)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -994,10 +982,10 @@ model TreatmentCatalog {
   updatedAt DateTime @updatedAt
 
   // Relations
-  verifiedBy               User?                    @relation("TreatmentVerifiedBy", fields: [verifiedById], references: [id])
-  diseases                 DiseaseCatalogTreatment[]
-  diseaseReports           DiseaseReport[]           @relation("DiseaseReportRecommendedTreatment")
-  diseaseReportUpdates     DiseaseReportUpdate[]
+  verifiedBy           User?                     @relation("TreatmentVerifiedBy", fields: [verifiedById], references: [id])
+  diseases             DiseaseCatalogTreatment[]
+  diseaseReports       DiseaseReport[]           @relation("DiseaseReportRecommendedTreatment")
+  diseaseReportUpdates DiseaseReportUpdate[]
 
   @@index([treatmentType])
   @@index([applicableStage])
@@ -1033,40 +1021,40 @@ model DiseaseCatalogTreatment {
 }
 
 model DiseaseReport {
-  id                      String            @id @default(auto()) @map("_id") @db.ObjectId
-  cropId                  String            @db.ObjectId
-  farmerId                String            @db.ObjectId
-  diseaseCatalogId        String?           @db.ObjectId
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  cropId           String  @db.ObjectId
+  farmerId         String  @db.ObjectId
+  diseaseCatalogId String? @db.ObjectId
 
   // Geo denorm — never joined in outbreak queries
-  latitude                Float?
-  longitude               Float?
-  districtId              String?           @db.ObjectId
-  stateId                 String?           @db.ObjectId
+  latitude   Float?
+  longitude  Float?
+  districtId String? @db.ObjectId
+  stateId    String? @db.ObjectId
 
-  mediaUrl                String
-  mediaType               MediaType         @default(IMAGE)
-  additionalMedia         String[]          @default([])
+  mediaUrl        String
+  mediaType       MediaType @default(IMAGE)
+  additionalMedia String[]  @default([])
 
   // AI output
-  predictedDisease        String            // snapshot at detection time
-  confidenceScore         Float
-  aiConfidenceLevel       AIConfidenceLevel
-  severity                DiseaseSeverity
-  aiRecommendation        String
+  predictedDisease  String // snapshot at detection time
+  confidenceScore   Float
+  aiConfidenceLevel AIConfidenceLevel
+  severity          DiseaseSeverity
+  aiRecommendation  String
 
-  recommendedTreatmentId  String?           @db.ObjectId
+  recommendedTreatmentId String? @db.ObjectId
 
   // Expert review
-  expertReviewed          Boolean           @default(false)
-  expertId                String?           @db.ObjectId
-  expertDiagnosis         String?
-  expertNotes             String?
-  reviewedAt              DateTime?
+  expertReviewed  Boolean   @default(false)
+  expertId        String?   @db.ObjectId
+  expertDiagnosis String?
+  expertNotes     String?
+  reviewedAt      DateTime?
 
   // Outbreak
-  isConfirmedOutbreak     Boolean           @default(false)
-  outbreakAlertId         String?           @db.ObjectId
+  isConfirmedOutbreak Boolean @default(false)
+  outbreakAlertId     String? @db.ObjectId
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1076,16 +1064,16 @@ model DiseaseReport {
   createdAt DateTime @default(now())
 
   // Relations
-  crop                   Crop                    @relation(fields: [cropId], references: [id])
-  farmer                 FarmerProfile           @relation(fields: [farmerId], references: [id])
-  diseaseCatalog         DiseaseCatalog?         @relation(fields: [diseaseCatalogId], references: [id])
-  district               District?               @relation("DiseaseReportDistrict", fields: [districtId], references: [id])
-  state                  State?                  @relation("DiseaseReportState", fields: [stateId], references: [id])
-  recommendedTreatment   TreatmentCatalog?       @relation("DiseaseReportRecommendedTreatment", fields: [recommendedTreatmentId], references: [id])
-  expert                 User?                   @relation("DiseaseReportExpert", fields: [expertId], references: [id])
-  outbreakAlert          Alert?                  @relation("DiseaseReportOutbreakAlert", fields: [outbreakAlertId], references: [id])
-  updates                DiseaseReportUpdate[]
-  expertConsults         DiseaseExpertConsult[]
+  crop                 Crop                   @relation(fields: [cropId], references: [id])
+  farmer               FarmerProfile          @relation(fields: [farmerId], references: [id])
+  diseaseCatalog       DiseaseCatalog?        @relation(fields: [diseaseCatalogId], references: [id])
+  district             District?              @relation("DiseaseReportDistrict", fields: [districtId], references: [id])
+  state                State?                 @relation("DiseaseReportState", fields: [stateId], references: [id])
+  recommendedTreatment TreatmentCatalog?      @relation("DiseaseReportRecommendedTreatment", fields: [recommendedTreatmentId], references: [id])
+  expert               User?                  @relation("DiseaseReportExpert", fields: [expertId], references: [id])
+  outbreakAlert        Alert?                 @relation("DiseaseReportOutbreakAlert", fields: [outbreakAlertId], references: [id])
+  updates              DiseaseReportUpdate[]
+  expertConsults       DiseaseExpertConsult[]
 
   @@index([cropId])
   @@index([farmerId])
@@ -1096,7 +1084,7 @@ model DiseaseReport {
   @@index([aiConfidenceLevel])
   @@index([isConfirmedOutbreak])
   @@index([isDeleted])
-  @@index([latitude, longitude])           // 2dsphere
+  @@index([latitude, longitude]) // 2dsphere
   @@index([districtId, diseaseCatalogId, createdAt]) // outbreak aggregation
   @@index([stateId, diseaseCatalogId, createdAt])
   @@index([createdAt])
@@ -1141,9 +1129,9 @@ model DiseaseExpertConsult {
   requestedAt DateTime  @default(now())
   resolvedAt  DateTime?
 
-  report  DiseaseReport  @relation(fields: [reportId], references: [id])
-  farmer  FarmerProfile  @relation("ExpertConsultFarmer", fields: [farmerId], references: [id])
-  expert  User?          @relation("ExpertConsultExpert", fields: [expertId], references: [id])
+  report DiseaseReport @relation(fields: [reportId], references: [id])
+  farmer FarmerProfile @relation("ExpertConsultFarmer", fields: [farmerId], references: [id])
+  expert User?         @relation("ExpertConsultExpert", fields: [expertId], references: [id])
 
   @@index([reportId])
   @@index([farmerId])
@@ -1154,20 +1142,20 @@ model DiseaseExpertConsult {
 
 // Precomputed nightly rollup — outbreak scan runs on this, not disease_reports
 model DiseaseAggregateDaily {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  date              DateTime  // start of day UTC
-  districtId        String    @db.ObjectId
-  stateId           String    @db.ObjectId
-  diseaseCatalogId  String    @db.ObjectId
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  date             DateTime // start of day UTC
+  districtId       String   @db.ObjectId
+  stateId          String   @db.ObjectId
+  diseaseCatalogId String   @db.ObjectId
 
   reportCount       Int
-  confirmedCount    Int       @default(0)
-  severityHighCount Int       @default(0)
+  confirmedCount    Int    @default(0)
+  severityHighCount Int    @default(0)
   avgConfidence     Float?
 
-  thresholdCrossed  Boolean   @default(false)
-  alertTriggered    Boolean   @default(false)
-  computedAt        DateTime  @default(now())
+  thresholdCrossed Boolean  @default(false)
+  alertTriggered   Boolean  @default(false)
+  computedAt       DateTime @default(now())
 
   district       District       @relation(fields: [districtId], references: [id])
   state          State          @relation(fields: [stateId], references: [id])
@@ -1182,7 +1170,6 @@ model DiseaseAggregateDaily {
   @@index([stateId, diseaseCatalogId, date])
   @@map("disease_aggregates_daily")
 }
-
 
 // ─────────────────────────────────────────────
 // MARKETPLACE
@@ -1209,27 +1196,27 @@ model MarketPrice {
 }
 
 model MarketplaceListing {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  farmerId        String        @db.ObjectId
-  cropId          String        @db.ObjectId
-  cropName        String        // denorm snapshot
-  farmerName      String        // denorm snapshot
-  title           String
-  description     String?
-  images          String[]      @default([])
-  quantityKg      Float
-  availableQtyKg  Float
-  pricePerUnit    Float
-  unit            String        @default("kg")
-  isNegotiable    Boolean       @default(true)
-  locationId      String        @db.ObjectId
-  latitude        Float
-  longitude       Float
-  districtId      String        @db.ObjectId
-  status          ListingStatus @default(ACTIVE)
-  expiresAt       DateTime?
-  totalOrders     Int           @default(0)
-  avgRating       Float?
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId       String        @db.ObjectId
+  cropId         String        @db.ObjectId
+  cropName       String // denorm snapshot
+  farmerName     String // denorm snapshot
+  title          String
+  description    String?
+  images         String[]      @default([])
+  quantityKg     Float
+  availableQtyKg Float
+  pricePerUnit   Float
+  unit           String        @default("kg")
+  isNegotiable   Boolean       @default(true)
+  locationId     String        @db.ObjectId
+  latitude       Float
+  longitude      Float
+  districtId     String        @db.ObjectId
+  status         ListingStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  totalOrders    Int           @default(0)
+  avgRating      Float?
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1240,19 +1227,19 @@ model MarketplaceListing {
   updatedAt DateTime @updatedAt
 
   // Relations
-  farmer     FarmerProfile  @relation(fields: [farmerId], references: [id])
-  crop       Crop           @relation(fields: [cropId], references: [id])
-  location   Location       @relation(fields: [locationId], references: [id])
-  district   District       @relation(fields: [districtId], references: [id])
-  orders     Order[]
-  stockLogs  ListingStockLog[]
-  disputes   OrderDispute[]    @relation("DisputeListing")
-  contentReports ContentReport[] @relation("ContentReportListing")
+  farmer         FarmerProfile     @relation(fields: [farmerId], references: [id])
+  crop           Crop              @relation(fields: [cropId], references: [id])
+  location       Location          @relation(fields: [locationId], references: [id])
+  district       District          @relation(fields: [districtId], references: [id])
+  orders         Order[]
+  stockLogs      ListingStockLog[]
+  disputes       OrderDispute[]    @relation("DisputeListing")
+  contentReports ContentReport[]   @relation("ContentReportListing")
 
   @@index([farmerId])
   @@index([status])
   @@index([isDeleted])
-  @@index([latitude, longitude])   // 2dsphere
+  @@index([latitude, longitude]) // 2dsphere
   @@index([districtId])
   @@index([cropName])
   @@index([status, districtId])
@@ -1265,9 +1252,9 @@ model ListingStockLog {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
   listingId      String          @db.ObjectId
   changeType     StockChangeType
-  quantityChange Float           // positive = added, negative = deducted
-  quantityAfter  Float           // available_qty_kg after this event
-  referenceType  String?         // "order" | "manual" | "warehouse_transfer"
+  quantityChange Float // positive = added, negative = deducted
+  quantityAfter  Float // available_qty_kg after this event
+  referenceType  String? // "order" | "manual" | "warehouse_transfer"
   referenceId    String?         @db.ObjectId
   performedById  String?         @db.ObjectId
   notes          String?
@@ -1287,7 +1274,7 @@ model Order {
   id                      String      @id @default(auto()) @map("_id") @db.ObjectId
   listingId               String      @db.ObjectId
   buyerId                 String      @db.ObjectId
-  farmerId                String      @db.ObjectId  // denorm
+  farmerId                String      @db.ObjectId // denorm
   quantityKg              Float
   pricePerUnit            Float
   negotiatedPrice         Float?
@@ -1330,13 +1317,13 @@ model Order {
 }
 
 model Transaction {
-  id               String        @id @default(auto()) @map("_id") @db.ObjectId
-  orderId          String        @unique @db.ObjectId
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  orderId          String         @unique @db.ObjectId
   grossAmount      Float
-  platformFee      Float         @default(0)
+  platformFee      Float          @default(0)
   farmerPayout     Float
   paymentMethod    PaymentMethod?
-  paymentStatus    PaymentStatus @default(PENDING)
+  paymentStatus    PaymentStatus  @default(PENDING)
   paymentReference String?
   paidAt           DateTime?
   refundedAt       DateTime?
@@ -1344,11 +1331,10 @@ model Transaction {
   refundReason     String?
   paymentIp        String?
   paymentDevice    String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   order Order @relation(fields: [orderId], references: [id])
-
 
   @@index([paymentStatus])
   @@index([paymentReference])
@@ -1356,18 +1342,17 @@ model Transaction {
 }
 
 model OrderReview {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderId     String   @unique @db.ObjectId
-  reviewerId  String   @db.ObjectId
-  revieweeId  String   @db.ObjectId
-  rating      Int      // 1–5
-  comment     String?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId    String   @unique @db.ObjectId
+  reviewerId String   @db.ObjectId
+  revieweeId String   @db.ObjectId
+  rating     Int // 1–5
+  comment    String?
+  createdAt  DateTime @default(now())
 
   order    Order @relation(fields: [orderId], references: [id])
   reviewer User  @relation("OrderReviewReviewer", fields: [reviewerId], references: [id])
   reviewee User  @relation("OrderReviewReviewee", fields: [revieweeId], references: [id])
-
 
   @@index([revieweeId])
   @@index([revieweeId, rating])
@@ -1375,26 +1360,26 @@ model OrderReview {
 }
 
 model OrderDispute {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  orderId        String        @db.ObjectId
-  listingId      String?       @db.ObjectId
-  raisedById     String        @db.ObjectId
-  reason         DisputeReason
-  description    String
-  evidenceMedia  String[]      @default([])
-  status         DisputeStatus @default(OPEN)
-  assignedToId   String?       @db.ObjectId
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId         String        @db.ObjectId
+  listingId       String?       @db.ObjectId
+  raisedById      String        @db.ObjectId
+  reason          DisputeReason
+  description     String
+  evidenceMedia   String[]      @default([])
+  status          DisputeStatus @default(OPEN)
+  assignedToId    String?       @db.ObjectId
   resolutionNotes String?
-  refundAmount   Float?
-  resolvedById   String?       @db.ObjectId
-  raisedAt       DateTime      @default(now())
-  resolvedAt     DateTime?
+  refundAmount    Float?
+  resolvedById    String?       @db.ObjectId
+  raisedAt        DateTime      @default(now())
+  resolvedAt      DateTime?
 
   order      Order               @relation(fields: [orderId], references: [id])
-  listing    MarketplaceListing?  @relation("DisputeListing", fields: [listingId], references: [id])
-  raisedBy   User                 @relation("DisputeRaisedBy", fields: [raisedById], references: [id])
-  assignedTo User?                @relation("DisputeAssignedTo", fields: [assignedToId], references: [id])
-  resolvedBy User?                @relation("DisputeResolvedBy", fields: [resolvedById], references: [id])
+  listing    MarketplaceListing? @relation("DisputeListing", fields: [listingId], references: [id])
+  raisedBy   User                @relation("DisputeRaisedBy", fields: [raisedById], references: [id])
+  assignedTo User?               @relation("DisputeAssignedTo", fields: [assignedToId], references: [id])
+  resolvedBy User?               @relation("DisputeResolvedBy", fields: [resolvedById], references: [id])
 
   @@index([orderId])
   @@index([raisedById])
@@ -1404,34 +1389,32 @@ model OrderDispute {
   @@map("order_disputes")
 }
 
-
 // ─────────────────────────────────────────────
 // WEATHER
 // ─────────────────────────────────────────────
 
 model WeatherSnapshot {
-  id            String            @id @default(auto()) @map("_id") @db.ObjectId
-  landId        String            @db.ObjectId
-  latitude      Float?
-  longitude     Float?
-  temperatureC  Float?
-  humidityPct   Float?
-  rainfallMm    Float?
-  windSpeedKmh  Float?
-  condition     WeatherCondition?
-  uvIndex       Float?
-  source        String?
-  forecastFor   DateTime?
-  recordedAt    DateTime          // TTL: 90 days
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  landId       String            @db.ObjectId
+  latitude     Float?
+  longitude    Float?
+  temperatureC Float?
+  humidityPct  Float?
+  rainfallMm   Float?
+  windSpeedKmh Float?
+  condition    WeatherCondition?
+  uvIndex      Float?
+  source       String?
+  forecastFor  DateTime?
+  recordedAt   DateTime // TTL: 90 days
 
   land Land @relation(fields: [landId], references: [id])
 
   @@index([landId])
   @@index([landId, recordedAt])
-  @@index([recordedAt])   // TTL target
+  @@index([recordedAt]) // TTL target
   @@map("weather_snapshots")
 }
-
 
 // ─────────────────────────────────────────────
 // ALERTS
@@ -1462,12 +1445,12 @@ model Alert {
   createdAt DateTime @default(now())
 
   // Relations
-  state           State?          @relation("AlertState",    fields: [stateId],    references: [id])
-  district        District?       @relation("AlertDistrict", fields: [districtId], references: [id])
-  pincode         Pincode?        @relation("AlertPincode",  fields: [pincodeId],  references: [id])
-  createdBy       User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
-  farmerAlerts    FarmerAlert[]
-  diseaseReports  DiseaseReport[] @relation("DiseaseReportOutbreakAlert")
+  state          State?          @relation("AlertState", fields: [stateId], references: [id])
+  district       District?       @relation("AlertDistrict", fields: [districtId], references: [id])
+  pincode        Pincode?        @relation("AlertPincode", fields: [pincodeId], references: [id])
+  createdBy      User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
+  farmerAlerts   FarmerAlert[]
+  diseaseReports DiseaseReport[] @relation("DiseaseReportOutbreakAlert")
 
   @@index([type])
   @@index([severity])
@@ -1477,7 +1460,7 @@ model Alert {
   @@index([isActive])
   @@index([isDeleted])
   @@index([isActive, targetLevel])
-  @@index([centerLatitude, centerLongitude])  // 2dsphere
+  @@index([centerLatitude, centerLongitude]) // 2dsphere
   @@index([expiresAt])
   @@map("alerts")
 }
@@ -1500,25 +1483,24 @@ model FarmerAlert {
   @@map("farmer_alerts")
 }
 
-
 // ─────────────────────────────────────────────
 // GOVERNMENT SCHEMES & NEWS
 // ─────────────────────────────────────────────
 
 model GovernmentScheme {
-  id                String          @id @default(auto()) @map("_id") @db.ObjectId
-  title             String
-  description       String
-  eligibility       String?
-  officialLink      String?
-  schemeCategory    SchemeCategory?
-  maxBenefitAmount  Float?
-  benefitUnit       String?
-  isNational        Boolean         @default(false)
-  stateId           String?         @db.ObjectId
-  districtId        String?         @db.ObjectId
-  isActive          Boolean         @default(true)
-  deadline          DateTime?
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  eligibility      String?
+  officialLink     String?
+  schemeCategory   SchemeCategory?
+  maxBenefitAmount Float?
+  benefitUnit      String?
+  isNational       Boolean         @default(false)
+  stateId          String?         @db.ObjectId
+  districtId       String?         @db.ObjectId
+  isActive         Boolean         @default(true)
+  deadline         DateTime?
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1528,8 +1510,8 @@ model GovernmentScheme {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  state    State?    @relation(fields: [stateId], references: [id])
-  district District? @relation("DistrictGovernmentScheme", fields: [districtId], references: [id])
+  state        State?              @relation(fields: [stateId], references: [id])
+  district     District?           @relation("DistrictGovernmentScheme", fields: [districtId], references: [id])
   applications SchemeApplication[]
 
   @@index([isNational])
@@ -1565,19 +1547,19 @@ model SchemeApplication {
 }
 
 model NewsArticle {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   summary     String?
   content     String
   source      String?
   sourceUrl   String?
   imageUrl    String?
-  tags        String[]   @default([])
-  catalogIds  String[]   @default([]) @db.ObjectId
-  isNational  Boolean    @default(false)
-  stateId     String?    @db.ObjectId
-  districtId  String?    @db.ObjectId
-  isPublished Boolean    @default(false)
+  tags        String[]  @default([])
+  catalogIds  String[]  @default([]) @db.ObjectId
+  isNational  Boolean   @default(false)
+  stateId     String?   @db.ObjectId
+  districtId  String?   @db.ObjectId
+  isPublished Boolean   @default(false)
   publishedAt DateTime?
 
   // Soft delete
@@ -1598,31 +1580,30 @@ model NewsArticle {
   @@map("news_articles")
 }
 
-
 // ─────────────────────────────────────────────
 // COMMUNITY
 // ─────────────────────────────────────────────
 
 model Community {
-  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
-  name               String
-  description        String?
-  createdById        String        @db.ObjectId
-  type               CommunityType
-  stateId            String?       @db.ObjectId
-  districtId         String?       @db.ObjectId
-  locationId         String?       @db.ObjectId
-  centerLatitude     Float?
-  centerLongitude    Float?
-  radiusKm           Float?
-  catalogId          String?       @db.ObjectId
-  cropName           String?       // denorm
-  isSystemGenerated  Boolean       @default(false)
-  isPrivate          Boolean       @default(false)
-  isActive           Boolean       @default(true)
-  coverImageUrl      String?
-  memberCount        Int           @default(0)
-  postCount          Int           @default(0)
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  description       String?
+  createdById       String        @db.ObjectId
+  type              CommunityType
+  stateId           String?       @db.ObjectId
+  districtId        String?       @db.ObjectId
+  locationId        String?       @db.ObjectId
+  centerLatitude    Float?
+  centerLongitude   Float?
+  radiusKm          Float?
+  catalogId         String?       @db.ObjectId
+  cropName          String? // denorm
+  isSystemGenerated Boolean       @default(false)
+  isPrivate         Boolean       @default(false)
+  isActive          Boolean       @default(true)
+  coverImageUrl     String?
+  memberCount       Int           @default(0)
+  postCount         Int           @default(0)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1633,14 +1614,14 @@ model Community {
   updatedAt DateTime @updatedAt
 
   // Relations
-  createdBy   User         @relation("CommunityCreatedBy", fields: [createdById], references: [id])
-  state       State?       @relation("CommunityState",    fields: [stateId],    references: [id])
-  district    District?    @relation("CommunityDistrict", fields: [districtId], references: [id])
-  location    Location?    @relation("CommunityLocation", fields: [locationId], references: [id])
-  catalog     CropCatalog? @relation("CommunityCatalog",  fields: [catalogId],  references: [id])
-  members     CommunityMember[]
-  posts       CommunityPost[]
-  chatRooms   CommunityChatRoom[]
+  createdBy    User                @relation("CommunityCreatedBy", fields: [createdById], references: [id])
+  state        State?              @relation("CommunityState", fields: [stateId], references: [id])
+  district     District?           @relation("CommunityDistrict", fields: [districtId], references: [id])
+  location     Location?           @relation("CommunityLocation", fields: [locationId], references: [id])
+  catalog      CropCatalog?        @relation("CommunityCatalog", fields: [catalogId], references: [id])
+  members      CommunityMember[]
+  posts        CommunityPost[]
+  chatRooms    CommunityChatRoom[]
   loanRequests LoanRequest[]
 
   @@index([createdById])
@@ -1651,7 +1632,7 @@ model Community {
   @@index([isActive])
   @@index([isDeleted])
   @@index([isActive, type])
-  @@index([centerLatitude, centerLongitude])  // 2dsphere
+  @@index([centerLatitude, centerLongitude]) // 2dsphere
   @@map("communities")
 }
 
@@ -1674,15 +1655,15 @@ model CommunityMember {
 }
 
 model CommunityPost {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  communityId  String    @db.ObjectId
-  authorId     String    @db.ObjectId
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  communityId  String   @db.ObjectId
+  authorId     String   @db.ObjectId
   content      String
-  images       String[]  @default([])
+  images       String[] @default([])
   videoUrl     String?
-  likeCount    Int       @default(0)
-  commentCount Int       @default(0)
-  isPinned     Boolean   @default(false)
+  likeCount    Int      @default(0)
+  commentCount Int      @default(0)
+  isPinned     Boolean  @default(false)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1723,12 +1704,12 @@ model CommunityPostReaction {
 }
 
 model CommunityComment {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  postId    String    @db.ObjectId
-  authorId  String    @db.ObjectId
-  parentId  String?   @db.ObjectId  // self-relation for nested replies
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  postId   String  @db.ObjectId
+  authorId String  @db.ObjectId
+  parentId String? @db.ObjectId // self-relation for nested replies
 
-  content   String
+  content String
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1738,11 +1719,11 @@ model CommunityComment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  post     CommunityPost      @relation(fields: [postId], references: [id])
-  author   User               @relation(fields: [authorId], references: [id])
-  parent   CommunityComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies  CommunityComment[] @relation("CommentReplies")
-  contentReports ContentReport[] @relation("ContentReportComment")
+  post           CommunityPost      @relation(fields: [postId], references: [id])
+  author         User               @relation(fields: [authorId], references: [id])
+  parent         CommunityComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies        CommunityComment[] @relation("CommentReplies")
+  contentReports ContentReport[]    @relation("ContentReportComment")
 
   @@index([postId])
   @@index([authorId])
@@ -1773,8 +1754,8 @@ model CommunityChatRoom {
   createdAt DateTime @default(now())
 
   // Relations
-  community    Community              @relation(fields: [communityId], references: [id])
-  createdBy    User                   @relation("ChatRoomCreatedBy", fields: [createdById], references: [id])
+  community    Community                  @relation(fields: [communityId], references: [id])
+  createdBy    User                       @relation("ChatRoomCreatedBy", fields: [createdById], references: [id])
   messages     CommunityChatMessage[]
   readReceipts CommunityChatReadReceipt[]
 
@@ -1787,14 +1768,14 @@ model CommunityChatRoom {
 
 // TTL: 365 days on createdAt
 model CommunityChatMessage {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  roomId      String    @db.ObjectId
-  communityId String    @db.ObjectId  // denorm
-  senderId    String    @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomId      String   @db.ObjectId
+  communityId String   @db.ObjectId // denorm
+  senderId    String   @db.ObjectId
   content     String
-  images      String[]  @default([])
-  replyToId   String?   @db.ObjectId
-  isSystem    Boolean   @default(false)
+  images      String[] @default([])
+  replyToId   String?  @db.ObjectId
+  isSystem    Boolean  @default(false)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -1805,12 +1786,12 @@ model CommunityChatMessage {
   editedAt  DateTime?
 
   // Relations
-  room      CommunityChatRoom       @relation(fields: [roomId], references: [id])
-  sender    User                    @relation("ChatMessageSender", fields: [senderId], references: [id])
-  replyTo   CommunityChatMessage?   @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies   CommunityChatMessage[]  @relation("MessageReplies")
-  editHistory CommunityChatMessageEdit[]
-  contentReports ContentReport[]   @relation("ContentReportChatMsg")
+  room           CommunityChatRoom          @relation(fields: [roomId], references: [id])
+  sender         User                       @relation("ChatMessageSender", fields: [senderId], references: [id])
+  replyTo        CommunityChatMessage?      @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies        CommunityChatMessage[]     @relation("MessageReplies")
+  editHistory    CommunityChatMessageEdit[]
+  contentReports ContentReport[]            @relation("ContentReportChatMsg")
 
   @@index([roomId])
   @@index([communityId])
@@ -1818,7 +1799,7 @@ model CommunityChatMessage {
   @@index([replyToId])
   @@index([isDeleted])
   @@index([roomId, createdAt])
-  @@index([createdAt])  // TTL target
+  @@index([createdAt]) // TTL target
   @@map("community_chat_messages")
 }
 
@@ -1838,11 +1819,11 @@ model CommunityChatMessageEdit {
 }
 
 model CommunityChatReadReceipt {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  roomId        String    @db.ObjectId
-  userId        String    @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomId        String   @db.ObjectId
+  userId        String   @db.ObjectId
   lastReadAt    DateTime
-  lastMessageId String?   @db.ObjectId
+  lastMessageId String?  @db.ObjectId
 
   room CommunityChatRoom @relation(fields: [roomId], references: [id])
   user User              @relation(fields: [userId], references: [id])
@@ -1854,27 +1835,27 @@ model CommunityChatReadReceipt {
 }
 
 model ContentReport {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  reporterId  String       @db.ObjectId
-  postId      String?      @db.ObjectId
-  commentId   String?      @db.ObjectId
-  chatMsgId   String?      @db.ObjectId
-  listingId   String?      @db.ObjectId
-  blogId      String?      @db.ObjectId
-  reason      ReportReason
-  description String?
-  status      String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
-  reviewedById String?     @db.ObjectId
-  reviewedAt  DateTime?
-  createdAt   DateTime     @default(now())
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  reporterId   String       @db.ObjectId
+  postId       String?      @db.ObjectId
+  commentId    String?      @db.ObjectId
+  chatMsgId    String?      @db.ObjectId
+  listingId    String?      @db.ObjectId
+  blogId       String?      @db.ObjectId
+  reason       ReportReason
+  description  String?
+  status       String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
+  reviewedById String?      @db.ObjectId
+  reviewedAt   DateTime?
+  createdAt    DateTime     @default(now())
 
-  reporter   User               @relation("ContentReportReporter", fields: [reporterId], references: [id])
-  reviewedBy User?              @relation("ContentReportReviewer", fields: [reviewedById], references: [id])
-  post       CommunityPost?     @relation("ContentReportPost",    fields: [postId],    references: [id])
-  comment    CommunityComment?  @relation("ContentReportComment", fields: [commentId], references: [id])
+  reporter   User                  @relation("ContentReportReporter", fields: [reporterId], references: [id])
+  reviewedBy User?                 @relation("ContentReportReviewer", fields: [reviewedById], references: [id])
+  post       CommunityPost?        @relation("ContentReportPost", fields: [postId], references: [id])
+  comment    CommunityComment?     @relation("ContentReportComment", fields: [commentId], references: [id])
   chatMsg    CommunityChatMessage? @relation("ContentReportChatMsg", fields: [chatMsgId], references: [id])
-  listing    MarketplaceListing? @relation("ContentReportListing", fields: [listingId], references: [id])
-  blog       Blog?              @relation("ContentReportBlog",    fields: [blogId],    references: [id])
+  listing    MarketplaceListing?   @relation("ContentReportListing", fields: [listingId], references: [id])
+  blog       Blog?                 @relation("ContentReportBlog", fields: [blogId], references: [id])
 
   @@index([reporterId])
   @@index([postId])
@@ -1884,7 +1865,6 @@ model ContentReport {
   @@index([status])
   @@map("content_reports")
 }
-
 
 // ─────────────────────────────────────────────
 // CROWDFUNDING (FULL ESCROW LIFECYCLE)
@@ -1896,7 +1876,7 @@ model LoanRequest {
   communityId    String?    @db.ObjectId
   title          String
   amount         Float
-  pledgedAmount  Float      @default(0)  // cached SUM — source of truth is LoanPledge
+  pledgedAmount  Float      @default(0) // cached SUM — source of truth is LoanPledge
   reason         String
   description    String?
   proofDocs      String[]   @default([])
@@ -1915,13 +1895,13 @@ model LoanRequest {
   updatedAt DateTime @updatedAt
 
   // Relations
-  farmer       FarmerProfile               @relation(fields: [farmerId], references: [id])
-  community    Community?                  @relation(fields: [communityId], references: [id])
-  fundWallet   LoanFundWallet?
-  milestones   LoanMilestone[]
-  pledges      LoanPledge[]
-  repayments   LoanRepayment[]
-  votes        LoanVote[]
+  farmer     FarmerProfile   @relation(fields: [farmerId], references: [id])
+  community  Community?      @relation(fields: [communityId], references: [id])
+  fundWallet LoanFundWallet?
+  milestones LoanMilestone[]
+  pledges    LoanPledge[]
+  repayments LoanRepayment[]
+  votes      LoanVote[]
 
   @@index([farmerId])
   @@index([communityId])
@@ -1932,36 +1912,35 @@ model LoanRequest {
 }
 
 model LoanFundWallet {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  loanId          String   @unique @db.ObjectId
-  totalPledged    Float    @default(0)
-  heldAmount      Float    @default(0)
-  releasedAmount  Float    @default(0)
-  refundedAmount  Float    @default(0)
-  lastEventAt     DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  loanId         String   @unique @db.ObjectId
+  totalPledged   Float    @default(0)
+  heldAmount     Float    @default(0)
+  releasedAmount Float    @default(0)
+  refundedAmount Float    @default(0)
+  lastEventAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   loan LoanRequest @relation(fields: [loanId], references: [id])
-
 
   @@map("loan_fund_wallets")
 }
 
 model LoanMilestone {
-  id               String              @id @default(auto()) @map("_id") @db.ObjectId
-  loanId           String              @db.ObjectId
-  title            String
-  description      String?
-  amount           Float
-  dueDate          DateTime?
-  status           LoanMilestoneStatus @default(PENDING)
-  completionProof  String[]            @default([])
-  completedAt      DateTime?
-  releasedAt       DateTime?
-  approvedById     String?             @db.ObjectId
-  sortOrder        Int                 @default(0)
-  createdAt        DateTime            @default(now())
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  loanId          String              @db.ObjectId
+  title           String
+  description     String?
+  amount          Float
+  dueDate         DateTime?
+  status          LoanMilestoneStatus @default(PENDING)
+  completionProof String[]            @default([])
+  completedAt     DateTime?
+  releasedAt      DateTime?
+  approvedById    String?             @db.ObjectId
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
 
   loan       LoanRequest @relation(fields: [loanId], references: [id])
   approvedBy User?       @relation("MilestoneApprovedBy", fields: [approvedById], references: [id])
@@ -1986,8 +1965,8 @@ model LoanPledge {
   pledgeDevice    String?
   createdAt       DateTime     @default(now())
 
-  loan    LoanRequest @relation(fields: [loanId], references: [id])
-  pledger User        @relation(fields: [pledgerId], references: [id])
+  loan                   LoanRequest                 @relation(fields: [loanId], references: [id])
+  pledger                User                        @relation(fields: [pledgerId], references: [id])
   repaymentDistributions LoanRepaymentDistribution[]
 
   @@unique([loanId, pledgerId])
@@ -1999,22 +1978,22 @@ model LoanPledge {
 }
 
 model LoanRepayment {
-  id                String          @id @default(auto()) @map("_id") @db.ObjectId
-  loanId            String          @db.ObjectId
-  farmerId          String          @db.ObjectId
-  installmentNo     Int
-  amountDue         Float
-  amountPaid        Float           @default(0)
-  dueDate           DateTime
-  paidDate          DateTime?
-  status            RepaymentStatus @default(SCHEDULED)
-  paymentReference  String?
-  notes             String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  loanId           String          @db.ObjectId
+  farmerId         String          @db.ObjectId
+  installmentNo    Int
+  amountDue        Float
+  amountPaid       Float           @default(0)
+  dueDate          DateTime
+  paidDate         DateTime?
+  status           RepaymentStatus @default(SCHEDULED)
+  paymentReference String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
-  loan    LoanRequest   @relation(fields: [loanId], references: [id])
-  farmer  FarmerProfile @relation(fields: [farmerId], references: [id])
+  loan          LoanRequest                 @relation(fields: [loanId], references: [id])
+  farmer        FarmerProfile               @relation(fields: [farmerId], references: [id])
   distributions LoanRepaymentDistribution[]
 
   @@unique([loanId, installmentNo])
@@ -2023,22 +2002,22 @@ model LoanRepayment {
   @@index([status])
   @@index([dueDate])
   @@index([farmerId, status])
-  @@index([status, dueDate])   // cron finds overdue here
+  @@index([status, dueDate]) // cron finds overdue here
   @@map("loan_repayments")
 }
 
 model LoanRepaymentDistribution {
-  id           String          @id @default(auto()) @map("_id") @db.ObjectId
-  repaymentId  String          @db.ObjectId
-  loanId       String          @db.ObjectId
-  pledgeId     String          @db.ObjectId
-  pledgerId    String          @db.ObjectId
-  pledgeShare  Float           // pledger's % of total loan
-  amountDue    Float
-  amountPaid   Float           @default(0)
-  status       RepaymentStatus @default(SCHEDULED)
-  paidAt       DateTime?
-  createdAt    DateTime        @default(now())
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  repaymentId String          @db.ObjectId
+  loanId      String          @db.ObjectId
+  pledgeId    String          @db.ObjectId
+  pledgerId   String          @db.ObjectId
+  pledgeShare Float // pledger's % of total loan
+  amountDue   Float
+  amountPaid  Float           @default(0)
+  status      RepaymentStatus @default(SCHEDULED)
+  paidAt      DateTime?
+  createdAt   DateTime        @default(now())
 
   repayment LoanRepayment @relation(fields: [repaymentId], references: [id])
   pledge    LoanPledge    @relation(fields: [pledgeId], references: [id])
@@ -2059,15 +2038,14 @@ model LoanVote {
   voterId   String   @db.ObjectId
   createdAt DateTime @default(now())
 
-  loan   LoanRequest @relation(fields: [loanId], references: [id])
-  voter  User        @relation(fields: [voterId], references: [id])
+  loan  LoanRequest @relation(fields: [loanId], references: [id])
+  voter User        @relation(fields: [voterId], references: [id])
 
   @@unique([loanId, voterId])
   @@index([loanId])
   @@index([voterId])
   @@map("loan_votes")
 }
-
 
 // ─────────────────────────────────────────────
 // LABOR MARKETPLACE
@@ -2096,16 +2074,15 @@ model LaborProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id])
-  location Location? @relation(fields: [locationId], references: [id])
-  district District? @relation(fields: [districtId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
+  location Location?      @relation(fields: [locationId], references: [id])
+  district District?      @relation(fields: [districtId], references: [id])
   bookings LaborBooking[]
-
 
   @@index([isAvailable])
   @@index([isDeleted])
   @@index([districtId])
-  @@index([latitude, longitude])         // 2dsphere
+  @@index([latitude, longitude]) // 2dsphere
   @@index([isAvailable, districtId])
   @@map("labor_profiles")
 }
@@ -2139,7 +2116,6 @@ model LaborBooking {
   @@map("labor_bookings")
 }
 
-
 // ─────────────────────────────────────────────
 // WAREHOUSE
 // ─────────────────────────────────────────────
@@ -2169,7 +2145,6 @@ model WarehouseItem {
   @@map("warehouse_items")
 }
 
-
 // ─────────────────────────────────────────────
 // BLOG SYSTEM
 // ─────────────────────────────────────────────
@@ -2190,7 +2165,6 @@ model BlogCategory {
   blogs    Blog[]
 
   @@index([parentId])
-
   @@index([isDeleted])
   @@map("blog_categories")
 }
@@ -2231,11 +2205,11 @@ model Blog {
   updatedAt DateTime @updatedAt
 
   // Relations
-  author         User           @relation(fields: [authorId], references: [id])
-  category       BlogCategory?  @relation(fields: [categoryId], references: [id])
-  catalog        CropCatalog?   @relation("BlogCropCatalog", fields: [catalogId], references: [id])
-  state          State?         @relation("BlogState",    fields: [stateId],    references: [id])
-  district       District?      @relation("BlogDistrict", fields: [districtId], references: [id])
+  author         User            @relation(fields: [authorId], references: [id])
+  category       BlogCategory?   @relation(fields: [categoryId], references: [id])
+  catalog        CropCatalog?    @relation("BlogCropCatalog", fields: [catalogId], references: [id])
+  state          State?          @relation("BlogState", fields: [stateId], references: [id])
+  district       District?       @relation("BlogDistrict", fields: [districtId], references: [id])
   views          BlogView[]
   reactions      BlogReaction[]
   comments       BlogComment[]
@@ -2244,7 +2218,6 @@ model Blog {
 
   @@index([authorId])
   @@index([categoryId])
-
   @@index([status])
   @@index([isFeatured])
   @@index([isNational])
@@ -2255,19 +2228,19 @@ model Blog {
   @@index([status, publishedAt])
   @@index([status, isNational])
   @@index([status, stateId])
-  @@index([latitude, longitude])   // 2dsphere — field-report geo blogs
+  @@index([latitude, longitude]) // 2dsphere — field-report geo blogs
   @@map("blogs")
 }
 
 // Unique view tracking — prevents bot inflation of viewCount
 // TTL: 180 days on createdAt
 model BlogView {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  blogId      String    @db.ObjectId
-  userId      String?   @db.ObjectId
-  fingerprint String?   // anonymous browser fingerprint
-  source      String?   // "community_post" | "search" | "direct" | "notification"
-  createdAt   DateTime  @default(now()) // TTL target
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId      String   @db.ObjectId
+  userId      String?  @db.ObjectId
+  fingerprint String? // anonymous browser fingerprint
+  source      String? // "community_post" | "search" | "direct" | "notification"
+  createdAt   DateTime @default(now()) // TTL target
 
   blog Blog  @relation(fields: [blogId], references: [id])
   user User? @relation(fields: [userId], references: [id])
@@ -2276,7 +2249,7 @@ model BlogView {
   @@index([userId])
   @@index([blogId, userId])
   @@index([blogId, fingerprint])
-  @@index([createdAt])  // TTL target
+  @@index([createdAt]) // TTL target
   @@map("blog_views")
 }
 
@@ -2296,12 +2269,12 @@ model BlogReaction {
 }
 
 model BlogComment {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  blogId    String    @db.ObjectId
-  authorId  String    @db.ObjectId
-  parentId  String?   @db.ObjectId
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  blogId   String  @db.ObjectId
+  authorId String  @db.ObjectId
+  parentId String? @db.ObjectId
 
-  content   String
+  content String
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -2311,10 +2284,10 @@ model BlogComment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  blog     Blog         @relation(fields: [blogId], references: [id])
-  author   User         @relation(fields: [authorId], references: [id])
-  parent   BlogComment?  @relation("BlogCommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies  BlogComment[] @relation("BlogCommentReplies")
+  blog    Blog          @relation(fields: [blogId], references: [id])
+  author  User          @relation(fields: [authorId], references: [id])
+  parent  BlogComment?  @relation("BlogCommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies BlogComment[] @relation("BlogCommentReplies")
 
   @@index([blogId])
   @@index([authorId])
@@ -2338,7 +2311,6 @@ model BlogBookmark {
   @@map("blog_bookmarks")
 }
 
-
 // ─────────────────────────────────────────────
 // AI CHAT SYSTEM
 // ─────────────────────────────────────────────
@@ -2349,7 +2321,7 @@ model ChatSession {
   title           String?
   language        String            @default("hi")
   status          ChatSessionStatus @default(ACTIVE)
-  contextSnapshot String?           // JSON: crops, alerts, weather, diseases
+  contextSnapshot String? // JSON: crops, alerts, weather, diseases
   messageCount    Int               @default(0)
 
   // Soft delete
@@ -2362,8 +2334,6 @@ model ChatSession {
 
   farmer   FarmerProfile @relation("ChatSessionFarmer", fields: [farmerId], references: [id])
   messages ChatMessage[]
-
-
 
   @@index([farmerId])
   @@index([status])
@@ -2391,25 +2361,24 @@ model ChatMessage {
   @@map("chat_messages")
 }
 
-
 // ─────────────────────────────────────────────
 // EXPERT PROFILES
 // ─────────────────────────────────────────────
 
 model ExpertProfile {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId           String   @unique @db.ObjectId
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
 
-  specializations  String[]
-  qualifications   String?
-  institution      String?
-  yearsExperience  Int?
-  isVerified       Boolean  @default(false)
-  verifiedById     String?  @db.ObjectId
-  verificationDoc  String?
-  avgRating        Float?
-  totalConsults    Int      @default(0)
-  responseSlaHrs   Int      @default(48)
+  specializations String[]
+  qualifications  String?
+  institution     String?
+  yearsExperience Int?
+  isVerified      Boolean  @default(false)
+  verifiedById    String?  @db.ObjectId
+  verificationDoc String?
+  avgRating       Float?
+  totalConsults   Int      @default(0)
+  responseSlaHrs  Int      @default(48)
 
   // Soft delete
   isDeleted Boolean   @default(false)
@@ -2421,12 +2390,10 @@ model ExpertProfile {
 
   user User @relation(fields: [userId], references: [id])
 
-
   @@index([isVerified])
   @@index([isDeleted])
   @@map("expert_profiles")
 }
-
 
 // ─────────────────────────────────────────────
 // NOTIFICATIONS
@@ -2434,19 +2401,19 @@ model ExpertProfile {
 // ─────────────────────────────────────────────
 
 model Notification {
-  id          String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String              @db.ObjectId
-  channel     NotificationChannel
-  status      NotificationStatus  @default(QUEUED)
-  title       String
-  body        String
-  imageUrl    String?
-  actionType  String?
-  actionId    String?             @db.ObjectId
-  isRead      Boolean             @default(false)
-  readAt      DateTime?
-  sentAt      DateTime?
-  createdAt   DateTime            @default(now()) // TTL target
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String              @db.ObjectId
+  channel    NotificationChannel
+  status     NotificationStatus  @default(QUEUED)
+  title      String
+  body       String
+  imageUrl   String?
+  actionType String?
+  actionId   String?             @db.ObjectId
+  isRead     Boolean             @default(false)
+  readAt     DateTime?
+  sentAt     DateTime?
+  createdAt  DateTime            @default(now()) // TTL target
 
   user User @relation(fields: [userId], references: [id])
 
@@ -2458,25 +2425,24 @@ model Notification {
   @@map("notifications")
 }
 
-
 // ─────────────────────────────────────────────
 // ENTERPRISE LAYER — AUDIT, EVENTS, PERMISSIONS
 // ─────────────────────────────────────────────
 
 // Immutable audit ledger — NEVER update or delete
 model AuditLog {
-  id           String          @id @default(auto()) @map("_id") @db.ObjectId
-  entityType   AuditEntityType
-  entityId     String          @db.ObjectId
-  action       AuditAction
-  performedById String         @db.ObjectId
-  beforeState  String?         // JSON snapshot
-  afterState   String?         // JSON snapshot
-  ipAddress    String?
-  deviceInfo   String?
-  userAgent    String?
-  metadata     String?         // JSON
-  createdAt    DateTime        @default(now())
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  entityType    AuditEntityType
+  entityId      String          @db.ObjectId
+  action        AuditAction
+  performedById String          @db.ObjectId
+  beforeState   String? // JSON snapshot
+  afterState    String? // JSON snapshot
+  ipAddress     String?
+  deviceInfo    String?
+  userAgent     String?
+  metadata      String? // JSON
+  createdAt     DateTime        @default(now())
 
   performedBy User @relation(fields: [performedById], references: [id])
 
@@ -2494,13 +2460,13 @@ model AuditLog {
 model UserEvent {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   userId      String?   @db.ObjectId
-  fingerprint String?   // anonymous session token
+  fingerprint String? // anonymous session token
   eventType   EventType
-  entityType  String?   // "blog" | "listing" | "disease_report" etc.
+  entityType  String? // "blog" | "listing" | "disease_report" etc.
   entityId    String?   @db.ObjectId
   districtId  String?   @db.ObjectId
-  source      String?   // "search" | "community" | "notification" | "direct"
-  metadata    String?   // JSON
+  source      String? // "search" | "community" | "notification" | "direct"
+  metadata    String? // JSON
   createdAt   DateTime  @default(now()) // TTL target
 
   user     User?     @relation(fields: [userId], references: [id])
@@ -2512,22 +2478,22 @@ model UserEvent {
   @@index([districtId])
   @@index([userId, eventType])
   @@index([entityType, entityId, eventType])
-  @@index([createdAt])  // TTL target
+  @@index([createdAt]) // TTL target
   @@map("user_events")
 }
 
 // Actor-centric admin action log
 model AdminActivityLog {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  adminId     String   @db.ObjectId
-  action      String   // "SUSPENDED_USER", "RELEASED_MILESTONE" etc.
-  targetType  String
-  targetId    String   @db.ObjectId
-  reason      String?
-  notes       String?
-  ipAddress   String?
-  deviceInfo  String?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  adminId    String   @db.ObjectId
+  action     String // "SUSPENDED_USER", "RELEASED_MILESTONE" etc.
+  targetType String
+  targetId   String   @db.ObjectId
+  reason     String?
+  notes      String?
+  ipAddress  String?
+  deviceInfo String?
+  createdAt  DateTime @default(now())
 
   admin User @relation(fields: [adminId], references: [id])
 
@@ -2565,13 +2531,13 @@ model UserPermissionOverride {
   userId      String             @db.ObjectId
   resource    PermissionResource
   action      PermissionAction
-  isAllowed   Boolean            // true = grant, false = explicit deny
+  isAllowed   Boolean // true = grant, false = explicit deny
   reason      String?
   grantedById String             @db.ObjectId
   expiresAt   DateTime?
   createdAt   DateTime           @default(now())
 
-  user      User @relation("PermissionOverrideUser",      fields: [userId],      references: [id])
+  user      User @relation("PermissionOverrideUser", fields: [userId], references: [id])
   grantedBy User @relation("PermissionOverrideGrantedBy", fields: [grantedById], references: [id])
 
   @@unique([userId, resource, action])
@@ -2582,21 +2548,20 @@ model UserPermissionOverride {
 
 // Feature flag toggles — scoped rollout per role/district/user
 model FeatureFlag {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  key                String   @unique
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  key String @unique
 
-  description        String?
-  isEnabled          Boolean  @default(false)
-  enabledRoles       String[] @default([])    // UserRole values
-  enabledDistricts   String[] @default([]) @db.ObjectId
-  enabledUserIds     String[] @default([]) @db.ObjectId
-  rolloutPercentage  Int      @default(100)
-  createdById        String   @db.ObjectId
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  description       String?
+  isEnabled         Boolean  @default(false)
+  enabledRoles      String[] @default([]) // UserRole values
+  enabledDistricts  String[] @default([]) @db.ObjectId
+  enabledUserIds    String[] @default([]) @db.ObjectId
+  rolloutPercentage Int      @default(100)
+  createdById       String   @db.ObjectId
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   createdBy User @relation(fields: [createdById], references: [id])
-
 
   @@index([isEnabled])
   @@map("feature_flags")
@@ -2604,11 +2569,11 @@ model FeatureFlag {
 
 // System-wide tunable config — read at startup, cached
 model GlobalConfig {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  key         String   @unique
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  key String @unique
 
   value       String
-  valueType   String   // "int" | "float" | "bool" | "string" | "json"
+  valueType   String // "int" | "float" | "bool" | "string" | "json"
   description String?
   isSensitive Boolean  @default(false)
   updatedById String?  @db.ObjectId
@@ -2617,7 +2582,6 @@ model GlobalConfig {
 
   updatedBy User? @relation(fields: [updatedById], references: [id])
 
-
   @@map("global_config")
 }
 
@@ -2625,7 +2589,7 @@ model GlobalConfig {
 model RateLimitLog {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   userId       String   @db.ObjectId
-  action       String   // "disease_report_submit" | "loan_pledge" | "chat_message" etc.
+  action       String // "disease_report_submit" | "loan_pledge" | "chat_message" etc.
   windowStart  DateTime // floored to hour — TTL target
   requestCount Int      @default(1)
   ipAddress    String?
@@ -2633,11 +2597,10 @@ model RateLimitLog {
 
   user User @relation(fields: [userId], references: [id])
 
-
   @@unique([userId, action, windowStart])
   @@index([userId])
   @@index([action])
   @@index([isBlocked])
-  @@index([windowStart])  // TTL target
+  @@index([windowStart]) // TTL target
   @@map("rate_limit_logs")
 }
