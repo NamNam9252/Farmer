@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../data/models/disease_report_model.dart';
-import '../screens/disease_detail_screen.dart';
+import '../../domain/entities/disease_report.dart';
+import 'buy_medicine_card.dart';
 
 class DiseaseResultCard extends StatelessWidget {
   const DiseaseResultCard({
@@ -12,7 +12,7 @@ class DiseaseResultCard extends StatelessWidget {
     required this.onRetake,
   });
 
-  final DiseaseReportModel report;
+  final DiseaseReport report;
   final bool isHindi;
   final VoidCallback onRetake;
 
@@ -53,6 +53,7 @@ class DiseaseResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(),
+          _buildConfidenceBar(),
           const Divider(height: 1),
           _buildBody(context),
           _buildActions(context),
@@ -65,71 +66,143 @@ class DiseaseResultCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _severityColor.withOpacity(0.06),
+        color: AppColors.primaryDark,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
       ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Icon(
+              Icons.eco_rounded,
+              size: 100,
+              color: Colors.white.withOpacity(0.1),
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    report.isHealthy ? Icons.check_circle_rounded : Icons.warning_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isHindi ? report.diseaseNameHindi : report.diseaseName,
+                      style: AppTextStyles.headline2.copyWith(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isHindi ? report.diseaseNameHindi : report.diseaseName, // Subtitle/Hindi
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.warning,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            isHindi ? report.severity.labelHindi : report.severity.label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (report.cropName.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(color: Colors.white54),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.grass_rounded, color: Colors.white, size: 14),
+                                const SizedBox(width: 4),
+                                Text(
+                                  report.cropName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfidenceBar() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _severityColor,
-              shape: BoxShape.circle,
+          Text(
+            isHindi ? AppStrings.confidenceHindi : AppStrings.confidence,
+            style: const TextStyle(
+              color: AppColors.textHint,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
-            child: Icon(
-              report.isHealthy ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-              color: Colors.white,
-              size: 24,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: LinearProgressIndicator(
+              value: report.confidenceScore,
+              backgroundColor: AppColors.divider,
+              color: AppColors.primary,
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isHindi ? report.diseaseNameHindi : report.diseaseName,
-                  style: AppTextStyles.headline3.copyWith(
-                    color: _severityColor,
-                    fontSize: 17,
-                  ),
-                ),
-                if (report.cropName.isNotEmpty)
-                  Text(
-                    report.cropName,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // Confidence badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '${(report.confidenceScore * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  isHindi ? 'सटीक' : 'sure',
-                  style: const TextStyle(
-                    color: AppColors.textHint,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
+          Text(
+            '${(report.confidenceScore * 100).toStringAsFixed(0)}%',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
             ),
           ),
         ],
@@ -139,53 +212,184 @@ class DiseaseResultCard extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     return Padding(
+      padding: const EdgeInsets.all(0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDescriptionSection(),
+          const Divider(height: 1),
+          _buildTreatmentSection(),
+          const Divider(height: 1),
+          _buildPreventionSection(),
+          if (report.productLinks.isNotEmpty) ...[
+            const Divider(height: 1),
+            _buildBuyMedicineSection(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionSection() {
+    return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Severity row
           Row(
             children: [
-              _InfoChip(
-                icon: Icons.bar_chart_rounded,
-                label: isHindi ? AppStrings.severityHindi : AppStrings.severity,
-                value: isHindi
-                    ? report.severity.labelHindi
-                    : report.severity.label,
-                color: _severityColor,
+              Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? 'विवरण' : 'Description',
+                style: AppTextStyles.headline3.copyWith(fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isHindi ? report.descriptionHindi : report.description,
+            style: AppTextStyles.body2.copyWith(height: 1.5, color: const Color(0xFF424242)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTreatmentSection() {
+    final items = isHindi ? report.treatmentsHindi : report.treatments;
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.medical_services_rounded, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? AppStrings.treatmentHindi : AppStrings.treatment,
+                style: AppTextStyles.headline3.copyWith(fontSize: 15),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Description snippet
-          Text(
-            isHindi ? report.descriptionHindi : report.description,
-            style: AppTextStyles.body2.copyWith(height: 1.5),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if ((isHindi ? report.treatmentsHindi : report.treatments).isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text(
-              isHindi ? '💊 ${AppStrings.treatmentHindi}:' : '💊 ${AppStrings.treatment}:',
-              style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 6),
-            ...(isHindi ? report.treatmentsHindi : report.treatments)
-                .take(2)
-                .map((t) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('• ', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
-                          Expanded(
-                            child: Text(t, style: AppTextStyles.body2),
-                          ),
-                        ],
+          ...items.asMap().entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    margin: const EdgeInsets.only(top: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${entry.key + 1}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    )),
-          ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      entry.value,
+                      style: AppTextStyles.body2.copyWith(height: 1.5, color: const Color(0xFF424242)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreventionSection() {
+    final items = isHindi ? report.preventionsHindi : report.preventions;
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.shield_rounded, color: AppColors.accent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? AppStrings.preventionHindi : AppStrings.prevention,
+                style: AppTextStyles.headline3.copyWith(fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...items.map((item) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: AppColors.primaryLight,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: AppTextStyles.body2.copyWith(height: 1.5, color: const Color(0xFF424242)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuyMedicineSection() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.storefront_rounded, color: AppColors.accent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? 'दवा खरीदें' : 'Buy Medicine',
+                style: AppTextStyles.headline3.copyWith(fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isHindi ? 'सबसे सस्ते किसान-अनुकूल मूल्य' : 'Cheapest farmer-friendly prices',
+            style: const TextStyle(color: AppColors.textHint, fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          BuyMedicineCard(
+            productLinks: report.productLinks,
+            isHindi: isHindi,
+          ),
         ],
       ),
     );
@@ -193,86 +397,24 @@ class DiseaseResultCard extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onRetake,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text(isHindi ? AppStrings.retakeHindi : AppStrings.retake),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: onRetake,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary, width: 1.5),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DiseaseDetailScreen(
-                    report: report,
-                    isHindi: isHindi,
-                  ),
-                ),
-              ),
-              icon: const Icon(Icons.open_in_new_rounded, size: 18),
-              label: Text(isHindi ? AppStrings.viewDetailsHindi : AppStrings.viewDetails),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _severityColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+          child: Text(
+            isHindi ? AppStrings.retakeHindi : 'Scan Again',
+            style: AppTextStyles.button.copyWith(fontSize: 15),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(
-            '$label: ',
-            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-          ),
-          Text(
-            value,
-            style: AppTextStyles.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

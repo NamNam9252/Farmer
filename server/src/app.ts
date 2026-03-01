@@ -7,14 +7,19 @@ const app = express();
 
 // middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Load versioned routes
 app.use('/api/v1', v1Routes);
 
 // Base route
-app.get('/', (req, res) => {
-    res.send({ message: 'Hello from server!' });
+app.get('/', (_req, res) => {
+    res.json({ message: 'Kisan Saathi API v1', success: true });
+});
+
+app.get('/api/v1', (_req, res) => {
+    res.json({ message: 'Kisan Saathi API v1 - Running', success: true });
 });
 
 // Final error handling middleware

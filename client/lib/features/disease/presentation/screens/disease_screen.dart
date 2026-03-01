@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../providers/disease_provider.dart';
 import '../widgets/crop_selector_sheet.dart';
 import '../widgets/disease_result_card.dart';
@@ -155,10 +154,12 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
                               onRetake: () {
                                 ref.read(diseaseAnalysisProvider.notifier).clearAll();
                               },
-                            ),
-                          const SizedBox(height: 28),
-                          PastReportsSection(isHindi: isHindi),
-                          const SizedBox(height: 32),
+                            )
+                          else ...[
+                            const SizedBox(height: 8),
+                            PastReportsSection(isHindi: isHindi),
+                            const SizedBox(height: 32),
+                          ],
                         ],
                       ),
                     ),

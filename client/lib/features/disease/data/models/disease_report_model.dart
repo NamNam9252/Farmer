@@ -1,120 +1,24 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import '../../domain/entities/disease_report.dart';
 
-enum DiseaseSeverity { none, low, medium, high }
-
-extension DiseaseSeverityExt on DiseaseSeverity {
-  String get label {
-    switch (this) {
-      case DiseaseSeverity.none:
-        return 'None';
-      case DiseaseSeverity.low:
-        return 'Low';
-      case DiseaseSeverity.medium:
-        return 'Medium';
-      case DiseaseSeverity.high:
-        return 'High';
-    }
-  }
-
-  String get labelHindi {
-    switch (this) {
-      case DiseaseSeverity.none:
-        return 'नहीं';
-      case DiseaseSeverity.low:
-        return 'कम';
-      case DiseaseSeverity.medium:
-        return 'मध्यम';
-      case DiseaseSeverity.high:
-        return 'अधिक';
-    }
-  }
-}
-
-class ProductLink {
-  final String name;
-  final String nameHindi;
-  final String platform;
-  final String url;
-  final String priceRange;
-
-  const ProductLink({
-    required this.name,
-    required this.nameHindi,
-    required this.platform,
-    required this.url,
-    required this.priceRange,
-  });
-
-  factory ProductLink.fromJson(Map<String, dynamic> json) => ProductLink(
-        name: json['name'] as String? ?? '',
-        nameHindi: json['nameHindi'] as String? ?? '',
-        platform: json['platform'] as String? ?? '',
-        url: json['url'] as String? ?? '',
-        priceRange: json['priceRange'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'nameHindi': nameHindi,
-        'platform': platform,
-        'url': url,
-        'priceRange': priceRange,
-      };
-
-  Color get platformColor {
-    switch (platform.toLowerCase()) {
-      case 'bighaat':
-        return const Color(0xFF2E7D32);
-      case 'agribegri':
-        return const Color(0xFF1565C0);
-      case 'krishisevak':
-        return const Color(0xFFE65100);
-      case 'dehaat':
-        return const Color(0xFF6A1B9A);
-      case 'agrostar':
-        return const Color(0xFFC62828);
-      default:
-        return const Color(0xFF455A64);
-    }
-  }
-}
-
-class DiseaseReportModel {
-  final String id;
-  final String imagePath;
-  final String diseaseName;
-  final String diseaseNameHindi;
-  final String cropName;
-  final double confidenceScore;
-  final DiseaseSeverity severity;
-  final bool isHealthy;
-  final String description;
-  final String descriptionHindi;
-  final List<String> treatments;
-  final List<String> treatmentsHindi;
-  final List<String> preventions;
-  final List<String> preventionsHindi;
-  final List<ProductLink> productLinks;
-  final DateTime createdAt;
-
+class DiseaseReportModel extends DiseaseReport {
   const DiseaseReportModel({
-    required this.id,
-    required this.imagePath,
-    required this.diseaseName,
-    required this.diseaseNameHindi,
-    required this.cropName,
-    required this.confidenceScore,
-    required this.severity,
-    required this.isHealthy,
-    required this.description,
-    required this.descriptionHindi,
-    required this.treatments,
-    required this.treatmentsHindi,
-    required this.preventions,
-    required this.preventionsHindi,
-    required this.productLinks,
-    required this.createdAt,
+    required super.id,
+    required super.imagePath,
+    required super.diseaseName,
+    required super.diseaseNameHindi,
+    required super.cropName,
+    required super.confidenceScore,
+    required super.severity,
+    required super.isHealthy,
+    required super.description,
+    required super.descriptionHindi,
+    required super.treatments,
+    required super.treatmentsHindi,
+    required super.preventions,
+    required super.preventionsHindi,
+    required super.productLinks,
+    required super.createdAt,
   });
 
   factory DiseaseReportModel.fromJson(Map<String, dynamic> json) {
@@ -134,7 +38,13 @@ class DiseaseReportModel {
       preventions: List<String>.from(json['preventions'] as List? ?? []),
       preventionsHindi: List<String>.from(json['preventionsHindi'] as List? ?? []),
       productLinks: (json['productLinks'] as List? ?? [])
-          .map((e) => ProductLink.fromJson(e as Map<String, dynamic>))
+          .map((e) => ProductLink(
+                name: e['name'] as String? ?? '',
+                nameHindi: e['nameHindi'] as String? ?? '',
+                platform: e['platform'] as String? ?? '',
+                url: e['url'] as String? ?? '',
+                priceRange: e['priceRange'] as String? ?? '',
+              ))
           .toList(),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
@@ -157,7 +67,13 @@ class DiseaseReportModel {
         'treatmentsHindi': treatmentsHindi,
         'preventions': preventions,
         'preventionsHindi': preventionsHindi,
-        'productLinks': productLinks.map((p) => p.toJson()).toList(),
+        'productLinks': productLinks.map((p) => {
+              'name': p.name,
+              'nameHindi': p.nameHindi,
+              'platform': p.platform,
+              'url': p.url,
+              'priceRange': p.priceRange,
+            }).toList(),
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -177,43 +93,5 @@ class DiseaseReportModel {
       default:
         return DiseaseSeverity.none;
     }
-  }
-
-  DiseaseReportModel copyWith({
-    String? id,
-    String? imagePath,
-    String? diseaseName,
-    String? diseaseNameHindi,
-    String? cropName,
-    double? confidenceScore,
-    DiseaseSeverity? severity,
-    bool? isHealthy,
-    String? description,
-    String? descriptionHindi,
-    List<String>? treatments,
-    List<String>? treatmentsHindi,
-    List<String>? preventions,
-    List<String>? preventionsHindi,
-    List<ProductLink>? productLinks,
-    DateTime? createdAt,
-  }) {
-    return DiseaseReportModel(
-      id: id ?? this.id,
-      imagePath: imagePath ?? this.imagePath,
-      diseaseName: diseaseName ?? this.diseaseName,
-      diseaseNameHindi: diseaseNameHindi ?? this.diseaseNameHindi,
-      cropName: cropName ?? this.cropName,
-      confidenceScore: confidenceScore ?? this.confidenceScore,
-      severity: severity ?? this.severity,
-      isHealthy: isHealthy ?? this.isHealthy,
-      description: description ?? this.description,
-      descriptionHindi: descriptionHindi ?? this.descriptionHindi,
-      treatments: treatments ?? this.treatments,
-      treatmentsHindi: treatmentsHindi ?? this.treatmentsHindi,
-      preventions: preventions ?? this.preventions,
-      preventionsHindi: preventionsHindi ?? this.preventionsHindi,
-      productLinks: productLinks ?? this.productLinks,
-      createdAt: createdAt ?? this.createdAt,
-    );
   }
 }

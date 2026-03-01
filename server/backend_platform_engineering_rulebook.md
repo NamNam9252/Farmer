@@ -65,13 +65,19 @@ server/
 │   │   ├── news/
 │   │   └── chat/
 │   │
-│   ├── routes.ts
-│   ├── app.ts
-│   └── server.ts
+│   ├── routes.ts     <-- Defines all modular V1 route logic
+│   ├── app.ts        <-- Configures Express, middleware, CORS, parsing
+│   └── server.ts     <-- Application entry point, env load, HTTP listen
 │
+├── tests/            <-- Contains integration test suites (*.test.ts)
 └── prisma/
     └── schema.prisma
 ```
+
+### Entry Point Hierarchy
+1. `server.ts`: The only file that calls `app.listen()`. It must also load environment variables FIRST (`import './core/config/env.js'`).
+2. `app.ts`: Solely responsible for exporting the configured `app` instance. It wires up JSON parsers, cross-origin rules, and root routes.
+3. `routes.ts`: The master `/api/v1` router linking all modular feature routes.
 
 ---
 
@@ -230,6 +236,28 @@ Rules:
 
 ---
 
+# 🔟 ESM MODULE & IMPORT RULES (NEW)
+
+We use modern **Node ESM** with `NodeNext` resolution. 
+This means:
+1. All local file imports **MUST** end with a `.js` extension (even though the files are written in TypeScript `.ts`).
+   - ✅ `import app from './app.js';`
+   - ❌ `import app from './app';`
+   - ❌ `import app from './app.ts';`
+2. Third-party library imports from `node_modules` do not require extensions.
+   - ✅ `import express from 'express';`
+
+---
+
+# 1️⃣1️⃣ TESTING STANDARDS (NEW)
+
+We use **Vitest** + **Supertest** for testing.
+1. Every new module MUST have an integration test file inside the `/tests` folder.
+2. The `tests/setup.ts` file manages database teardown logic. Do not leak global configurations inside test files.
+3. Tests should use the real database (cleaned before/after tests) ensuring 100% confidence.
+
+---
+
 # 🔟 CLIENT STRUCTURE (FLUTTER)
 
 ```
@@ -290,7 +318,7 @@ Rules:
 
 ---
 
-# 1️⃣2️⃣ NAMING CONVENTIONS
+# 1️⃣4️⃣ NAMING CONVENTIONS
 
 Files → kebab-case
 Variables → camelCase
@@ -299,7 +327,7 @@ API Routes → lowercase REST
 
 ---
 
-# 1️⃣3️⃣ DEVELOPMENT RULES
+# 1️⃣5️⃣ DEVELOPMENT RULES
 
 - One developer owns one module
 - No editing other modules without approval
@@ -309,7 +337,7 @@ API Routes → lowercase REST
 
 ---
 
-# 1️⃣4️⃣ SCALABILITY PRINCIPLE
+# 1️⃣6️⃣ SCALABILITY PRINCIPLE
 
 Design every module so it can later become a microservice.
 

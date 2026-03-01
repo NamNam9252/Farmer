@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { DiseaseService } from './disease.service';
-import { analyzeDiseaseSchema } from '../../schema/disease.schema';
+import { DiseaseService } from './disease.service.js';
+import { analyzeDiseaseSchema } from '../../schema/disease.schema.js';
 
 let diseaseService: DiseaseService | null = null;
 const getService = () => {

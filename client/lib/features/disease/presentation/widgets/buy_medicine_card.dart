@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../data/models/disease_report_model.dart';
+import '../../domain/entities/disease_report.dart';
 
 class BuyMedicineCard extends StatelessWidget {
   const BuyMedicineCard({
@@ -69,10 +69,9 @@ class BuyMedicineCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          ...productLinks.map((product) => _ProductTile(
-                product: product,
-                isHindi: isHindi,
-              )),
+          ...productLinks.map(
+            (product) => _ProductTile(product: product, isHindi: isHindi),
+          ),
         ],
       ),
     );
@@ -96,9 +95,7 @@ class _ProductTile extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                isHindi ? 'लिंक नहीं खुला' : 'Could not open link',
-              ),
+              content: Text(isHindi ? 'लिंक नहीं खुला' : 'Could not open link'),
             ),
           );
         }
@@ -124,7 +121,10 @@ class _ProductTile extends StatelessWidget {
               children: [
                 // Platform badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: color,
                     borderRadius: BorderRadius.circular(6),

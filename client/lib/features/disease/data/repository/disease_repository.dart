@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/disease_api.dart';
 import '../models/disease_report_model.dart';
+import '../../domain/disease_repository_contract.dart';
 
-class DiseaseRepository {
+class DiseaseRepository implements IDiseaseRepository {
   final DiseaseApi _api = DiseaseApi();
 
   static const String _reportsKey = 'disease_reports_local';
 
+  @override
   Future<DiseaseReportModel> analyzeDisease({
     required File imageFile,
     required String cropType,
@@ -23,6 +25,7 @@ class DiseaseRepository {
     return report;
   }
 
+  @override
   Future<List<DiseaseReportModel>> getLocalReports() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = prefs.getStringList(_reportsKey) ?? [];
@@ -43,6 +46,7 @@ class DiseaseRepository {
     await prefs.setStringList(_reportsKey, existing);
   }
 
+  @override
   Future<void> deleteReport(String reportId) async {
     final prefs = await SharedPreferences.getInstance();
     final existing = prefs.getStringList(_reportsKey) ?? [];
@@ -53,6 +57,7 @@ class DiseaseRepository {
     await prefs.setStringList(_reportsKey, updated);
   }
 
+  @override
   Future<void> clearAllReports() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_reportsKey);

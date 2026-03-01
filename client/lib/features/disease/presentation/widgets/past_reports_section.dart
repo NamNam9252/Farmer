@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../data/models/disease_report_model.dart';
+import '../../domain/entities/disease_report.dart';
 import '../providers/disease_provider.dart';
-import '../screens/disease_detail_screen.dart';
 
 class PastReportsSection extends ConsumerWidget {
   const PastReportsSection({super.key, required this.isHindi});
@@ -21,7 +20,11 @@ class PastReportsSection extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.history_rounded, color: AppColors.primary, size: 20),
+            const Icon(
+              Icons.history_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               isHindi ? AppStrings.pastReportsHindi : AppStrings.pastReports,
@@ -36,27 +39,28 @@ class PastReportsSection extends ConsumerWidget {
               return _EmptyReports(isHindi: isHindi);
             }
             return Column(
-              children: reports
-                  .take(5)
-                  .map((r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _ReportTile(
-                          report: r,
-                          isHindi: isHindi,
+              children:
+                  reports
+                      .take(5)
+                      .map(
+                        (r) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _ReportTile(report: r, isHindi: isHindi),
                         ),
-                      ))
-                  .toList(),
+                      )
+                      .toList(),
             );
           },
-          loading: () => Column(
-            children: List.generate(
-              3,
-              (_) => const Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: _ReportTileSkeleton(),
+          loading:
+              () => Column(
+                children: List.generate(
+                  3,
+                  (_) => const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: _ReportTileSkeleton(),
+                  ),
+                ),
               ),
-            ),
-          ),
           error: (_, __) => const SizedBox.shrink(),
         ),
       ],
@@ -92,10 +96,10 @@ class _EmptyReports extends StatelessWidget {
   }
 }
 
-class _ReportTile extends StatelessWidget {
+class _ReportTile extends ConsumerWidget {
   const _ReportTile({required this.report, required this.isHindi});
 
-  final DiseaseReportModel report;
+  final DiseaseReport report;
   final bool isHindi;
 
   Color get _color {
@@ -114,13 +118,15 @@ class _ReportTile extends StatelessWidget {
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays == 0) return isHindi ? AppStrings.todayHindi : AppStrings.today;
-    if (diff.inDays == 1) return isHindi ? AppStrings.yesterdayHindi : AppStrings.yesterday;
+    if (diff.inDays == 0)
+      return isHindi ? AppStrings.todayHindi : AppStrings.today;
+    if (diff.inDays == 1)
+      return isHindi ? AppStrings.yesterdayHindi : AppStrings.yesterday;
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
@@ -128,12 +134,9 @@ class _ReportTile extends StatelessWidget {
       shadowColor: AppColors.primary.withOpacity(0.1),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DiseaseDetailScreen(report: report, isHindi: isHindi),
-          ),
-        ),
+        onTap: () {
+          ref.read(diseaseAnalysisProvider.notifier).setResult(report);
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -143,21 +146,28 @@ class _ReportTile extends StatelessWidget {
                 child: SizedBox(
                   width: 58,
                   height: 58,
-                  child: report.imagePath.isNotEmpty
-                      ? Image.file(
-                          File(report.imagePath),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                  child:
+                      report.imagePath.isNotEmpty
+                          ? Image.file(
+                            File(report.imagePath),
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => Container(
+                                  color: AppColors.surface,
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    color: AppColors.textHint,
+                                  ),
+                                ),
+                          )
+                          : Container(
                             color: AppColors.surface,
-                            child: const Icon(Icons.image_not_supported,
-                                color: AppColors.textHint),
+                            child: const Icon(
+                              Icons.eco_rounded,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
                           ),
-                        )
-                      : Container(
-                          color: AppColors.surface,
-                          child: const Icon(Icons.eco_rounded,
-                              color: AppColors.primary, size: 24),
-                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -186,7 +196,9 @@ class _ReportTile extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: _color.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -226,8 +238,11 @@ class _ReportTile extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textHint, size: 18),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textHint,
+                size: 18,
+              ),
             ],
           ),
         ),

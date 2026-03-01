@@ -1,17 +1,23 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/disease_report_model.dart';
+import '../../domain/entities/disease_report.dart';
+import '../../domain/usecases/analyze_disease_usecase.dart';
+import '../../domain/disease_repository_contract.dart';
 import '../../data/repository/disease_repository.dart';
 
-final diseaseRepositoryProvider = Provider<DiseaseRepository>(
+final diseaseRepositoryProvider = Provider<IDiseaseRepository>(
   (_) => DiseaseRepository(),
+);
+
+final analyzeDiseaseUseCaseProvider = Provider<AnalyzeDiseaseUseCase>(
+  (ref) => AnalyzeDiseaseUseCase(ref.watch(diseaseRepositoryProvider)),
 );
 
 // State for the analysis flow
 class DiseaseAnalysisState {
   final File? selectedImage;
   final String selectedCrop;
-  final DiseaseReportModel? result;
+  final DiseaseReport? result;
   final bool isLoading;
   final String? error;
   final bool resultSaved;
@@ -28,7 +34,7 @@ class DiseaseAnalysisState {
   DiseaseAnalysisState copyWith({
     File? selectedImage,
     String? selectedCrop,
-    DiseaseReportModel? result,
+    DiseaseReport? result,
     bool? isLoading,
     String? error,
     bool clearError = false,
@@ -47,14 +53,22 @@ class DiseaseAnalysisState {
 }
 
 class DiseaseAnalysisNotifier extends StateNotifier<DiseaseAnalysisState> {
-  DiseaseAnalysisNotifier(this._repository) : super(const DiseaseAnalysisState());
+  DiseaseAnalysisNotifier(this._useCase) : super(const DiseaseAnalysisState());
 
-  final DiseaseRepository _repository;
+  final AnalyzeDiseaseUseCase _useCase;
 
   void setImage(File image) {
     state = state.copyWith(
       selectedImage: image,
       clearResult: true,
+      clearError: true,
+    );
+  }
+
+  void setResult(DiseaseReport report) {
+    state = state.copyWith(
+      result: report,
+      selectedImage: report.imagePath.isNotEmpty ? File(report.imagePath) : null,
       clearError: true,
     );
   }
@@ -70,7 +84,7 @@ class DiseaseAnalysisNotifier extends StateNotifier<DiseaseAnalysisState> {
     state = state.copyWith(isLoading: true, clearError: true, clearResult: true);
 
     try {
-      final result = await _repository.analyzeDisease(
+      final result = await _useCase.execute(
         imageFile: image,
         cropType: state.selectedCrop,
         language: language,
@@ -95,11 +109,11 @@ class DiseaseAnalysisNotifier extends StateNotifier<DiseaseAnalysisState> {
 
 final diseaseAnalysisProvider =
     StateNotifierProvider<DiseaseAnalysisNotifier, DiseaseAnalysisState>(
-  (ref) => DiseaseAnalysisNotifier(ref.watch(diseaseRepositoryProvider)),
+  (ref) => DiseaseAnalysisNotifier(ref.watch(analyzeDiseaseUseCaseProvider)),
 );
 
 // Past reports provider
-final pastReportsProvider = FutureProvider<List<DiseaseReportModel>>((ref) async {
+final pastReportsProvider = FutureProvider<List<DiseaseReport>>((ref) async {
   final repo = ref.watch(diseaseRepositoryProvider);
   return repo.getLocalReports();
 });

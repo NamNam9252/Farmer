@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
-import { analyzeDisease } from './disease.controller';
+import { analyzeDisease } from './disease.controller.js';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
