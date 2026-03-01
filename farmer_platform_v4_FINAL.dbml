@@ -1,0 +1,2667 @@
+Project FarmerPlatform {
+  database_type: "MongoDB"
+  Note: '''
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║   FARMER ONE STOP SOLUTION — Enterprise Schema v4.0 (FINAL)     ║
+    ║   Geo-intelligent | AI-enabled | Auditable | Fraud-aware         ║
+    ║   Community + Chat + Blog | Full Disease Intelligence            ║
+    ║   Crowdfunding with Escrow | Dynamic Permissions                 ║
+    ╚══════════════════════════════════════════════════════════════════╝
+
+    ┌─ SOFT-DELETE RULE ──────────────────────────────────────────────┐
+    │ All entity tables carry:                                        │
+    │   is_deleted boolean  [default: false]                          │
+    │   deleted_at datetime [null]                                    │
+    │   deleted_by ObjectId [null]                                    │
+    │ Hard-delete is NEVER done on any entity.                        │
+    │ Cascade: deleting a community soft-deletes posts/rooms.         │
+    │ Unique indexes on active rows only (is_deleted=false).          │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ AUDIT RULE ────────────────────────────────────────────────────┐
+    │ Every state-mutating action on financial / disease / moderation │
+    │ entities writes one row to audit_logs.                          │
+    │ Entity types: USER|LOAN|PLEDGE|DISEASE_REPORT|LISTING|ORDER     │
+    │               MILESTONE|REPAYMENT|ALERT|SCHEME|BLOG|COMMUNITY   │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ GEO RULE ──────────────────────────────────────────────────────┐
+    │ Primary 2dsphere indexes (hot path only):                       │
+    │   users.primary_(lat,lng)  → alert fan-out                     │
+    │   locations.(lat,lng)       → "find near me" base              │
+    │   marketplace_listings.(lat,lng) → buyer radius search         │
+    │   disease_reports.(lat,lng) → outbreak heatmap                 │
+    │   labor_profiles.(lat,lng)  → find labor near farm             │
+    │   communities.(center_lat,lng) → community discovery           │
+    │   blogs.(lat,lng)           → field-report geo search          │
+    │ Derived geo (state/district) stored only for aggregation.       │
+    │ App MUST validate district belongs to state on write.           │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ DENORM RULE ───────────────────────────────────────────────────┐
+    │ district_id, crop_name, farmer_name are duplicated on           │
+    │ high-read tables to eliminate $lookup on hot paths.             │
+    │ Denormed strings are SNAPSHOTS — they do not update on rename.  │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ DISEASE INTELLIGENCE RULE ─────────────────────────────────────┐
+    │ predicted_disease (string) = AI snapshot at detection time.     │
+    │ disease_catalog_id (ref)   = canonical post-review link.        │
+    │ ai_confidence_level (enum) = derived from confidence_score:     │
+    │   < 0.5 → LOW,  0.5–0.8 → MEDIUM,  > 0.8 → HIGH               │
+    │ Outbreak pipeline: disease_aggregates_daily is precomputed      │
+    │ nightly rollup. Live scan only for last 24 h window.            │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ CROWDFUNDING ESCROW RULE ──────────────────────────────────────┐
+    │ Money flow: pledge created (HELD) →                             │
+    │             milestone completed → funds RELEASED to farmer      │
+    │             loan rejected/expired → pledge REFUNDED             │
+    │ loan_fund_wallet tracks running balance per loan.               │
+    │ loan_repayment_distributions allocates each repayment row       │
+    │ back to original pledgers proportionally.                       │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ SHARD KEY STRATEGY ────────────────────────────────────────────┐
+    │ users                → hashed _id                               │
+    │ disease_reports      → hashed district_id                       │
+    │ marketplace_listings → hashed district_id                       │
+    │ community_chat_messages → hashed room_id                        │
+    │ notifications        → hashed user_id                           │
+    │ weather_snapshots    → hashed land_id                           │
+    │ audit_logs           → hashed entity_id                         │
+    │ user_events          → hashed user_id                           │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─ TTL / ARCHIVE STRATEGY ────────────────────────────────────────┐
+    │ weather_snapshots    → TTL 90 days on recorded_at               │
+    │ community_chat_messages → TTL 365 days (archive to cold store)  │
+    │ user_events          → TTL 180 days on created_at               │
+    │ notifications        → TTL 60 days on created_at                │
+    │ rate_limit_logs      → TTL 24 hours on window_start             │
+    └─────────────────────────────────────────────────────────────────┘
+  '''
+}
+
+//////////////////////////////////////////////////////
+// ███████╗███╗   ██╗██╗   ██╗███╗   ███╗███████╗
+// ██╔════╝████╗  ██║██║   ██║████╗ ████║██╔════╝
+// █████╗  ██╔██╗ ██║██║   ██║██╔████╔██║███████╗
+// ██╔══╝  ██║╚██╗██║██║   ██║██║╚██╔╝██║╚════██║
+// ███████╗██║ ╚████║╚██████╔╝██║ ╚═╝ ██║███████║
+// ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝
+//////////////////////////////////////////////////////
+
+Enum UserRole {
+  FARMER
+  BUYER
+  LABOR
+  EXPERT         // Agronomist — can verify disease reports, answer consults
+  ADMIN
+  SUPER_ADMIN
+}
+
+Enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+// ── LAND & CROP ───────────────────────────────────
+
+Enum LandType {
+  FIELD
+  GARDEN
+  GREENHOUSE
+  ORCHARD
+  POLYHOUSE
+  NURSERY
+  PASTURE
+  AQUACULTURE
+  OTHER
+}
+
+Enum SoilType {
+  ALLUVIAL
+  BLACK
+  RED
+  LATERITE
+  DESERT
+  MOUNTAIN
+  SALINE
+  PEATY
+  OTHER
+}
+
+Enum IrrigationType {
+  RAINFED
+  CANAL
+  BOREWELL
+  DRIP
+  SPRINKLER
+  FLOOD
+  TANK
+  OTHER
+}
+
+Enum CropCategory {
+  CEREAL
+  PULSE
+  OILSEED
+  VEGETABLE
+  FRUIT
+  SPICE
+  FIBER
+  PLANTATION
+  FODDER
+  FLOWER
+  MEDICINAL
+  OTHER
+}
+
+Enum Season {
+  KHARIF
+  RABI
+  ZAID
+  PERENNIAL
+}
+
+Enum CropStatus {
+  SOWN
+  GROWING
+  READY_TO_HARVEST
+  HARVESTED
+  FAILED
+}
+
+// ── MARKETPLACE ───────────────────────────────────
+
+Enum ListingStatus {
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+  DELETED
+}
+
+Enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURN_REQUESTED
+  RETURNED
+}
+
+Enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  PARTIAL_REFUND
+}
+
+Enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  WALLET
+  COD
+}
+
+Enum StockChangeType {
+  ORDER_CONFIRMED     // stock reduced
+  ORDER_CANCELLED     // stock restored
+  ORDER_RETURNED      // stock restored
+  MANUAL_ADJUSTMENT   // admin correction
+  INITIAL_STOCK       // listing created
+  WAREHOUSE_TRANSFER  // pulled from warehouse
+}
+
+Enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER_FAVOR
+  RESOLVED_SELLER_FAVOR
+  RESOLVED_PARTIAL_REFUND
+  CLOSED_NO_ACTION
+}
+
+Enum DisputeReason {
+  ITEM_NOT_RECEIVED
+  WRONG_QUANTITY
+  QUALITY_MISMATCH
+  DAMAGED_GOODS
+  PRICE_DISPUTE
+  SELLER_UNRESPONSIVE
+  OTHER
+}
+
+// ── ALERTS ────────────────────────────────────────
+
+Enum AlertType {
+  WEATHER
+  DISEASE_OUTBREAK
+  PANDEMIC
+  MARKET_PRICE
+  COMMUNITY
+  GOVERNMENT_SCHEME
+  SYSTEM
+  FLOOD
+  DROUGHT
+  PEST
+}
+
+Enum AlertSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+Enum AlertTargetLevel {
+  NATIONAL
+  STATE
+  DISTRICT
+  PINCODE
+  RADIUS
+}
+
+// ── DISEASE ───────────────────────────────────────
+
+Enum DiseaseSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+Enum AIConfidenceLevel {
+  LOW      // score < 0.50 — flag for manual review
+  MEDIUM   // score 0.50–0.80 — acceptable AI detection
+  HIGH     // score > 0.80 — high confidence
+}
+
+Enum DiseaseType {
+  FUNGAL
+  BACTERIAL
+  VIRAL
+  PEST
+  NUTRITIONAL_DEFICIENCY
+  ABIOTIC_STRESS
+  OTHER
+}
+
+Enum TreatmentType {
+  CHEMICAL_FUNGICIDE
+  CHEMICAL_PESTICIDE
+  CHEMICAL_HERBICIDE
+  CHEMICAL_FERTILIZER
+  BIO_CONTROL
+  ORGANIC_REMEDY
+  CULTURAL_PRACTICE
+  IRRIGATION_MANAGEMENT
+  SOIL_AMENDMENT
+  QUARANTINE
+  OTHER
+}
+
+Enum TreatmentStage {
+  PREVENTIVE
+  EARLY_INFECTION
+  MODERATE_INFECTION
+  SEVERE_INFECTION
+}
+
+Enum DiseaseReportOutcome {
+  TREATMENT_APPLIED
+  TREATMENT_EFFECTIVE
+  TREATMENT_INEFFECTIVE
+  CROP_RECOVERED
+  CROP_LOST
+  MONITORING
+  EXPERT_CONSULTED
+}
+
+Enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// ── CROWDFUNDING ──────────────────────────────────
+
+Enum LoanStatus {
+  DRAFT
+  OPEN
+  FUNDED
+  PARTIALLY_FUNDED
+  REJECTED
+  CLOSED
+  EXPIRED
+  DEFAULTED
+}
+
+Enum LoanMilestoneStatus {
+  PENDING
+  AWAITING_PROOF
+  PROOF_SUBMITTED
+  RELEASED
+  CANCELLED
+}
+
+Enum PledgeStatus {
+  HELD          // money committed, held until milestone
+  RELEASED      // milestone completed — released to farmer
+  REFUNDED      // loan rejected/expired — returned to pledger
+  PARTIAL_RELEASE  // partial milestone released
+}
+
+Enum RepaymentStatus {
+  SCHEDULED
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+// ── COMMUNITY ─────────────────────────────────────
+
+Enum CommunityType {
+  DISTRICT
+  CROP_SPECIFIC
+  RADIUS_BASED
+  STATE_WIDE
+  GENERAL
+}
+
+Enum CommunityMemberRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+// ── CHAT ──────────────────────────────────────────
+
+Enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+Enum ChatSessionStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+// ── BLOG ──────────────────────────────────────────
+
+Enum BlogStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+  REJECTED
+}
+
+Enum BlogAudience {
+  FARMER
+  BUYER
+  GENERAL
+  EXPERT
+}
+
+Enum PostReactionType {
+  LIKE
+  HELPFUL
+  INSIGHTFUL
+}
+
+// ── MISC ──────────────────────────────────────────
+
+Enum LocationType {
+  HOME
+  FARM
+  WAREHOUSE
+  DELIVERY
+  COMMUNITY_HUB
+  ALERT_ZONE
+  OTHER
+}
+
+Enum NotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  IN_APP
+}
+
+Enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+Enum SchemeCategory {
+  SUBSIDY
+  LOAN
+  INSURANCE
+  TRAINING
+  EQUIPMENT
+  SEED
+  IRRIGATION
+  MARKET_SUPPORT
+  OTHER
+}
+
+Enum LaborBookingStatus {
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+Enum WeatherCondition {
+  SUNNY
+  CLOUDY
+  RAINY
+  STORMY
+  FOGGY
+  HAILSTORM
+  WINDY
+}
+
+Enum VerificationChannel {
+  PHONE_OTP
+  EMAIL_LINK
+}
+
+Enum ReportReason {
+  SPAM
+  MISLEADING
+  ABUSIVE
+  FRAUD
+  OTHER
+}
+
+// ── AUDIT & EVENTS ────────────────────────────────
+
+Enum AuditAction {
+  CREATED
+  UPDATED
+  DELETED
+  RESTORED
+  APPROVED
+  REJECTED
+  SUSPENDED
+  VERIFIED
+  RELEASED
+  REFUNDED
+  FLAGGED
+  ESCALATED
+}
+
+Enum AuditEntityType {
+  USER
+  FARMER_PROFILE
+  LISTING
+  ORDER
+  TRANSACTION
+  LOAN_REQUEST
+  LOAN_PLEDGE
+  LOAN_MILESTONE
+  LOAN_REPAYMENT
+  DISEASE_REPORT
+  ALERT
+  COMMUNITY
+  COMMUNITY_POST
+  BLOG
+  SCHEME
+  EXPERT_PROFILE
+  DISPUTE
+}
+
+Enum EventType {
+  // Content views
+  BLOG_VIEW
+  LISTING_VIEW
+  DISEASE_REPORT_VIEW
+  SCHEME_VIEW
+  NEWS_VIEW
+  // Search
+  SEARCH_PERFORMED
+  // Alert interactions
+  ALERT_CLICKED
+  ALERT_DISMISSED
+  // Engagement
+  POST_REACTION
+  BLOG_REACTION
+  COMMENT_POSTED
+  // Marketplace
+  LISTING_CONTACTED
+  ORDER_STARTED
+  // Disease
+  DISEASE_SCAN_STARTED
+  DISEASE_SCAN_COMPLETED
+  TREATMENT_VIEWED
+  // Chat
+  AI_CHAT_STARTED
+  COMMUNITY_CHAT_OPENED
+}
+
+// ── PERMISSIONS ───────────────────────────────────
+
+Enum PermissionResource {
+  USERS
+  FARMER_PROFILES
+  LANDS
+  CROPS
+  LISTINGS
+  ORDERS
+  DISEASE_REPORTS
+  DISEASE_CATALOG
+  TREATMENT_CATALOG
+  ALERTS
+  COMMUNITIES
+  COMMUNITY_POSTS
+  BLOGS
+  LOANS
+  GOVERNMENT_SCHEMES
+  LABOR_BOOKINGS
+  AUDIT_LOGS
+  ANALYTICS
+  FEATURE_FLAGS
+  SYSTEM_CONFIG
+}
+
+Enum PermissionAction {
+  READ
+  WRITE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  VERIFY
+  EXPORT
+}
+
+
+//////////////////////////////////////////////////////
+// GEO LAYER — STATE > DISTRICT > PINCODE
+// Canonical reference hierarchy.
+// App MUST validate district.state_id == location.state_id on write.
+// Only pincode_id needed on most tables — state/district derived.
+//////////////////////////////////////////////////////
+
+Table states {
+  _id        ObjectId [pk]
+  name       varchar  [not null]
+  code       varchar  [unique, not null]   // "MH", "UP", "KA"
+  is_deleted boolean  [default: false]
+  created_at datetime
+
+  indexes {
+    code
+    is_deleted
+  }
+}
+
+Table districts {
+  _id        ObjectId [pk]
+  state_id   ObjectId [ref: > states._id, not null]
+  name       varchar  [not null]
+  is_deleted boolean  [default: false]
+  created_at datetime
+
+  indexes {
+    state_id
+    (state_id, name) [unique]
+    is_deleted
+  }
+}
+
+Table pincodes {
+  _id         ObjectId [pk]
+  district_id ObjectId [ref: > districts._id, not null]
+  state_id    ObjectId [ref: > states._id, not null]
+  code        varchar  [unique, not null]
+  area_name   varchar
+  latitude    float    // centroid for geo clustering + radius alerts
+  longitude   float
+  is_deleted  boolean  [default: false]
+  created_at  datetime
+
+  indexes {
+    code
+    state_id
+    district_id
+    is_deleted
+    (latitude, longitude)   // 2dsphere
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ██╗   ██╗███████╗███████╗██████╗ ███████╗
+// ██║   ██║██╔════╝██╔════╝██╔══██╗██╔════╝
+// ██║   ██║███████╗█████╗  ██████╔╝███████╗
+// ██║   ██║╚════██║██╔══╝  ██╔══██╗╚════██║
+// ╚██████╔╝███████║███████╗██║  ██║███████║
+//  ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+//////////////////////////////////////////////////////
+
+Table users {
+  _id                 ObjectId   [pk]
+  name                varchar    [not null]
+  email               varchar    [unique]
+  phone               varchar    [unique, not null]
+  password_hash       varchar    [not null]
+  role                UserRole   [not null]
+  status              UserStatus [default: 'PENDING_VERIFICATION']
+
+  preferred_language  varchar    [default: 'hi']
+  profile_image_url   varchar    [null]
+  bio                 text       [null]
+
+  // Denorm primary location for alert fan-out without joining locations
+  primary_state_id    ObjectId   [ref: > states._id, null]
+  primary_district_id ObjectId   [ref: > districts._id, null]
+  primary_pincode_id  ObjectId   [ref: > pincodes._id, null]
+  primary_latitude    float      [null]
+  primary_longitude   float      [null]
+
+  is_phone_verified   boolean    [default: false]
+  is_email_verified   boolean    [default: false]
+  last_login_at       datetime   [null]
+
+  // Fraud detection fields
+  last_login_ip       varchar    [null]
+  last_login_device   varchar    [null]
+  failed_login_count  int        [default: 0]
+  is_flagged          boolean    [default: false]   // fraud / anomaly flag
+  flagged_reason      varchar    [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at  datetime
+  updated_at  datetime
+
+  indexes {
+    phone
+    email
+    role
+    status
+    is_deleted
+    is_flagged
+    (primary_latitude, primary_longitude)  // 2dsphere
+    primary_district_id
+    primary_pincode_id
+  }
+}
+
+Table user_verifications {
+  _id        ObjectId            [pk]
+  user_id    ObjectId            [ref: > users._id, not null]
+  channel    VerificationChannel [not null]
+  otp_hash   varchar             [not null]
+  expires_at datetime            [not null]
+  is_used    boolean             [default: false]
+  created_at datetime
+
+  indexes {
+    user_id
+    expires_at
+  }
+}
+
+Table user_device_tokens {
+  _id          ObjectId [pk]
+  user_id      ObjectId [ref: > users._id, not null]
+  token        varchar  [unique, not null]
+  platform     varchar  // "android" | "ios" | "web"
+  device_id    varchar  [null]       // hardware fingerprint
+  is_active    boolean  [default: true]
+  last_used_at datetime
+  created_at   datetime
+
+  indexes {
+    user_id
+    token
+    is_active
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// LOCATIONS
+// Multi-location per user.
+// Only pincode_id is the source of truth for hierarchy.
+// state_id + district_id stored for fast aggregation queries.
+//////////////////////////////////////////////////////
+
+Table locations {
+  _id          ObjectId     [pk]
+  user_id      ObjectId     [ref: > users._id, not null]
+  type         LocationType [not null]
+  label        varchar      [null]     // "Main Farm", "Pune Warehouse"
+  is_primary   boolean      [default: false]
+
+  state_id     ObjectId     [ref: > states._id, not null]
+  district_id  ObjectId     [ref: > districts._id, not null]
+  pincode_id   ObjectId     [ref: > pincodes._id, not null]
+
+  village      varchar [null]
+  address_line varchar [null]
+  latitude     float   [not null]
+  longitude    float   [not null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    user_id
+    (user_id, is_primary)
+    is_deleted
+    (latitude, longitude)   // 2dsphere
+    district_id
+    pincode_id
+    type
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// FARMER PROFILE
+//////////////////////////////////////////////////////
+
+Table farmer_profiles {
+  _id              ObjectId [pk]
+  user_id          ObjectId [ref: > users._id, not null, unique]
+
+  total_land_area  float    [null]
+  experience_years int      [null]
+  aadhaar_last4    varchar  [null]
+  is_kyc_verified  boolean  [default: false]
+
+  trust_score         float [default: 5.0]  // 0.0–10.0, recomputed on repayment events
+  total_loans_taken   int   [default: 0]
+  loans_repaid_on_time int  [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    user_id
+    trust_score
+    is_deleted
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// LAND & CROPS
+//////////////////////////////////////////////////////
+
+Table lands {
+  _id               ObjectId       [pk]
+  farmer_id         ObjectId       [ref: > farmer_profiles._id, not null]
+  location_id       ObjectId       [ref: > locations._id, not null]
+
+  name              varchar        [not null]
+  area_acres        float          [not null]
+  land_type         LandType       [not null]
+  soil_type         SoilType
+  irrigation_type   IrrigationType
+  is_organic        boolean        [default: false]
+  survey_number     varchar        [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    farmer_id
+    location_id
+    is_deleted
+  }
+}
+
+Table crop_catalog {
+  _id               ObjectId     [pk]
+  name              varchar      [unique, not null]
+  local_names       varchar      [null]               // JSON: {"hi":"गेहूं"}
+  category          CropCategory [not null]
+  typical_seasons   varchar[]    [null]
+  avg_duration_days int          [null]
+  image_url         varchar      [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+
+  indexes {
+    name
+    category
+    is_deleted
+  }
+}
+
+Table crops {
+  _id               ObjectId    [pk]
+  land_id           ObjectId    [ref: > lands._id, not null]
+  catalog_id        ObjectId    [ref: > crop_catalog._id, null]
+
+  crop_name         varchar     [not null]
+  category          CropCategory
+  season            Season
+  sowing_date       datetime
+  expected_harvest  datetime
+  actual_harvest    datetime    [null]
+  status            CropStatus  [default: 'SOWN']
+
+  area_acres        float       [null]
+  expected_yield_kg float       [null]
+  actual_yield_kg   float       [null]
+  notes             text        [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    land_id
+    catalog_id
+    status
+    is_deleted
+    (land_id, season)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ██████╗ ██╗███████╗███████╗ █████╗ ███████╗███████╗
+// ██╔══██╗██║██╔════╝██╔════╝██╔══██╗██╔════╝██╔════╝
+// ██║  ██║██║███████╗█████╗  ███████║███████╗█████╗
+// ██║  ██║██║╚════██║██╔══╝  ██╔══██║╚════██║██╔══╝
+// ██████╔╝██║███████║███████╗██║  ██║███████║███████╗
+// ╚═════╝ ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+//
+// disease_catalog       → canonical disease master
+// treatment_catalog     → treatments with dosage, links, safety
+// disease_catalog_treatments → disease × treatment × stage junction
+// disease_reports       → AI detection per crop upload
+// disease_report_updates → follow-up outcomes per report
+// disease_expert_consults → farmer-to-expert Q&A per report
+// disease_aggregates_daily → precomputed daily rollup (outbreak scan)
+//////////////////////////////////////////////////////
+
+Table disease_catalog {
+  _id                   ObjectId    [pk]
+  name                  varchar     [unique, not null]
+  local_names           varchar     [null]
+  scientific_name       varchar     [null]
+  disease_type          DiseaseType [not null]
+  affected_categories   varchar[]   [not null]
+
+  symptoms_description  text        [not null]
+  visual_signs          text        [null]
+  identification_images varchar[]   [null]
+  spread_mechanism      text        [null]
+  favorable_conditions  text        [null]   // "humidity >85%, temp 20–25°C"
+  incubation_period     varchar     [null]
+
+  is_outbreak_notifiable boolean    [default: false]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    name
+    disease_type
+    affected_categories
+    is_outbreak_notifiable
+    is_deleted
+  }
+}
+
+Table treatment_catalog {
+  _id                  ObjectId       [pk]
+  name                 varchar        [not null]
+  treatment_type       TreatmentType  [not null]
+  applicable_stage     TreatmentStage [not null]
+
+  product_name         varchar        [null]
+  active_ingredient    varchar        [null]
+  concentration        varchar        [null]
+  dosage               varchar        [null]
+  application_method   text           [not null]
+  application_frequency varchar       [null]
+  waiting_period_days  int            [null]
+
+  is_organic           boolean        [default: false]
+  safety_precautions   text           [null]
+  phi_days             int            [null]   // pre-harvest interval
+
+  reference_links      varchar[]      [null]   // ICAR, TNAU, Agropedia URLs
+  video_url            varchar        [null]
+
+  cost_range           varchar        [null]
+  availability         varchar        [null]
+
+  // Expert-validated
+  is_verified          boolean        [default: false]
+  verified_by          ObjectId       [ref: > users._id, null]
+
+  // Efficacy signal — computed from disease_report_updates.treatment_effective
+  efficacy_rate        float          [null]    // 0.0–1.0, recomputed periodically
+  efficacy_sample_size int            [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    treatment_type
+    applicable_stage
+    is_organic
+    is_verified
+    is_deleted
+  }
+}
+
+Table disease_catalog_treatments {
+  _id                ObjectId       [pk]
+  disease_id         ObjectId       [ref: > disease_catalog._id, not null]
+  treatment_id       ObjectId       [ref: > treatment_catalog._id, not null]
+  applicable_stage   TreatmentStage [not null]
+
+  priority_rank      int            [default: 1]
+  efficacy_notes     text           [null]
+  caution_notes      text           [null]
+  verified_by_expert boolean        [default: false]
+  created_at         datetime
+
+  indexes {
+    disease_id
+    treatment_id
+    (disease_id, applicable_stage)
+    (disease_id, treatment_id, applicable_stage) [unique]
+  }
+}
+
+Table disease_reports {
+  _id                    ObjectId         [pk]
+  crop_id                ObjectId         [ref: > crops._id, not null]
+  farmer_id              ObjectId         [ref: > farmer_profiles._id, not null]
+  disease_catalog_id     ObjectId         [ref: > disease_catalog._id, null]
+
+  // Geo denorm — never joined in outbreak queries
+  latitude               float
+  longitude              float
+  district_id            ObjectId         [ref: > districts._id]
+  state_id               ObjectId         [ref: > states._id]
+
+  media_url              varchar          [not null]
+  media_type             MediaType        [default: 'IMAGE']
+  additional_media       varchar[]        [null]
+
+  // AI output
+  predicted_disease      varchar          [not null]   // SNAPSHOT — string at detection time
+  confidence_score       float            [not null]   // 0.0–1.0 raw value
+  ai_confidence_level    AIConfidenceLevel [not null]  // derived: LOW/MEDIUM/HIGH for UI
+  severity               DiseaseSeverity  [not null]
+  ai_recommendation      text             [not null]
+
+  // Best-fit treatment assigned by system at detection
+  recommended_treatment_id ObjectId       [ref: > treatment_catalog._id, null]
+
+  // Expert review layer
+  expert_reviewed        boolean          [default: false]
+  expert_id              ObjectId         [ref: > users._id, null]
+  expert_diagnosis       varchar          [null]
+  expert_notes           text             [null]
+  reviewed_at            datetime         [null]
+
+  // Outbreak
+  is_confirmed_outbreak  boolean          [default: false]
+  outbreak_alert_id      ObjectId         [ref: > alerts._id, null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+
+  indexes {
+    crop_id
+    farmer_id
+    disease_catalog_id
+    district_id
+    state_id
+    severity
+    ai_confidence_level
+    is_confirmed_outbreak
+    is_deleted
+    (latitude, longitude)                          // 2dsphere — heatmap
+    (district_id, disease_catalog_id, created_at) // outbreak aggregation (primary)
+    (state_id,    disease_catalog_id, created_at) // state-level scan
+    created_at
+  }
+}
+
+Table disease_report_updates {
+  _id                  ObjectId             [pk]
+  report_id            ObjectId             [ref: > disease_reports._id, not null]
+  farmer_id            ObjectId             [ref: > farmer_profiles._id, not null]
+  treatment_id         ObjectId             [ref: > treatment_catalog._id, null]
+
+  update_date          datetime             [not null]
+  treatment_applied    varchar              [null]
+  dosage_used          varchar              [null]
+  outcome              DiseaseReportOutcome [not null]
+  farmer_notes         text                 [null]
+  update_media         varchar[]            [null]
+
+  // Feeds treatment_catalog.efficacy_rate recomputation
+  treatment_effective  boolean              [null]
+
+  created_at datetime
+
+  indexes {
+    report_id
+    farmer_id
+    outcome
+    treatment_id
+    treatment_effective
+    (report_id, update_date)
+  }
+}
+
+Table disease_expert_consults {
+  _id          ObjectId [pk]
+  report_id    ObjectId [ref: > disease_reports._id, not null]
+  farmer_id    ObjectId [ref: > farmer_profiles._id, not null]
+  expert_id    ObjectId [ref: > users._id, null]
+
+  question     text     [not null]
+  answer       text     [null]
+  is_resolved  boolean  [default: false]
+  requested_at datetime
+  resolved_at  datetime [null]
+
+  indexes {
+    report_id
+    farmer_id
+    expert_id
+    is_resolved
+  }
+}
+
+// Precomputed daily outbreak rollup — replaces expensive live aggregation
+// Nightly cron: GROUP disease_reports by (district_id, disease_catalog_id, DATE(created_at))
+// Outbreak alert fires when report_count > threshold for is_outbreak_notifiable diseases
+Table disease_aggregates_daily {
+  _id                ObjectId [pk]
+  date               datetime [not null]           // start of day UTC
+  district_id        ObjectId [ref: > districts._id, not null]
+  state_id           ObjectId [ref: > states._id, not null]
+  disease_catalog_id ObjectId [ref: > disease_catalog._id, not null]
+
+  report_count       int      [not null]
+  confirmed_count    int      [default: 0]    // is_confirmed_outbreak = true
+  severity_high_count int     [default: 0]   // severity = HIGH or CRITICAL
+  avg_confidence     float    [null]
+
+  // Outbreak threshold crossed?
+  threshold_crossed  boolean  [default: false]
+  alert_triggered    boolean  [default: false]
+
+  computed_at datetime
+
+  indexes {
+    date
+    district_id
+    state_id
+    disease_catalog_id
+    threshold_crossed
+    (district_id, disease_catalog_id, date) [unique]
+    (state_id,    disease_catalog_id, date)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// MARKETPLACE
+// listing → order → transaction (linear chain)
+// listing_stock_logs → immutable inventory ledger
+// order_disputes → platform dispute resolution
+//////////////////////////////////////////////////////
+
+Table market_prices {
+  _id           ObjectId [pk]
+  catalog_id    ObjectId [ref: > crop_catalog._id, not null]
+  district_id   ObjectId [ref: > districts._id, not null]
+
+  min_price     float    [not null]
+  max_price     float    [not null]
+  modal_price   float    [not null]
+  unit          varchar  [default: 'quintal']
+
+  recorded_date datetime [not null]
+  source        varchar  [null]
+
+  indexes {
+    catalog_id
+    district_id
+    (catalog_id, district_id, recorded_date)
+  }
+}
+
+Table marketplace_listings {
+  _id               ObjectId      [pk]
+  farmer_id         ObjectId      [ref: > farmer_profiles._id, not null]
+  crop_id           ObjectId      [ref: > crops._id, not null]
+
+  crop_name         varchar       [not null]   // denorm snapshot
+  farmer_name       varchar       [not null]   // denorm snapshot
+
+  title             varchar       [not null]
+  description       text          [null]
+  images            varchar[]     [null]
+
+  quantity_kg       float         [not null]
+  available_qty_kg  float         [not null]   // decrements on confirmed orders
+  price_per_unit    float         [not null]
+  unit              varchar       [default: 'kg']
+  is_negotiable     boolean       [default: true]
+
+  location_id       ObjectId      [ref: > locations._id, not null]
+  latitude          float         [not null]
+  longitude         float         [not null]
+  district_id       ObjectId      [ref: > districts._id, not null]
+
+  status            ListingStatus [default: 'ACTIVE']
+  expires_at        datetime      [null]
+  total_orders      int           [default: 0]
+  avg_rating        float         [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    farmer_id
+    status
+    is_deleted
+    (latitude, longitude)     // 2dsphere
+    district_id
+    crop_name
+    (status, district_id)
+    expires_at
+  }
+}
+
+// Immutable stock movement ledger — reconstructs inventory history
+// One row per stock event. available_qty_kg is derived by replaying this log.
+Table listing_stock_logs {
+  _id              ObjectId        [pk]
+  listing_id       ObjectId        [ref: > marketplace_listings._id, not null]
+  change_type      StockChangeType [not null]
+  quantity_change  float           [not null]   // positive = added, negative = deducted
+  quantity_after   float           [not null]   // available_qty_kg after this event
+
+  // Reference to the triggering document
+  reference_type   varchar         [null]   // "order" | "manual" | "warehouse_transfer"
+  reference_id     ObjectId        [null]   // order._id or warehouse_item._id etc.
+
+  performed_by     ObjectId        [ref: > users._id, null]
+  notes            varchar         [null]
+  created_at       datetime        [not null]
+
+  indexes {
+    listing_id
+    change_type
+    (listing_id, created_at)
+    reference_id
+  }
+}
+
+Table orders {
+  _id                       ObjectId    [pk]
+  listing_id                ObjectId    [ref: > marketplace_listings._id, not null]
+  buyer_id                  ObjectId    [ref: > users._id, not null]
+  farmer_id                 ObjectId    [ref: > farmer_profiles._id, not null]
+
+  quantity_kg               float       [not null]
+  price_per_unit            float       [not null]
+  negotiated_price          float       [null]
+  total_amount              float       [not null]
+  status                    OrderStatus [default: 'PENDING']
+
+  delivery_location_id      ObjectId    [ref: > locations._id, null]
+  delivery_address_snapshot text        [null]
+
+  buyer_note                text        [null]
+  cancel_reason             varchar     [null]
+
+  confirmed_at              datetime    [null]
+  shipped_at                datetime    [null]
+  delivered_at              datetime    [null]
+  cancelled_at              datetime    [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    buyer_id
+    farmer_id
+    listing_id
+    status
+    is_deleted
+    (buyer_id, status)
+    created_at
+  }
+}
+
+Table transactions {
+  _id                ObjectId      [pk]
+  order_id           ObjectId      [ref: > orders._id, not null, unique]
+
+  gross_amount       float         [not null]
+  platform_fee       float         [default: 0]
+  farmer_payout      float         [not null]
+
+  payment_method     PaymentMethod
+  payment_status     PaymentStatus [default: 'PENDING']
+  payment_reference  varchar       [null]
+
+  paid_at            datetime      [null]
+  refunded_at        datetime      [null]
+  refund_amount      float         [null]
+  refund_reason      text          [null]
+
+  // IP + device at time of payment (fraud evidence)
+  payment_ip         varchar       [null]
+  payment_device     varchar       [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    order_id
+    payment_status
+    payment_reference
+  }
+}
+
+Table order_reviews {
+  _id          ObjectId [pk]
+  order_id     ObjectId [ref: > orders._id, not null, unique]
+  reviewer_id  ObjectId [ref: > users._id, not null]
+  reviewee_id  ObjectId [ref: > users._id, not null]
+  rating       int      [not null]
+  comment      text     [null]
+  created_at   datetime
+
+  indexes {
+    order_id
+    reviewee_id
+    (reviewee_id, rating)
+  }
+}
+
+// Dispute resolution per order — platform mediates
+Table order_disputes {
+  _id              ObjectId      [pk]
+  order_id         ObjectId      [ref: > orders._id, not null]
+  raised_by        ObjectId      [ref: > users._id, not null]    // buyer or seller
+
+  reason           DisputeReason [not null]
+  description      text          [not null]
+  evidence_media   varchar[]     [null]      // photos, videos
+
+  status           DisputeStatus [default: 'OPEN']
+  assigned_to      ObjectId      [ref: > users._id, null]   // admin
+
+  resolution_notes text          [null]
+  refund_amount    float         [null]
+
+  resolved_by      ObjectId      [ref: > users._id, null]
+  raised_at        datetime
+  resolved_at      datetime      [null]
+
+  indexes {
+    order_id
+    raised_by
+    status
+    assigned_to
+    (status, raised_at)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// WEATHER SNAPSHOTS
+// TTL: 90 days on recorded_at
+//////////////////////////////////////////////////////
+
+Table weather_snapshots {
+  _id             ObjectId         [pk]
+  land_id         ObjectId         [ref: > lands._id, not null]
+  latitude        float
+  longitude       float
+
+  temperature_c   float
+  humidity_pct    float
+  rainfall_mm     float
+  wind_speed_kmh  float
+  condition       WeatherCondition [null]
+  uv_index        float            [null]
+
+  source          varchar          [null]
+  forecast_for    datetime         [null]
+  recorded_at     datetime         [not null]
+
+  indexes {
+    land_id
+    (land_id, recorded_at)
+    recorded_at   // TTL target
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ALERT ENGINE
+//////////////////////////////////////////////////////
+
+Table alerts {
+  _id               ObjectId         [pk]
+  type              AlertType        [not null]
+  severity          AlertSeverity    [not null]
+  title             varchar          [not null]
+  message           text             [not null]
+
+  target_level      AlertTargetLevel [not null]
+  state_id          ObjectId [ref: > states._id, null]
+  district_id       ObjectId [ref: > districts._id, null]
+  pincode_id        ObjectId [ref: > pincodes._id, null]
+  center_latitude   float    [null]
+  center_longitude  float    [null]
+  radius_km         float    [null]
+
+  is_active         boolean  [default: true]
+  created_by        ObjectId [ref: > users._id, null]
+  expires_at        datetime [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+
+  indexes {
+    type
+    severity
+    target_level
+    state_id
+    district_id
+    is_active
+    is_deleted
+    (is_active, target_level)
+    (center_latitude, center_longitude)  // 2dsphere
+    expires_at
+  }
+}
+
+Table farmer_alerts {
+  _id          ObjectId [pk]
+  farmer_id    ObjectId [ref: > farmer_profiles._id, not null]
+  alert_id     ObjectId [ref: > alerts._id, not null]
+
+  is_read      boolean  [default: false]
+  read_at      datetime [null]
+  delivered_at datetime
+
+  indexes {
+    farmer_id
+    alert_id
+    (farmer_id, alert_id)  [unique]
+    (farmer_id, is_read)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// GOVERNMENT SCHEMES & NEWS
+//////////////////////////////////////////////////////
+
+Table government_schemes {
+  _id                ObjectId       [pk]
+  title              varchar        [not null]
+  description        text           [not null]
+  eligibility        text
+  official_link      varchar        [null]
+  scheme_category    SchemeCategory
+  max_benefit_amount float          [null]
+  benefit_unit       varchar        [null]
+
+  is_national        boolean        [default: false]
+  state_id           ObjectId       [ref: > states._id, null]
+  district_id        ObjectId       [ref: > districts._id, null]
+
+  is_active          boolean        [default: true]
+  deadline           datetime       [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    is_national
+    state_id
+    district_id
+    scheme_category
+    is_active
+    is_deleted
+    deadline
+    (is_active, is_national)
+    (is_active, state_id)
+  }
+}
+
+Table scheme_applications {
+  _id        ObjectId [pk]
+  scheme_id  ObjectId [ref: > government_schemes._id, not null]
+  farmer_id  ObjectId [ref: > farmer_profiles._id, not null]
+  status     varchar  [default: 'APPLIED']
+  notes      text     [null]
+  applied_at datetime
+
+  indexes {
+    scheme_id
+    farmer_id
+    (farmer_id, scheme_id) [unique]
+    status
+  }
+}
+
+Table news_articles {
+  _id          ObjectId   [pk]
+  title        varchar    [not null]
+  summary      text       [null]
+  content      text       [not null]
+  source       varchar    [null]
+  source_url   varchar    [null]
+  image_url    varchar    [null]
+  tags         varchar[]  [null]
+  catalog_ids  ObjectId[] [null]
+
+  is_national  boolean    [default: false]
+  state_id     ObjectId   [ref: > states._id, null]
+  district_id  ObjectId   [ref: > districts._id, null]
+
+  is_published boolean    [default: false]
+  published_at datetime   [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+
+  indexes {
+    is_national
+    state_id
+    district_id
+    is_deleted
+    (is_published, published_at)
+    tags
+  }
+}
+
+
+//////////////////////////////////////////////////////
+//  ██████╗ ██████╗ ███╗   ███╗███╗   ███╗██╗   ██╗███╗   ██╗██╗████████╗██╗   ██╗
+// ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██║   ██║████╗  ██║██║╚══██╔══╝╚██╗ ██╔╝
+// ██║     ██║   ██║██╔████╔██║██╔████╔██║██║   ██║██╔██╗ ██║██║   ██║    ╚████╔╝
+// ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║╚██╗██║██║   ██║     ╚██╔╝
+// ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██║ ╚████║██║   ██║      ██║
+//  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝      ╚═╝
+//////////////////////////////////////////////////////
+
+Table communities {
+  _id                  ObjectId      [pk]
+  name                 varchar       [not null]
+  description          text          [null]
+  created_by           ObjectId      [ref: > users._id, not null]
+  type                 CommunityType [not null]
+
+  state_id             ObjectId      [ref: > states._id, null]
+  district_id          ObjectId      [ref: > districts._id, null]
+  center_latitude      float         [null]
+  center_longitude     float         [null]
+  radius_km            float         [null]
+
+  catalog_id           ObjectId      [ref: > crop_catalog._id, null]
+  crop_name            varchar       [null]
+
+  is_system_generated  boolean       [default: false]
+  is_private           boolean       [default: false]
+  is_active            boolean       [default: true]
+  cover_image_url      varchar       [null]
+
+  member_count         int           [default: 0]
+  post_count           int           [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    created_by
+    type
+    district_id
+    state_id
+    catalog_id
+    is_active
+    is_deleted
+    (is_active, type)
+    (center_latitude, center_longitude)   // 2dsphere
+  }
+}
+
+Table community_members {
+  _id          ObjectId            [pk]
+  community_id ObjectId            [ref: > communities._id, not null]
+  user_id      ObjectId            [ref: > users._id, not null]
+  role         CommunityMemberRole [default: 'MEMBER']
+  invited_by   ObjectId            [ref: > users._id, null]
+  joined_at    datetime
+
+  indexes {
+    community_id
+    user_id
+    (community_id, user_id) [unique]
+    (community_id, role)
+  }
+}
+
+// ── COMMUNITY POSTS (structured, long-form) ────────
+
+Table community_posts {
+  _id           ObjectId  [pk]
+  community_id  ObjectId  [ref: > communities._id, not null]
+  author_id     ObjectId  [ref: > users._id, not null]
+
+  content       text      [not null]
+  images        varchar[] [null]
+  video_url     varchar   [null]
+
+  like_count    int       [default: 0]
+  comment_count int       [default: 0]
+  is_pinned     boolean   [default: false]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    community_id
+    author_id
+    is_deleted
+    is_pinned
+    (community_id, created_at)
+  }
+}
+
+Table community_post_reactions {
+  _id        ObjectId         [pk]
+  post_id    ObjectId         [ref: > community_posts._id, not null]
+  user_id    ObjectId         [ref: > users._id, not null]
+  type       PostReactionType [default: 'LIKE']
+  created_at datetime
+
+  indexes {
+    post_id
+    (post_id, user_id) [unique]
+  }
+}
+
+Table community_comments {
+  _id        ObjectId [pk]
+  post_id    ObjectId [ref: > community_posts._id, not null]
+  author_id  ObjectId [ref: > users._id, not null]
+  parent_id  ObjectId [ref: > community_comments._id, null]
+
+  content    text     [not null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    post_id
+    author_id
+    parent_id
+    is_deleted
+    (post_id, created_at)
+  }
+}
+
+// ── COMMUNITY CHAT (real-time channel style) ────────
+
+Table community_chat_rooms {
+  _id              ObjectId [pk]
+  community_id     ObjectId [ref: > communities._id, not null]
+  name             varchar  [not null]
+  slug             varchar  [not null]
+  description      varchar  [null]
+  is_default       boolean  [default: false]
+  is_read_only     boolean  [default: false]
+  created_by       ObjectId [ref: > users._id, not null]
+
+  last_message_at  datetime [null]
+  message_count    int      [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+
+  indexes {
+    community_id
+    is_deleted
+    (community_id, slug) [unique]
+    last_message_at
+  }
+}
+
+// TTL: 365 days on created_at — archive to cold store after
+Table community_chat_messages {
+  _id          ObjectId [pk]
+  room_id      ObjectId [ref: > community_chat_rooms._id, not null]
+  community_id ObjectId [ref: > communities._id, not null]  // denorm
+  sender_id    ObjectId [ref: > users._id, not null]
+
+  content      text      [not null]
+  images       varchar[] [null]
+  reply_to_id  ObjectId  [ref: > community_chat_messages._id, null]
+
+  is_system    boolean   [default: false]
+
+  // Soft delete (moderation)
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  edited_at  datetime [null]
+
+  indexes {
+    room_id
+    community_id
+    sender_id
+    reply_to_id
+    is_deleted
+    (room_id, created_at)   // primary load path — TTL target
+    created_at
+  }
+}
+
+// Edit history per message — moderation audit trail
+Table community_chat_message_edits {
+  _id            ObjectId [pk]
+  message_id     ObjectId [ref: > community_chat_messages._id, not null]
+  previous_content text   [not null]
+  edited_by      ObjectId [ref: > users._id, not null]
+  edited_at      datetime [not null]
+
+  indexes {
+    message_id
+    edited_at
+  }
+}
+
+// Last-read position per user per room — powers unread badge count
+Table community_chat_read_receipts {
+  _id             ObjectId [pk]
+  room_id         ObjectId [ref: > community_chat_rooms._id, not null]
+  user_id         ObjectId [ref: > users._id, not null]
+  last_read_at    datetime [not null]
+  last_message_id ObjectId [ref: > community_chat_messages._id, null]
+
+  indexes {
+    room_id
+    user_id
+    (room_id, user_id) [unique]
+  }
+}
+
+Table content_reports {
+  _id          ObjectId     [pk]
+  reporter_id  ObjectId     [ref: > users._id, not null]
+
+  post_id      ObjectId     [ref: > community_posts._id, null]
+  comment_id   ObjectId     [ref: > community_comments._id, null]
+  chat_msg_id  ObjectId     [ref: > community_chat_messages._id, null]
+  listing_id   ObjectId     [ref: > marketplace_listings._id, null]
+  blog_id      ObjectId     [ref: > blogs._id, null]
+
+  reason       ReportReason [not null]
+  description  text         [null]
+  status       varchar      [default: 'OPEN']
+
+  reviewed_by  ObjectId     [ref: > users._id, null]
+  reviewed_at  datetime     [null]
+  created_at   datetime
+
+  indexes {
+    reporter_id
+    post_id
+    chat_msg_id
+    listing_id
+    blog_id
+    status
+  }
+}
+
+
+//////////////////////////////////////////////////////
+//  ██████╗██████╗  ██████╗ ██╗    ██╗██████╗ ███████╗██╗   ██╗███╗   ██╗██████╗
+// ██╔════╝██╔══██╗██╔═══██╗██║    ██║██╔══██╗██╔════╝██║   ██║████╗  ██║██╔══██╗
+// ██║     ██████╔╝██║   ██║██║ █╗ ██║██║  ██║█████╗  ██║   ██║██╔██╗ ██║██║  ██║
+// ██║     ██╔══██╗██║   ██║██║███╗██║██║  ██║██╔══╝  ██║   ██║██║╚██╗██║██║  ██║
+// ╚██████╗██║  ██║╚██████╔╝╚███╔███╔╝██████╔╝██║     ╚██████╔╝██║ ╚████║██████╔╝
+//  ╚═════╝╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═════╝
+//
+// FULL ESCROW LIFECYCLE:
+//   1. Farmer creates loan_request
+//   2. Farmer defines loan_milestones (phased fund release)
+//   3. Pledgers create loan_pledges → status = HELD
+//      loan_fund_wallet.balance += pledge.amount
+//   4. Farmer submits milestone proof → status = PROOF_SUBMITTED
+//   5. Admin approves → milestone status = RELEASED
+//      loan_fund_wallet.released_amount += milestone.amount
+//      loan_pledges updated → status = RELEASED (proportional)
+//   6. If loan rejected/expired → pledges → status = REFUNDED
+//      loan_fund_wallet.refunded_amount updated
+//   7. Farmer repays → loan_repayments row per installment
+//   8. loan_repayment_distributions: each payment split to pledgers
+//////////////////////////////////////////////////////
+
+Table loan_requests {
+  _id             ObjectId   [pk]
+  farmer_id       ObjectId   [ref: > farmer_profiles._id, not null]
+  community_id    ObjectId   [ref: > communities._id, null]
+
+  title           varchar    [not null]
+  amount          float      [not null]
+  pledged_amount  float      [default: 0]   // cached — SUM of loan_pledges
+  reason          varchar    [not null]
+  description     text       [null]
+  proof_docs      varchar[]  [null]
+  repayment_plan  text       [null]
+  deadline        datetime   [null]
+  status          LoanStatus [default: 'OPEN']
+
+  supporter_count int        [default: 0]
+  pledger_count   int        [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    farmer_id
+    community_id
+    status
+    is_deleted
+    (status, created_at)
+  }
+}
+
+// Escrow balance tracker per loan
+// Single document per loan — updated on every pledge/release/refund event
+Table loan_fund_wallet {
+  _id              ObjectId [pk]
+  loan_id          ObjectId [ref: > loan_requests._id, not null, unique]
+
+  total_pledged    float    [default: 0]   // sum of all HELD + RELEASED pledges
+  held_amount      float    [default: 0]   // pledges still in escrow
+  released_amount  float    [default: 0]   // funds sent to farmer
+  refunded_amount  float    [default: 0]   // pledges returned to pledgers
+
+  last_event_at    datetime
+  created_at       datetime
+  updated_at       datetime
+
+  indexes {
+    loan_id
+  }
+}
+
+Table loan_milestones {
+  _id               ObjectId            [pk]
+  loan_id           ObjectId            [ref: > loan_requests._id, not null]
+
+  title             varchar             [not null]
+  description       text                [null]
+  amount            float               [not null]
+  due_date          datetime            [null]
+  status            LoanMilestoneStatus [default: 'PENDING']
+
+  completion_proof  varchar[]           [null]
+  completed_at      datetime            [null]
+  released_at       datetime            [null]
+  approved_by       ObjectId            [ref: > users._id, null]
+
+  sort_order        int                 [default: 0]
+  created_at        datetime
+
+  indexes {
+    loan_id
+    status
+    (loan_id, sort_order)
+  }
+}
+
+Table loan_pledges {
+  _id          ObjectId     [pk]
+  loan_id      ObjectId     [ref: > loan_requests._id, not null]
+  pledger_id   ObjectId     [ref: > users._id, not null]
+
+  amount       float        [not null]
+  message      text         [null]
+  is_anonymous boolean      [default: false]
+  status       PledgeStatus [default: 'HELD']
+
+  // Audit trail on status change
+  status_changed_at datetime [null]
+  status_changed_by ObjectId [null]
+
+  // IP + device at time of pledge (fraud evidence)
+  pledge_ip     varchar [null]
+  pledge_device varchar [null]
+
+  created_at datetime
+
+  indexes {
+    loan_id
+    pledger_id
+    status
+    (loan_id, pledger_id) [unique]
+    (loan_id, status)
+  }
+}
+
+// Repayment installment ledger
+// Overdue cron: find status=SCHEDULED AND due_date < now()
+Table loan_repayments {
+  _id               ObjectId        [pk]
+  loan_id           ObjectId        [ref: > loan_requests._id, not null]
+  farmer_id         ObjectId        [ref: > farmer_profiles._id, not null]
+
+  installment_no    int             [not null]
+  amount_due        float           [not null]
+  amount_paid       float           [default: 0]
+  due_date          datetime        [not null]
+  paid_date         datetime        [null]
+  status            RepaymentStatus [default: 'SCHEDULED']
+
+  payment_reference varchar         [null]
+  notes             text            [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    loan_id
+    farmer_id
+    status
+    due_date
+    (loan_id, installment_no) [unique]
+    (farmer_id, status)
+    (status, due_date)          // cron finds overdue rows here
+  }
+}
+
+// Distributes each repayment installment back to original pledgers
+// Amount split proportional to each pledger's share of total_pledged
+Table loan_repayment_distributions {
+  _id            ObjectId [pk]
+  repayment_id   ObjectId [ref: > loan_repayments._id, not null]
+  loan_id        ObjectId [ref: > loan_requests._id, not null]
+  pledge_id      ObjectId [ref: > loan_pledges._id, not null]
+  pledger_id     ObjectId [ref: > users._id, not null]
+
+  pledge_share   float    [not null]   // pledger's % of total loan
+  amount_due     float    [not null]   // their proportional share of this installment
+  amount_paid    float    [default: 0]
+  status         RepaymentStatus [default: 'SCHEDULED']
+  paid_at        datetime [null]
+
+  created_at datetime
+
+  indexes {
+    repayment_id
+    loan_id
+    pledger_id
+    pledge_id
+    status
+    (repayment_id, pledge_id) [unique]
+  }
+}
+
+Table loan_votes {
+  _id        ObjectId [pk]
+  loan_id    ObjectId [ref: > loan_requests._id, not null]
+  voter_id   ObjectId [ref: > users._id, not null]
+  created_at datetime
+
+  indexes {
+    loan_id
+    voter_id
+    (loan_id, voter_id) [unique]
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// LABOR MARKETPLACE
+//////////////////////////////////////////////////////
+
+Table labor_profiles {
+  _id               ObjectId [pk]
+  user_id           ObjectId [ref: > users._id, not null, unique]
+
+  skills            varchar[] [not null]
+  experience_years  int       [null]
+  daily_rate        float     [null]
+  is_available      boolean   [default: true]
+
+  location_id       ObjectId  [ref: > locations._id, null]
+  latitude          float     [null]
+  longitude         float     [null]
+  district_id       ObjectId  [ref: > districts._id, null]
+  service_radius_km float     [null]
+
+  avg_rating        float     [null]
+  total_jobs        int       [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    user_id
+    is_available
+    is_deleted
+    district_id
+    skills
+    (latitude, longitude)         // 2dsphere
+    (is_available, district_id)
+  }
+}
+
+Table labor_bookings {
+  _id              ObjectId           [pk]
+  labor_id         ObjectId           [ref: > labor_profiles._id, not null]
+  farmer_id        ObjectId           [ref: > farmer_profiles._id, not null]
+  land_id          ObjectId           [ref: > lands._id, null]
+
+  task_description text               [not null]
+  start_date       datetime           [not null]
+  end_date         datetime           [null]
+  agreed_rate      float              [null]
+  total_amount     float              [null]
+  status           LaborBookingStatus [default: 'REQUESTED']
+  cancel_reason    varchar            [null]
+  rating           int                [null]
+  review           text               [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    labor_id
+    farmer_id
+    status
+    (labor_id, start_date)
+    (farmer_id, start_date)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// WAREHOUSE
+//////////////////////////////////////////////////////
+
+Table warehouse_items {
+  _id           ObjectId [pk]
+  farmer_id     ObjectId [ref: > farmer_profiles._id, not null]
+  crop_id       ObjectId [ref: > crops._id, not null]
+  location_id   ObjectId [ref: > locations._id, not null]
+
+  quantity_kg   float    [not null]
+  unit          varchar  [default: 'kg']
+  batch_label   varchar  [null]
+  storage_note  text     [null]
+  expiry_date   datetime [null]
+
+  stored_at     datetime
+  created_at    datetime
+  updated_at    datetime
+
+  indexes {
+    farmer_id
+    crop_id
+    location_id
+    (farmer_id, crop_id)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ██████╗ ██╗      ██████╗  ██████╗
+// ██╔══██╗██║     ██╔═══██╗██╔════╝
+// ██████╔╝██║     ██║   ██║██║  ███╗
+// ██╔══██╗██║     ██║   ██║██║   ██║
+// ██████╔╝███████╗╚██████╔╝╚██████╔╝
+// ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝
+//
+// BLOG SYSTEM — Separate from community posts.
+// blog_categories → hierarchical topic tree
+// blogs           → long-form articles, SEO-ready, geo-targeted
+// blog_views      → unique view tracking (prevents bot inflation)
+// blog_reactions  → per-user reaction
+// blog_comments   → threaded comments
+// blog_bookmarks  → saved blogs per user
+//////////////////////////////////////////////////////
+
+Table blog_categories {
+  _id         ObjectId [pk]
+  name        varchar  [unique, not null]
+  slug        varchar  [unique, not null]
+  parent_id   ObjectId [ref: > blog_categories._id, null]
+  description varchar  [null]
+  icon_url    varchar  [null]
+  sort_order  int      [default: 0]
+  is_deleted  boolean  [default: false]
+  created_at  datetime
+
+  indexes {
+    parent_id
+    slug
+    is_deleted
+  }
+}
+
+Table blogs {
+  _id                ObjectId     [pk]
+  author_id          ObjectId     [ref: > users._id, not null]
+  category_id        ObjectId     [ref: > blog_categories._id, null]
+
+  title              varchar      [not null]
+  slug               varchar      [unique, not null]
+  summary            text         [null]
+  content            text         [not null]
+  cover_image_url    varchar      [null]
+  tags               varchar[]    [null]
+  catalog_ids        ObjectId[]   [null]    // linked crop types
+
+  audience           BlogAudience [default: 'GENERAL']
+
+  is_national        boolean      [default: true]
+  state_id           ObjectId     [ref: > states._id, null]
+  district_id        ObjectId     [ref: > districts._id, null]
+
+  has_location       boolean      [default: false]
+  latitude           float        [null]
+  longitude          float        [null]
+
+  meta_title         varchar      [null]
+  meta_description   varchar      [null]
+
+  status             BlogStatus   [default: 'DRAFT']
+  is_featured        boolean      [default: false]
+
+  // Cached counters
+  view_count         int          [default: 0]   // incremented via blog_views aggregation
+  like_count         int          [default: 0]
+  comment_count      int          [default: 0]
+
+  published_at       datetime     [null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    author_id
+    category_id
+    slug
+    status
+    is_featured
+    is_national
+    state_id
+    district_id
+    audience
+    is_deleted
+    (status, published_at)
+    (status, is_national)
+    (status, state_id)
+    (latitude, longitude)     // 2dsphere — field-report geo search
+    tags
+    catalog_ids
+  }
+}
+
+// Unique view tracking — prevents bot/refresh inflation of view_count
+// TTL: 180 days on created_at
+Table blog_views {
+  _id          ObjectId [pk]
+  blog_id      ObjectId [ref: > blogs._id, not null]
+
+  // Registered user view — preferred
+  user_id      ObjectId [ref: > users._id, null]
+
+  // Anonymous fallback — browser fingerprint or hashed IP+UA
+  fingerprint  varchar  [null]
+
+  // Referrer context (for analytics)
+  source       varchar  [null]    // "community_post" | "search" | "direct" | "notification"
+  created_at   datetime [not null]
+
+  indexes {
+    blog_id
+    user_id
+    fingerprint
+    (blog_id, user_id)           // dedup check for logged-in users
+    (blog_id, fingerprint)       // dedup check for anonymous
+    created_at                   // TTL target
+  }
+}
+
+Table blog_reactions {
+  _id        ObjectId         [pk]
+  blog_id    ObjectId         [ref: > blogs._id, not null]
+  user_id    ObjectId         [ref: > users._id, not null]
+  type       PostReactionType [default: 'LIKE']
+  created_at datetime
+
+  indexes {
+    blog_id
+    (blog_id, user_id) [unique]
+  }
+}
+
+Table blog_comments {
+  _id        ObjectId [pk]
+  blog_id    ObjectId [ref: > blogs._id, not null]
+  author_id  ObjectId [ref: > users._id, not null]
+  parent_id  ObjectId [ref: > blog_comments._id, null]
+
+  content    text     [not null]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    blog_id
+    author_id
+    parent_id
+    is_deleted
+    (blog_id, created_at)
+  }
+}
+
+Table blog_bookmarks {
+  _id        ObjectId [pk]
+  blog_id    ObjectId [ref: > blogs._id, not null]
+  user_id    ObjectId [ref: > users._id, not null]
+  created_at datetime
+
+  indexes {
+    user_id
+    (blog_id, user_id) [unique]
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// AI CHAT SYSTEM
+//////////////////////////////////////////////////////
+
+Table chat_sessions {
+  _id               ObjectId          [pk]
+  farmer_id         ObjectId          [ref: > farmer_profiles._id, not null]
+  title             varchar           [null]
+  language          varchar           [default: 'hi']
+  status            ChatSessionStatus [default: 'ACTIVE']
+  context_snapshot  text              [null]  // JSON: crops, alerts, weather, diseases
+  message_count     int               [default: 0]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    farmer_id
+    status
+    is_deleted
+    (farmer_id, status)
+    created_at
+  }
+}
+
+Table chat_messages {
+  _id              ObjectId [pk]
+  session_id       ObjectId [ref: > chat_sessions._id, not null]
+  role             ChatRole [not null]
+  content          text     [not null]
+  tokens_used      int      [null]
+  model_version    varchar  [null]
+  response_time_ms int      [null]
+  created_at       datetime
+
+  indexes {
+    session_id
+    (session_id, created_at)
+    role
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// EXPERT PROFILES
+//////////////////////////////////////////////////////
+
+Table expert_profiles {
+  _id               ObjectId   [pk]
+  user_id           ObjectId   [ref: > users._id, not null, unique]
+
+  specializations   varchar[]  [not null]
+  qualifications    text       [null]
+  institution       varchar    [null]
+  years_experience  int        [null]
+
+  is_verified       boolean    [default: false]
+  verified_by       ObjectId   [ref: > users._id, null]
+  verification_doc  varchar    [null]
+
+  avg_rating        float      [null]
+  total_consults    int        [default: 0]
+  response_sla_hrs  int        [default: 48]
+
+  // Soft delete
+  is_deleted  boolean  [default: false]
+  deleted_at  datetime [null]
+  deleted_by  ObjectId [null]
+
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    user_id
+    is_verified
+    is_deleted
+    specializations
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// NOTIFICATIONS
+// TTL: 60 days on created_at
+//////////////////////////////////////////////////////
+
+Table notifications {
+  _id          ObjectId            [pk]
+  user_id      ObjectId            [ref: > users._id, not null]
+  channel      NotificationChannel [not null]
+  status       NotificationStatus  [default: 'QUEUED']
+  title        varchar             [not null]
+  body         text                [not null]
+  image_url    varchar             [null]
+  action_type  varchar             [null]
+  action_id    ObjectId            [null]
+  is_read      boolean             [default: false]
+  read_at      datetime            [null]
+  sent_at      datetime            [null]
+  created_at   datetime            // TTL target
+
+  indexes {
+    user_id
+    status
+    channel
+    (user_id, is_read)
+    (user_id, created_at)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ███████╗███╗   ██╗████████╗███████╗██████╗ ██████╗ ██████╗ ██╗███████╗███████╗
+// ██╔════╝████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██║██╔════╝██╔════╝
+// █████╗  ██╔██╗ ██║   ██║   █████╗  ██████╔╝██████╔╝██████╔╝██║███████╗█████╗
+// ██╔══╝  ██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔═══╝ ██╔══██╗██║╚════██║██╔══╝
+// ███████╗██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║██║███████║███████╗
+// ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝
+//
+// LAYER 1 — audit_logs
+//   Immutable. Written by application on every state mutation of
+//   financial + disease + moderation entities.
+//   entity_type + entity_id makes any record's full change history
+//   retrievable in one query.
+//
+// LAYER 2 — user_events (analytics / AI training)
+//   Lightweight event stream. TTL 180 days.
+//   Powers recommendation engine, search relevance, alert CTR.
+//
+// LAYER 3 — admin_activity_log
+//   Every action taken by ADMIN or SUPER_ADMIN in the platform.
+//   Separate from audit_logs — audit is entity-centric,
+//   admin_activity_log is actor-centric.
+//////////////////////////////////////////////////////
+
+// Immutable audit ledger — no update or delete ever
+Table audit_logs {
+  _id           ObjectId        [pk]
+  entity_type   AuditEntityType [not null]
+  entity_id     ObjectId        [not null]
+
+  action        AuditAction     [not null]
+  performed_by  ObjectId        [ref: > users._id, not null]
+
+  // Before/after state snapshot (JSON strings)
+  before_state  text            [null]
+  after_state   text            [null]
+
+  // Request context for fraud investigation
+  ip_address    varchar         [null]
+  device_info   varchar         [null]
+  user_agent    varchar         [null]
+
+  metadata      text            [null]    // JSON: extra context
+  created_at    datetime        [not null]
+
+  indexes {
+    entity_type
+    entity_id
+    (entity_type, entity_id)         // "full history of this document"
+    (entity_type, entity_id, created_at)
+    performed_by
+    action
+    created_at
+  }
+}
+
+// Event stream for analytics + AI recommendation training
+// TTL: 180 days on created_at
+Table user_events {
+  _id          ObjectId  [pk]
+  user_id      ObjectId  [ref: > users._id, null]     // null for anonymous
+  fingerprint  varchar   [null]                        // anonymous session token
+  event_type   EventType [not null]
+
+  entity_type  varchar   [null]   // "blog" | "listing" | "disease_report" etc.
+  entity_id    ObjectId  [null]
+
+  // Context
+  district_id  ObjectId  [ref: > districts._id, null]
+  source       varchar   [null]   // "search" | "community" | "notification" | "direct"
+  metadata     text      [null]   // JSON: search query, filter params etc.
+
+  created_at   datetime  [not null]  // TTL target
+
+  indexes {
+    user_id
+    event_type
+    entity_id
+    district_id
+    (user_id, event_type)
+    (entity_type, entity_id, event_type)   // "how many blog views for X"
+    created_at
+  }
+}
+
+// Actor-centric admin action log
+Table admin_activity_log {
+  _id           ObjectId [pk]
+  admin_id      ObjectId [ref: > users._id, not null]
+  action        varchar  [not null]        // freeform: "SUSPENDED_USER", "RELEASED_MILESTONE"
+  target_type   varchar  [not null]
+  target_id     ObjectId [not null]
+
+  reason        text     [null]
+  notes         text     [null]
+
+  ip_address    varchar  [null]
+  device_info   varchar  [null]
+
+  created_at    datetime [not null]
+
+  indexes {
+    admin_id
+    target_type
+    target_id
+    action
+    created_at
+    (admin_id, created_at)
+  }
+}
+
+
+//////////////////////////////////////////////////////
+// ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗███████╗██╗ ██████╗ ███╗   ██╗███████╗
+// ██╔══██╗██╔════╝██╔══██╗████╗ ████║██║██╔════╝██╔════╝██║██╔═══██╗████╗  ██║██╔════╝
+// ██████╔╝█████╗  ██████╔╝██╔████╔██║██║███████╗███████╗██║██║   ██║██╔██╗ ██║███████╗
+// ██╔═══╝ ██╔══╝  ██╔══██╗██║╚██╔╝██║██║╚════██║╚════██║██║██║   ██║██║╚██╗██║╚════██║
+// ██║     ███████╗██║  ██║██║ ╚═╝ ██║██║███████║███████║██║╚██████╔╝██║ ╚████║███████║
+// ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+//
+// Dynamic permission system — replaces hardcoded role-based checks.
+// role_permissions defines what each role CAN do.
+// user_permission_overrides adds or removes specific permissions for a single user.
+// feature_flags controls feature availability per role/user/district.
+// global_config stores system-wide tunable parameters.
+// rate_limit_logs tracks action frequency for spam/fraud prevention. TTL: 24h.
+//////////////////////////////////////////////////////
+
+// What each UserRole can do on each PermissionResource
+Table role_permissions {
+  _id        ObjectId            [pk]
+  role       UserRole            [not null]
+  resource   PermissionResource  [not null]
+  action     PermissionAction    [not null]
+  is_allowed boolean             [default: true]
+
+  created_by ObjectId            [ref: > users._id, not null]
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    role
+    resource
+    (role, resource, action) [unique]
+  }
+}
+
+// Per-user exceptions — grant or revoke beyond role defaults
+// Example: grant one FARMER the VERIFY action on disease_reports
+Table user_permission_overrides {
+  _id        ObjectId           [pk]
+  user_id    ObjectId           [ref: > users._id, not null]
+  resource   PermissionResource [not null]
+  action     PermissionAction   [not null]
+  is_allowed boolean            [not null]   // true = grant, false = explicit deny
+
+  reason     varchar            [null]
+  granted_by ObjectId           [ref: > users._id, not null]
+  expires_at datetime           [null]    // null = permanent
+
+  created_at datetime
+
+  indexes {
+    user_id
+    (user_id, resource, action) [unique]
+    expires_at
+  }
+}
+
+// Feature toggles — control rollout per role, district, or individual user
+Table feature_flags {
+  _id           ObjectId [pk]
+  key           varchar  [unique, not null]   // "disease_ai_v2", "crowdfunding", "blog_module"
+  description   varchar  [null]
+  is_enabled    boolean  [default: false]
+
+  // Scoped rollout
+  enabled_roles     varchar[] [null]    // if null = applies to all roles
+  enabled_districts ObjectId[] [null]  // if null = applies globally
+  enabled_user_ids  ObjectId[] [null]  // override for specific users
+
+  rollout_percentage int    [default: 100]   // 0–100 for gradual rollout
+
+  created_by    ObjectId [ref: > users._id, not null]
+  created_at    datetime
+  updated_at    datetime
+
+  indexes {
+    key
+    is_enabled
+  }
+}
+
+// System-wide tunable parameters
+// Read at startup + cached. Admin can update without code deploy.
+Table global_config {
+  _id          ObjectId [pk]
+  key          varchar  [unique, not null]   // "outbreak_threshold", "loan_max_amount"
+  value        varchar  [not null]           // stored as string, app parses
+  value_type   varchar  [not null]           // "int" | "float" | "bool" | "string" | "json"
+  description  text     [null]
+  is_sensitive boolean  [default: false]     // mask in UI / logs if true
+
+  updated_by   ObjectId [ref: > users._id, null]
+  created_at   datetime
+  updated_at   datetime
+
+  indexes {
+    key
+  }
+}
+
+// Rate limiting tracker — one row per (user_id, action, window_start)
+// TTL: 24 hours on window_start
+// Actions: "disease_report_submit", "loan_pledge", "chat_message", "blog_comment"
+Table rate_limit_logs {
+  _id            ObjectId [pk]
+  user_id        ObjectId [ref: > users._id, not null]
+  action         varchar  [not null]
+  window_start   datetime [not null]   // floored to hour: 2024-01-15T14:00:00Z  — TTL target
+  request_count  int      [default: 1]
+
+  ip_address     varchar  [null]
+  is_blocked     boolean  [default: false]   // true when count > threshold
+
+  indexes {
+    user_id
+    action
+    (user_id, action, window_start) [unique]
+    is_blocked
+    window_start   // TTL target
+  }
+}

@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -14,17 +7,2600 @@ datasource db {
   // url      = env("DATABASE_URL")
 }
 
-model User { 
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
-  email String  @unique
-  name  String?
-  posts Post[]
-} 
-model Post { 
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String?
-  published Boolean @default(false) 
-  author    User    @relation(fields: [authorId], references: [id]) 
-  authorId  String  @db.ObjectId
-} 
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  FARMER
+  BUYER
+  LABOR
+  EXPERT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum LandType {
+  FIELD
+  GARDEN
+  GREENHOUSE
+  ORCHARD
+  POLYHOUSE
+  NURSERY
+  PASTURE
+  AQUACULTURE
+  OTHER
+}
+
+enum SoilType {
+  ALLUVIAL
+  BLACK
+  RED
+  LATERITE
+  DESERT
+  MOUNTAIN
+  SALINE
+  PEATY
+  OTHER
+}
+
+enum IrrigationType {
+  RAINFED
+  CANAL
+  BOREWELL
+  DRIP
+  SPRINKLER
+  FLOOD
+  TANK
+  OTHER
+}
+
+enum CropCategory {
+  CEREAL
+  PULSE
+  OILSEED
+  VEGETABLE
+  FRUIT
+  SPICE
+  FIBER
+  PLANTATION
+  FODDER
+  FLOWER
+  MEDICINAL
+  OTHER
+}
+
+enum Season {
+  KHARIF
+  RABI
+  ZAID
+  PERENNIAL
+}
+
+enum CropStatus {
+  SOWN
+  GROWING
+  READY_TO_HARVEST
+  HARVESTED
+  FAILED
+}
+
+enum ListingStatus {
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+  DELETED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURN_REQUESTED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  PARTIAL_REFUND
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  WALLET
+  COD
+}
+
+enum StockChangeType {
+  ORDER_CONFIRMED
+  ORDER_CANCELLED
+  ORDER_RETURNED
+  MANUAL_ADJUSTMENT
+  INITIAL_STOCK
+  WAREHOUSE_TRANSFER
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER_FAVOR
+  RESOLVED_SELLER_FAVOR
+  RESOLVED_PARTIAL_REFUND
+  CLOSED_NO_ACTION
+}
+
+enum DisputeReason {
+  ITEM_NOT_RECEIVED
+  WRONG_QUANTITY
+  QUALITY_MISMATCH
+  DAMAGED_GOODS
+  PRICE_DISPUTE
+  SELLER_UNRESPONSIVE
+  OTHER
+}
+
+enum AlertType {
+  WEATHER
+  DISEASE_OUTBREAK
+  PANDEMIC
+  MARKET_PRICE
+  COMMUNITY
+  GOVERNMENT_SCHEME
+  SYSTEM
+  FLOOD
+  DROUGHT
+  PEST
+}
+
+enum AlertSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertTargetLevel {
+  NATIONAL
+  STATE
+  DISTRICT
+  PINCODE
+  RADIUS
+}
+
+enum DiseaseSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AIConfidenceLevel {
+  LOW // confidence_score < 0.50
+  MEDIUM // confidence_score 0.50-0.80
+  HIGH // confidence_score > 0.80
+}
+
+enum DiseaseType {
+  FUNGAL
+  BACTERIAL
+  VIRAL
+  PEST
+  NUTRITIONAL_DEFICIENCY
+  ABIOTIC_STRESS
+  OTHER
+}
+
+enum TreatmentType {
+  CHEMICAL_FUNGICIDE
+  CHEMICAL_PESTICIDE
+  CHEMICAL_HERBICIDE
+  CHEMICAL_FERTILIZER
+  BIO_CONTROL
+  ORGANIC_REMEDY
+  CULTURAL_PRACTICE
+  IRRIGATION_MANAGEMENT
+  SOIL_AMENDMENT
+  QUARANTINE
+  OTHER
+}
+
+enum TreatmentStage {
+  PREVENTIVE
+  EARLY_INFECTION
+  MODERATE_INFECTION
+  SEVERE_INFECTION
+}
+
+enum DiseaseReportOutcome {
+  TREATMENT_APPLIED
+  TREATMENT_EFFECTIVE
+  TREATMENT_INEFFECTIVE
+  CROP_RECOVERED
+  CROP_LOST
+  MONITORING
+  EXPERT_CONSULTED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum LoanStatus {
+  DRAFT
+  OPEN
+  FUNDED
+  PARTIALLY_FUNDED
+  REJECTED
+  CLOSED
+  EXPIRED
+  DEFAULTED
+}
+
+enum LoanMilestoneStatus {
+  PENDING
+  AWAITING_PROOF
+  PROOF_SUBMITTED
+  RELEASED
+  CANCELLED
+}
+
+enum PledgeStatus {
+  HELD
+  RELEASED
+  REFUNDED
+  PARTIAL_RELEASE
+}
+
+enum RepaymentStatus {
+  SCHEDULED
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+enum CommunityType {
+  DISTRICT
+  CROP_SPECIFIC
+  RADIUS_BASED
+  STATE_WIDE
+  GENERAL
+}
+
+enum CommunityMemberRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+enum AIChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum ChatSessionStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum BlogStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+  REJECTED
+}
+
+enum BlogAudience {
+  FARMER
+  BUYER
+  GENERAL
+  EXPERT
+}
+
+enum PostReactionType {
+  LIKE
+  HELPFUL
+  INSIGHTFUL
+}
+
+enum LocationType {
+  HOME
+  FARM
+  WAREHOUSE
+  DELIVERY
+  COMMUNITY_HUB
+  ALERT_ZONE
+  OTHER
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+enum SchemeCategory {
+  SUBSIDY
+  LOAN
+  INSURANCE
+  TRAINING
+  EQUIPMENT
+  SEED
+  IRRIGATION
+  MARKET_SUPPORT
+  OTHER
+}
+
+enum LaborBookingStatus {
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum WeatherCondition {
+  SUNNY
+  CLOUDY
+  RAINY
+  STORMY
+  FOGGY
+  HAILSTORM
+  WINDY
+}
+
+enum VerificationChannel {
+  PHONE_OTP
+  EMAIL_LINK
+}
+
+enum ReportReason {
+  SPAM
+  MISLEADING
+  ABUSIVE
+  FRAUD
+  OTHER
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  DELETED
+  RESTORED
+  APPROVED
+  REJECTED
+  SUSPENDED
+  VERIFIED
+  RELEASED
+  REFUNDED
+  FLAGGED
+  ESCALATED
+}
+
+enum AuditEntityType {
+  USER
+  FARMER_PROFILE
+  LISTING
+  ORDER
+  TRANSACTION
+  LOAN_REQUEST
+  LOAN_PLEDGE
+  LOAN_MILESTONE
+  LOAN_REPAYMENT
+  DISEASE_REPORT
+  ALERT
+  COMMUNITY
+  COMMUNITY_POST
+  BLOG
+  SCHEME
+  EXPERT_PROFILE
+  DISPUTE
+}
+
+enum EventType {
+  BLOG_VIEW
+  LISTING_VIEW
+  DISEASE_REPORT_VIEW
+  SCHEME_VIEW
+  NEWS_VIEW
+  SEARCH_PERFORMED
+  ALERT_CLICKED
+  ALERT_DISMISSED
+  POST_REACTION
+  BLOG_REACTION
+  COMMENT_POSTED
+  LISTING_CONTACTED
+  ORDER_STARTED
+  DISEASE_SCAN_STARTED
+  DISEASE_SCAN_COMPLETED
+  TREATMENT_VIEWED
+  AI_CHAT_STARTED
+  COMMUNITY_CHAT_OPENED
+}
+
+enum PermissionResource {
+  USERS
+  FARMER_PROFILES
+  LANDS
+  CROPS
+  LISTINGS
+  ORDERS
+  DISEASE_REPORTS
+  DISEASE_CATALOG
+  TREATMENT_CATALOG
+  ALERTS
+  COMMUNITIES
+  COMMUNITY_POSTS
+  BLOGS
+  LOANS
+  GOVERNMENT_SCHEMES
+  LABOR_BOOKINGS
+  AUDIT_LOGS
+  ANALYTICS
+  FEATURE_FLAGS
+  SYSTEM_CONFIG
+}
+
+enum PermissionAction {
+  READ
+  WRITE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  VERIFY
+  EXPORT
+}
+
+// ─────────────────────────────────────────────
+// GEO LAYER
+// ─────────────────────────────────────────────
+
+model State {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  code      String   @unique // "MH", "UP", "KA"
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  districts         District[]
+  pincodes          Pincode[]
+  users             User[]                  @relation("UserPrimaryState")
+  locations         Location[]
+  diseaseReports    DiseaseReport[]         @relation("DiseaseReportState")
+  diseaseAggregates DiseaseAggregateDaily[]
+  governmentSchemes GovernmentScheme[]
+  newsArticles      NewsArticle[]
+  alerts            Alert[]                 @relation("AlertState")
+  communities       Community[]             @relation("CommunityState")
+  blogs             Blog[]                  @relation("BlogState")
+
+  @@index([isDeleted])
+  @@map("states")
+}
+
+model District {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  stateId   String   @db.ObjectId
+  name      String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  state               State                   @relation(fields: [stateId], references: [id])
+  pincodes            Pincode[]
+  users               User[]                  @relation("UserPrimaryDistrict")
+  locations           Location[]
+  marketPrices        MarketPrice[]
+  diseaseReports      DiseaseReport[]         @relation("DiseaseReportDistrict")
+  diseaseAggregates   DiseaseAggregateDaily[]
+  laborProfiles       LaborProfile[]
+  alerts              Alert[]                 @relation("AlertDistrict")
+  communities         Community[]             @relation("CommunityDistrict")
+  blogs               Blog[]                  @relation("BlogDistrict")
+  marketplaceListings MarketplaceListing[]
+  governmentSchemes   GovernmentScheme[]      @relation("DistrictGovernmentScheme")
+  newsArticles        NewsArticle[]           @relation("DistrictNewsArticle")
+  userEvents          UserEvent[]
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@index([isDeleted])
+  @@map("districts")
+}
+
+model Pincode {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  districtId String   @db.ObjectId
+  stateId    String   @db.ObjectId
+  code       String   @unique
+  areaName   String?
+  latitude   Float?
+  longitude  Float?
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  district  District   @relation(fields: [districtId], references: [id])
+  state     State      @relation(fields: [stateId], references: [id])
+  users     User[]     @relation("UserPrimaryPincode")
+  locations Location[]
+  alerts    Alert[]    @relation("AlertPincode")
+
+  @@index([stateId])
+  @@index([districtId])
+  @@index([latitude, longitude]) // 2dsphere
+  @@index([isDeleted])
+  @@map("pincodes")
+}
+
+// ─────────────────────────────────────────────
+// USERS & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String?    @unique
+  phone        String     @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(PENDING_VERIFICATION)
+
+  preferredLanguage String  @default("hi")
+  profileImageUrl   String?
+  bio               String?
+
+  // Denorm primary location — for fast alert fan-out
+  primaryStateId    String? @db.ObjectId
+  primaryDistrictId String? @db.ObjectId
+  primaryPincodeId  String? @db.ObjectId
+  primaryLatitude   Float?
+  primaryLongitude  Float?
+
+  isPhoneVerified Boolean   @default(false)
+  isEmailVerified Boolean   @default(false)
+  lastLoginAt     DateTime?
+
+  // Fraud detection
+  lastLoginIp      String?
+  lastLoginDevice  String?
+  failedLoginCount Int     @default(0)
+  isFlagged        Boolean @default(false)
+  flaggedReason    String?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations — primary geo
+  primaryState    State?    @relation("UserPrimaryState", fields: [primaryStateId], references: [id])
+  primaryDistrict District? @relation("UserPrimaryDistrict", fields: [primaryDistrictId], references: [id])
+  primaryPincode  Pincode?  @relation("UserPrimaryPincode", fields: [primaryPincodeId], references: [id])
+
+  // Relations — owned
+  locations     Location[]
+  farmerProfile FarmerProfile?
+  laborProfile  LaborProfile?
+  expertProfile ExpertProfile?
+  deviceTokens  UserDeviceToken[]
+  verifications UserVerification[]
+  notifications Notification[]
+
+  // Relations — authored / performed
+  createdCommunities         Community[]                 @relation("CommunityCreatedBy")
+  communityMemberships       CommunityMember[]
+  communityPosts             CommunityPost[]
+  communityPostReactions     CommunityPostReaction[]
+  communityComments          CommunityComment[]
+  chatRoomsCreated           CommunityChatRoom[]         @relation("ChatRoomCreatedBy")
+  chatMessages               CommunityChatMessage[]      @relation("ChatMessageSender")
+  chatMessageEdits           CommunityChatMessageEdit[]
+  chatReadReceipts           CommunityChatReadReceipt[]
+  blogs                      Blog[]
+  blogReactions              BlogReaction[]
+  blogComments               BlogComment[]
+  blogBookmarks              BlogBookmark[]
+  blogViews                  BlogView[]
+  contentReports             ContentReport[]             @relation("ContentReportReporter")
+  contentReviewedReports     ContentReport[]             @relation("ContentReportReviewer")
+  loanPledges                LoanPledge[]
+  loanVotes                  LoanVote[]
+  ordersBuyer                Order[]                     @relation("OrderBuyer")
+  orderReviewsGiven          OrderReview[]               @relation("OrderReviewReviewer")
+  orderReviewsReceived       OrderReview[]               @relation("OrderReviewReviewee")
+  disputesRaised             OrderDispute[]              @relation("DisputeRaisedBy")
+  disputesAssigned           OrderDispute[]              @relation("DisputeAssignedTo")
+  disputesResolved           OrderDispute[]              @relation("DisputeResolvedBy")
+  expertConsultsAnswered     DiseaseExpertConsult[]      @relation("ExpertConsultExpert")
+  treatmentsVerified         TreatmentCatalog[]          @relation("TreatmentVerifiedBy")
+  diseaseReportsExpert       DiseaseReport[]             @relation("DiseaseReportExpert")
+  alertsCreated              Alert[]                     @relation("AlertCreatedBy")
+  schemeApplications         SchemeApplication[]         @relation("SchemeApplicationUser")
+  milestonesApproved         LoanMilestone[]             @relation("MilestoneApprovedBy")
+  repaymentDistributions     LoanRepaymentDistribution[]
+  userEvents                 UserEvent[]
+  auditLogsPerformed         AuditLog[]
+  adminActivities            AdminActivityLog[]
+  rolePermissionsCreated     RolePermission[]
+  permissionOverrides        UserPermissionOverride[]    @relation("PermissionOverrideUser")
+  permissionOverridesGranted UserPermissionOverride[]    @relation("PermissionOverrideGrantedBy")
+  featureFlagsCreated        FeatureFlag[]
+  globalConfigUpdated        GlobalConfig[]
+  stockLogsPerformed         ListingStockLog[]           @relation("StockLogPerformedBy")
+  rateLimitLogs              RateLimitLog[]
+
+  @@index([role])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([isFlagged])
+  @@index([primaryLatitude, primaryLongitude]) // 2dsphere
+  @@index([primaryDistrictId])
+  @@index([primaryPincodeId])
+  @@map("users")
+}
+
+model UserVerification {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String              @db.ObjectId
+  channel   VerificationChannel
+  otpHash   String
+  expiresAt DateTime
+  isUsed    Boolean             @default(false)
+  createdAt DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_verifications")
+}
+
+model UserDeviceToken {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  token      String    @unique
+  platform   String? // "android" | "ios" | "web"
+  deviceId   String?
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("user_device_tokens")
+}
+
+// ─────────────────────────────────────────────
+// LOCATIONS
+// ─────────────────────────────────────────────
+
+model Location {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  type        LocationType
+  label       String?
+  isPrimary   Boolean      @default(false)
+  stateId     String       @db.ObjectId
+  districtId  String       @db.ObjectId
+  pincodeId   String       @db.ObjectId
+  village     String?
+  addressLine String?
+  latitude    Float
+  longitude   Float
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user                User                 @relation(fields: [userId], references: [id])
+  state               State                @relation(fields: [stateId], references: [id])
+  district            District             @relation(fields: [districtId], references: [id])
+  pincode             Pincode              @relation(fields: [pincodeId], references: [id])
+  lands               Land[]
+  warehouseItems      WarehouseItem[]
+  marketplaceListings MarketplaceListing[]
+  orderDeliveries     Order[]              @relation("OrderDeliveryLocation")
+  laborProfiles       LaborProfile[]
+  communities         Community[]          @relation("CommunityLocation")
+
+  @@index([userId])
+  @@index([userId, isPrimary])
+  @@index([isDeleted])
+  @@index([latitude, longitude]) // 2dsphere
+  @@index([districtId])
+  @@index([pincodeId])
+  @@index([type])
+  @@map("locations")
+}
+
+// ─────────────────────────────────────────────
+// FARMER PROFILE
+// ─────────────────────────────────────────────
+
+model FarmerProfile {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @unique @db.ObjectId
+  totalLandArea     Float?
+  experienceYears   Int?
+  aadhaarLast4      String?
+  isKycVerified     Boolean @default(false)
+  trustScore        Float   @default(5.0)
+  totalLoansTaken   Int     @default(0)
+  loansRepaidOnTime Int     @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user                  User                   @relation(fields: [userId], references: [id])
+  lands                 Land[]
+  marketplaceListings   MarketplaceListing[]
+  ordersAsSeller        Order[]                @relation("OrderFarmer")
+  diseaseReports        DiseaseReport[]
+  diseaseReportUpdates  DiseaseReportUpdate[]
+  expertConsults        DiseaseExpertConsult[] @relation("ExpertConsultFarmer")
+  farmerAlerts          FarmerAlert[]
+  loanRequests          LoanRequest[]
+  loanRepayments        LoanRepayment[]
+  warehouseItems        WarehouseItem[]
+  chatSessions          ChatSession[]          @relation("ChatSessionFarmer")
+  schemeApplications    SchemeApplication[]
+  laborBookingsAsFarmer LaborBooking[]         @relation("LaborBookingFarmer")
+
+  @@index([trustScore])
+  @@index([isDeleted])
+  @@map("farmer_profiles")
+}
+
+// ─────────────────────────────────────────────
+// LAND & CROPS
+// ─────────────────────────────────────────────
+
+model Land {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId       String          @db.ObjectId
+  locationId     String          @db.ObjectId
+  name           String
+  areaAcres      Float
+  landType       LandType
+  soilType       SoilType?
+  irrigationType IrrigationType?
+  isOrganic      Boolean         @default(false)
+  surveyNumber   String?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  farmer           FarmerProfile     @relation(fields: [farmerId], references: [id])
+  location         Location          @relation(fields: [locationId], references: [id])
+  crops            Crop[]
+  weatherSnapshots WeatherSnapshot[]
+  laborBookings    LaborBooking[]
+
+  @@index([farmerId])
+  @@index([locationId])
+  @@index([isDeleted])
+  @@map("lands")
+}
+
+model CropCatalog {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  name            String       @unique
+  localNames      String? // JSON: {"hi":"गेहूं","mr":"गहू"}
+  category        CropCategory
+  typicalSeasons  String[]     @default([])
+  avgDurationDays Int?
+  imageUrl        String?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  crops             Crop[]
+  marketPrices      MarketPrice[]
+  communities       Community[]               @relation("CommunityCatalog")
+  diseaseTreatments DiseaseCatalogTreatment[] @relation("CropCatalogDiseaseTreatment")
+  blogs             Blog[]                    @relation("BlogCropCatalog")
+
+  @@index([category])
+  @@index([isDeleted])
+  @@map("crop_catalog")
+}
+
+model Crop {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  landId          String        @db.ObjectId
+  catalogId       String?       @db.ObjectId
+  cropName        String // denorm snapshot
+  category        CropCategory?
+  season          Season?
+  sowingDate      DateTime?
+  expectedHarvest DateTime?
+  actualHarvest   DateTime?
+  status          CropStatus    @default(SOWN)
+  areaAcres       Float?
+  expectedYieldKg Float?
+  actualYieldKg   Float?
+  notes           String?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  land                Land                 @relation(fields: [landId], references: [id])
+  catalog             CropCatalog?         @relation(fields: [catalogId], references: [id])
+  marketplaceListings MarketplaceListing[]
+  warehouseItems      WarehouseItem[]
+  diseaseReports      DiseaseReport[]
+
+  @@index([landId])
+  @@index([catalogId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([landId, season])
+  @@map("crops")
+}
+
+// ─────────────────────────────────────────────
+// DISEASE INTELLIGENCE
+// ─────────────────────────────────────────────
+
+model DiseaseCatalog {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  name               String      @unique
+  localNames         String?
+  scientificName     String?
+  diseaseType        DiseaseType
+  affectedCategories String[] // CropCategory values
+
+  symptomsDescription  String
+  visualSigns          String?
+  identificationImages String[] @default([])
+  spreadMechanism      String?
+  favorableConditions  String?
+  incubationPeriod     String?
+  isOutbreakNotifiable Boolean  @default(false)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  treatments        DiseaseCatalogTreatment[]
+  diseaseReports    DiseaseReport[]
+  diseaseAggregates DiseaseAggregateDaily[]
+
+  @@index([diseaseType])
+  @@index([isOutbreakNotifiable])
+  @@index([isDeleted])
+  @@map("disease_catalog")
+}
+
+model TreatmentCatalog {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  treatmentType   TreatmentType
+  applicableStage TreatmentStage
+
+  productName          String?
+  activeIngredient     String?
+  concentration        String?
+  dosage               String?
+  applicationMethod    String
+  applicationFrequency String?
+  waitingPeriodDays    Int?
+
+  isOrganic         Boolean @default(false)
+  safetyPrecautions String?
+  phiDays           Int? // pre-harvest interval
+
+  referenceLinks String[] @default([])
+  videoUrl       String?
+  costRange      String?
+  availability   String?
+
+  isVerified   Boolean @default(false)
+  verifiedById String? @db.ObjectId
+
+  efficacyRate       Float? // 0.0–1.0, recomputed from report outcomes
+  efficacySampleSize Int    @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  verifiedBy           User?                     @relation("TreatmentVerifiedBy", fields: [verifiedById], references: [id])
+  diseases             DiseaseCatalogTreatment[]
+  diseaseReports       DiseaseReport[]           @relation("DiseaseReportRecommendedTreatment")
+  diseaseReportUpdates DiseaseReportUpdate[]
+
+  @@index([treatmentType])
+  @@index([applicableStage])
+  @@index([isOrganic])
+  @@index([isVerified])
+  @@index([isDeleted])
+  @@map("treatment_catalog")
+}
+
+// Junction: disease × treatment × stage
+model DiseaseCatalogTreatment {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  diseaseId        String         @db.ObjectId
+  treatmentId      String         @db.ObjectId
+  cropCatalogId    String?        @db.ObjectId
+  applicableStage  TreatmentStage
+  priorityRank     Int            @default(1)
+  efficacyNotes    String?
+  cautionNotes     String?
+  verifiedByExpert Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  disease     DiseaseCatalog   @relation(fields: [diseaseId], references: [id])
+  treatment   TreatmentCatalog @relation(fields: [treatmentId], references: [id])
+  cropCatalog CropCatalog?     @relation("CropCatalogDiseaseTreatment", fields: [cropCatalogId], references: [id])
+
+  // Note: MongoDB Prisma doesn't support @@unique on 3 fields natively in all drivers.
+  // Enforce (diseaseId, treatmentId, applicableStage) uniqueness at application layer.
+  @@index([diseaseId])
+  @@index([treatmentId])
+  @@index([diseaseId, applicableStage])
+  @@map("disease_catalog_treatments")
+}
+
+model DiseaseReport {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  cropId           String  @db.ObjectId
+  farmerId         String  @db.ObjectId
+  diseaseCatalogId String? @db.ObjectId
+
+  // Geo denorm — never joined in outbreak queries
+  latitude   Float?
+  longitude  Float?
+  districtId String? @db.ObjectId
+  stateId    String? @db.ObjectId
+
+  mediaUrl        String
+  mediaType       MediaType @default(IMAGE)
+  additionalMedia String[]  @default([])
+
+  // AI output
+  predictedDisease  String // snapshot at detection time
+  confidenceScore   Float
+  aiConfidenceLevel AIConfidenceLevel
+  severity          DiseaseSeverity
+  aiRecommendation  String
+
+  recommendedTreatmentId String? @db.ObjectId
+
+  // Expert review
+  expertReviewed  Boolean   @default(false)
+  expertId        String?   @db.ObjectId
+  expertDiagnosis String?
+  expertNotes     String?
+  reviewedAt      DateTime?
+
+  // Outbreak
+  isConfirmedOutbreak Boolean @default(false)
+  outbreakAlertId     String? @db.ObjectId
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  crop                 Crop                   @relation(fields: [cropId], references: [id])
+  farmer               FarmerProfile          @relation(fields: [farmerId], references: [id])
+  diseaseCatalog       DiseaseCatalog?        @relation(fields: [diseaseCatalogId], references: [id])
+  district             District?              @relation("DiseaseReportDistrict", fields: [districtId], references: [id])
+  state                State?                 @relation("DiseaseReportState", fields: [stateId], references: [id])
+  recommendedTreatment TreatmentCatalog?      @relation("DiseaseReportRecommendedTreatment", fields: [recommendedTreatmentId], references: [id])
+  expert               User?                  @relation("DiseaseReportExpert", fields: [expertId], references: [id])
+  outbreakAlert        Alert?                 @relation("DiseaseReportOutbreakAlert", fields: [outbreakAlertId], references: [id])
+  updates              DiseaseReportUpdate[]
+  expertConsults       DiseaseExpertConsult[]
+
+  @@index([cropId])
+  @@index([farmerId])
+  @@index([diseaseCatalogId])
+  @@index([districtId])
+  @@index([stateId])
+  @@index([severity])
+  @@index([aiConfidenceLevel])
+  @@index([isConfirmedOutbreak])
+  @@index([isDeleted])
+  @@index([latitude, longitude]) // 2dsphere
+  @@index([districtId, diseaseCatalogId, createdAt]) // outbreak aggregation
+  @@index([stateId, diseaseCatalogId, createdAt])
+  @@index([createdAt])
+  @@map("disease_reports")
+}
+
+model DiseaseReportUpdate {
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  reportId           String               @db.ObjectId
+  farmerId           String               @db.ObjectId
+  treatmentId        String?              @db.ObjectId
+  updateDate         DateTime
+  treatmentApplied   String?
+  dosageUsed         String?
+  outcome            DiseaseReportOutcome
+  farmerNotes        String?
+  updateMedia        String[]             @default([])
+  treatmentEffective Boolean?
+  createdAt          DateTime             @default(now())
+
+  report    DiseaseReport     @relation(fields: [reportId], references: [id])
+  farmer    FarmerProfile     @relation(fields: [farmerId], references: [id])
+  treatment TreatmentCatalog? @relation(fields: [treatmentId], references: [id])
+
+  @@index([reportId])
+  @@index([farmerId])
+  @@index([outcome])
+  @@index([treatmentId])
+  @@index([treatmentEffective])
+  @@index([reportId, updateDate])
+  @@map("disease_report_updates")
+}
+
+model DiseaseExpertConsult {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  reportId    String    @db.ObjectId
+  farmerId    String    @db.ObjectId
+  expertId    String?   @db.ObjectId
+  question    String
+  answer      String?
+  isResolved  Boolean   @default(false)
+  requestedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  report DiseaseReport @relation(fields: [reportId], references: [id])
+  farmer FarmerProfile @relation("ExpertConsultFarmer", fields: [farmerId], references: [id])
+  expert User?         @relation("ExpertConsultExpert", fields: [expertId], references: [id])
+
+  @@index([reportId])
+  @@index([farmerId])
+  @@index([expertId])
+  @@index([isResolved])
+  @@map("disease_expert_consults")
+}
+
+// Precomputed nightly rollup — outbreak scan runs on this, not disease_reports
+model DiseaseAggregateDaily {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  date             DateTime // start of day UTC
+  districtId       String   @db.ObjectId
+  stateId          String   @db.ObjectId
+  diseaseCatalogId String   @db.ObjectId
+
+  reportCount       Int
+  confirmedCount    Int    @default(0)
+  severityHighCount Int    @default(0)
+  avgConfidence     Float?
+
+  thresholdCrossed Boolean  @default(false)
+  alertTriggered   Boolean  @default(false)
+  computedAt       DateTime @default(now())
+
+  district       District       @relation(fields: [districtId], references: [id])
+  state          State          @relation(fields: [stateId], references: [id])
+  diseaseCatalog DiseaseCatalog @relation(fields: [diseaseCatalogId], references: [id])
+
+  @@unique([districtId, diseaseCatalogId, date])
+  @@index([date])
+  @@index([districtId])
+  @@index([stateId])
+  @@index([diseaseCatalogId])
+  @@index([thresholdCrossed])
+  @@index([stateId, diseaseCatalogId, date])
+  @@map("disease_aggregates_daily")
+}
+
+// ─────────────────────────────────────────────
+// MARKETPLACE
+// ─────────────────────────────────────────────
+
+model MarketPrice {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  catalogId    String   @db.ObjectId
+  districtId   String   @db.ObjectId
+  minPrice     Float
+  maxPrice     Float
+  modalPrice   Float
+  unit         String   @default("quintal")
+  recordedDate DateTime
+  source       String?
+
+  catalog  CropCatalog @relation(fields: [catalogId], references: [id])
+  district District    @relation(fields: [districtId], references: [id])
+
+  @@index([catalogId])
+  @@index([districtId])
+  @@index([catalogId, districtId, recordedDate])
+  @@map("market_prices")
+}
+
+model MarketplaceListing {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId       String        @db.ObjectId
+  cropId         String        @db.ObjectId
+  cropName       String // denorm snapshot
+  farmerName     String // denorm snapshot
+  title          String
+  description    String?
+  images         String[]      @default([])
+  quantityKg     Float
+  availableQtyKg Float
+  pricePerUnit   Float
+  unit           String        @default("kg")
+  isNegotiable   Boolean       @default(true)
+  locationId     String        @db.ObjectId
+  latitude       Float
+  longitude      Float
+  districtId     String        @db.ObjectId
+  status         ListingStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  totalOrders    Int           @default(0)
+  avgRating      Float?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  farmer         FarmerProfile     @relation(fields: [farmerId], references: [id])
+  crop           Crop              @relation(fields: [cropId], references: [id])
+  location       Location          @relation(fields: [locationId], references: [id])
+  district       District          @relation(fields: [districtId], references: [id])
+  orders         Order[]
+  stockLogs      ListingStockLog[]
+  disputes       OrderDispute[]    @relation("DisputeListing")
+  contentReports ContentReport[]   @relation("ContentReportListing")
+
+  @@index([farmerId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([latitude, longitude]) // 2dsphere
+  @@index([districtId])
+  @@index([cropName])
+  @@index([status, districtId])
+  @@index([expiresAt])
+  @@map("marketplace_listings")
+}
+
+// Immutable stock movement ledger
+model ListingStockLog {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  listingId      String          @db.ObjectId
+  changeType     StockChangeType
+  quantityChange Float // positive = added, negative = deducted
+  quantityAfter  Float // available_qty_kg after this event
+  referenceType  String? // "order" | "manual" | "warehouse_transfer"
+  referenceId    String?         @db.ObjectId
+  performedById  String?         @db.ObjectId
+  notes          String?
+  createdAt      DateTime        @default(now())
+
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
+  performedBy User?              @relation("StockLogPerformedBy", fields: [performedById], references: [id])
+
+  @@index([listingId])
+  @@index([changeType])
+  @@index([listingId, createdAt])
+  @@index([referenceId])
+  @@map("listing_stock_logs")
+}
+
+model Order {
+  id                      String      @id @default(auto()) @map("_id") @db.ObjectId
+  listingId               String      @db.ObjectId
+  buyerId                 String      @db.ObjectId
+  farmerId                String      @db.ObjectId // denorm
+  quantityKg              Float
+  pricePerUnit            Float
+  negotiatedPrice         Float?
+  totalAmount             Float
+  status                  OrderStatus @default(PENDING)
+  deliveryLocationId      String?     @db.ObjectId
+  deliveryAddressSnapshot String?
+  buyerNote               String?
+  cancelReason            String?
+  confirmedAt             DateTime?
+  shippedAt               DateTime?
+  deliveredAt             DateTime?
+  cancelledAt             DateTime?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  listing          MarketplaceListing @relation(fields: [listingId], references: [id])
+  buyer            User               @relation("OrderBuyer", fields: [buyerId], references: [id])
+  farmer           FarmerProfile      @relation("OrderFarmer", fields: [farmerId], references: [id])
+  deliveryLocation Location?          @relation("OrderDeliveryLocation", fields: [deliveryLocationId], references: [id])
+  transaction      Transaction?
+  review           OrderReview?
+  disputes         OrderDispute[]
+
+  @@index([buyerId])
+  @@index([farmerId])
+  @@index([listingId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([buyerId, status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model Transaction {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  orderId          String         @unique @db.ObjectId
+  grossAmount      Float
+  platformFee      Float          @default(0)
+  farmerPayout     Float
+  paymentMethod    PaymentMethod?
+  paymentStatus    PaymentStatus  @default(PENDING)
+  paymentReference String?
+  paidAt           DateTime?
+  refundedAt       DateTime?
+  refundAmount     Float?
+  refundReason     String?
+  paymentIp        String?
+  paymentDevice    String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([paymentStatus])
+  @@index([paymentReference])
+  @@map("transactions")
+}
+
+model OrderReview {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId    String   @unique @db.ObjectId
+  reviewerId String   @db.ObjectId
+  revieweeId String   @db.ObjectId
+  rating     Int // 1–5
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  order    Order @relation(fields: [orderId], references: [id])
+  reviewer User  @relation("OrderReviewReviewer", fields: [reviewerId], references: [id])
+  reviewee User  @relation("OrderReviewReviewee", fields: [revieweeId], references: [id])
+
+  @@index([revieweeId])
+  @@index([revieweeId, rating])
+  @@map("order_reviews")
+}
+
+model OrderDispute {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId         String        @db.ObjectId
+  listingId       String?       @db.ObjectId
+  raisedById      String        @db.ObjectId
+  reason          DisputeReason
+  description     String
+  evidenceMedia   String[]      @default([])
+  status          DisputeStatus @default(OPEN)
+  assignedToId    String?       @db.ObjectId
+  resolutionNotes String?
+  refundAmount    Float?
+  resolvedById    String?       @db.ObjectId
+  raisedAt        DateTime      @default(now())
+  resolvedAt      DateTime?
+
+  order      Order               @relation(fields: [orderId], references: [id])
+  listing    MarketplaceListing? @relation("DisputeListing", fields: [listingId], references: [id])
+  raisedBy   User                @relation("DisputeRaisedBy", fields: [raisedById], references: [id])
+  assignedTo User?               @relation("DisputeAssignedTo", fields: [assignedToId], references: [id])
+  resolvedBy User?               @relation("DisputeResolvedBy", fields: [resolvedById], references: [id])
+
+  @@index([orderId])
+  @@index([raisedById])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([status, raisedAt])
+  @@map("order_disputes")
+}
+
+// ─────────────────────────────────────────────
+// WEATHER
+// ─────────────────────────────────────────────
+
+model WeatherSnapshot {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  landId       String            @db.ObjectId
+  latitude     Float?
+  longitude    Float?
+  temperatureC Float?
+  humidityPct  Float?
+  rainfallMm   Float?
+  windSpeedKmh Float?
+  condition    WeatherCondition?
+  uvIndex      Float?
+  source       String?
+  forecastFor  DateTime?
+  recordedAt   DateTime // TTL: 90 days
+
+  land Land @relation(fields: [landId], references: [id])
+
+  @@index([landId])
+  @@index([landId, recordedAt])
+  @@index([recordedAt]) // TTL target
+  @@map("weather_snapshots")
+}
+
+// ─────────────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────────────
+
+model Alert {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  type            AlertType
+  severity        AlertSeverity
+  title           String
+  message         String
+  targetLevel     AlertTargetLevel
+  stateId         String?          @db.ObjectId
+  districtId      String?          @db.ObjectId
+  pincodeId       String?          @db.ObjectId
+  centerLatitude  Float?
+  centerLongitude Float?
+  radiusKm        Float?
+  isActive        Boolean          @default(true)
+  createdById     String?          @db.ObjectId
+  expiresAt       DateTime?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  state          State?          @relation("AlertState", fields: [stateId], references: [id])
+  district       District?       @relation("AlertDistrict", fields: [districtId], references: [id])
+  pincode        Pincode?        @relation("AlertPincode", fields: [pincodeId], references: [id])
+  createdBy      User?           @relation("AlertCreatedBy", fields: [createdById], references: [id])
+  farmerAlerts   FarmerAlert[]
+  diseaseReports DiseaseReport[] @relation("DiseaseReportOutbreakAlert")
+
+  @@index([type])
+  @@index([severity])
+  @@index([targetLevel])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([isActive, targetLevel])
+  @@index([centerLatitude, centerLongitude]) // 2dsphere
+  @@index([expiresAt])
+  @@map("alerts")
+}
+
+model FarmerAlert {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId    String    @db.ObjectId
+  alertId     String    @db.ObjectId
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  deliveredAt DateTime  @default(now())
+
+  farmer FarmerProfile @relation(fields: [farmerId], references: [id])
+  alert  Alert         @relation(fields: [alertId], references: [id])
+
+  @@unique([farmerId, alertId])
+  @@index([farmerId])
+  @@index([alertId])
+  @@index([farmerId, isRead])
+  @@map("farmer_alerts")
+}
+
+// ─────────────────────────────────────────────
+// GOVERNMENT SCHEMES & NEWS
+// ─────────────────────────────────────────────
+
+model GovernmentScheme {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  eligibility      String?
+  officialLink     String?
+  schemeCategory   SchemeCategory?
+  maxBenefitAmount Float?
+  benefitUnit      String?
+  isNational       Boolean         @default(false)
+  stateId          String?         @db.ObjectId
+  districtId       String?         @db.ObjectId
+  isActive         Boolean         @default(true)
+  deadline         DateTime?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  state        State?              @relation(fields: [stateId], references: [id])
+  district     District?           @relation("DistrictGovernmentScheme", fields: [districtId], references: [id])
+  applications SchemeApplication[]
+
+  @@index([isNational])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([schemeCategory])
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([deadline])
+  @@index([isActive, isNational])
+  @@index([isActive, stateId])
+  @@map("government_schemes")
+}
+
+model SchemeApplication {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  schemeId  String   @db.ObjectId
+  farmerId  String   @db.ObjectId
+  userId    String   @db.ObjectId
+  status    String   @default("APPLIED") // APPLIED|UNDER_REVIEW|APPROVED|REJECTED
+  notes     String?
+  appliedAt DateTime @default(now())
+
+  scheme GovernmentScheme @relation(fields: [schemeId], references: [id])
+  farmer FarmerProfile    @relation(fields: [farmerId], references: [id])
+  user   User             @relation("SchemeApplicationUser", fields: [userId], references: [id])
+
+  @@unique([farmerId, schemeId])
+  @@index([schemeId])
+  @@index([farmerId])
+  @@index([status])
+  @@map("scheme_applications")
+}
+
+model NewsArticle {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  summary     String?
+  content     String
+  source      String?
+  sourceUrl   String?
+  imageUrl    String?
+  tags        String[]  @default([])
+  catalogIds  String[]  @default([]) @db.ObjectId
+  isNational  Boolean   @default(false)
+  stateId     String?   @db.ObjectId
+  districtId  String?   @db.ObjectId
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  state    State?    @relation(fields: [stateId], references: [id])
+  district District? @relation("DistrictNewsArticle", fields: [districtId], references: [id])
+
+  @@index([isNational])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([isDeleted])
+  @@index([isPublished, publishedAt])
+  @@map("news_articles")
+}
+
+// ─────────────────────────────────────────────
+// COMMUNITY
+// ─────────────────────────────────────────────
+
+model Community {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  description       String?
+  createdById       String        @db.ObjectId
+  type              CommunityType
+  stateId           String?       @db.ObjectId
+  districtId        String?       @db.ObjectId
+  locationId        String?       @db.ObjectId
+  centerLatitude    Float?
+  centerLongitude   Float?
+  radiusKm          Float?
+  catalogId         String?       @db.ObjectId
+  cropName          String? // denorm
+  isSystemGenerated Boolean       @default(false)
+  isPrivate         Boolean       @default(false)
+  isActive          Boolean       @default(true)
+  coverImageUrl     String?
+  memberCount       Int           @default(0)
+  postCount         Int           @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdBy    User                @relation("CommunityCreatedBy", fields: [createdById], references: [id])
+  state        State?              @relation("CommunityState", fields: [stateId], references: [id])
+  district     District?           @relation("CommunityDistrict", fields: [districtId], references: [id])
+  location     Location?           @relation("CommunityLocation", fields: [locationId], references: [id])
+  catalog      CropCatalog?        @relation("CommunityCatalog", fields: [catalogId], references: [id])
+  members      CommunityMember[]
+  posts        CommunityPost[]
+  chatRooms    CommunityChatRoom[]
+  loanRequests LoanRequest[]
+
+  @@index([createdById])
+  @@index([type])
+  @@index([districtId])
+  @@index([stateId])
+  @@index([catalogId])
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([isActive, type])
+  @@index([centerLatitude, centerLongitude]) // 2dsphere
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  communityId String              @db.ObjectId
+  userId      String              @db.ObjectId
+  role        CommunityMemberRole @default(MEMBER)
+  invitedById String?             @db.ObjectId
+  joinedAt    DateTime            @default(now())
+
+  community Community @relation(fields: [communityId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+  @@index([communityId, role])
+  @@map("community_members")
+}
+
+model CommunityPost {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  communityId  String   @db.ObjectId
+  authorId     String   @db.ObjectId
+  content      String
+  images       String[] @default([])
+  videoUrl     String?
+  likeCount    Int      @default(0)
+  commentCount Int      @default(0)
+  isPinned     Boolean  @default(false)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  community      Community               @relation(fields: [communityId], references: [id])
+  author         User                    @relation(fields: [authorId], references: [id])
+  reactions      CommunityPostReaction[]
+  comments       CommunityComment[]
+  contentReports ContentReport[]         @relation("ContentReportPost")
+
+  @@index([communityId])
+  @@index([authorId])
+  @@index([isDeleted])
+  @@index([isPinned])
+  @@index([communityId, createdAt])
+  @@map("community_posts")
+}
+
+model CommunityPostReaction {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String           @db.ObjectId
+  userId    String           @db.ObjectId
+  type      PostReactionType @default(LIKE)
+  createdAt DateTime         @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id])
+  user User          @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@map("community_post_reactions")
+}
+
+model CommunityComment {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  postId   String  @db.ObjectId
+  authorId String  @db.ObjectId
+  parentId String? @db.ObjectId // self-relation for nested replies
+
+  content String
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post           CommunityPost      @relation(fields: [postId], references: [id])
+  author         User               @relation(fields: [authorId], references: [id])
+  parent         CommunityComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies        CommunityComment[] @relation("CommentReplies")
+  contentReports ContentReport[]    @relation("ContentReportComment")
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([isDeleted])
+  @@index([postId, createdAt])
+  @@map("community_comments")
+}
+
+// Named chat channels within a community
+model CommunityChatRoom {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  communityId   String    @db.ObjectId
+  name          String
+  slug          String
+  description   String?
+  isDefault     Boolean   @default(false)
+  isReadOnly    Boolean   @default(false)
+  createdById   String    @db.ObjectId
+  lastMessageAt DateTime?
+  messageCount  Int       @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  community    Community                  @relation(fields: [communityId], references: [id])
+  createdBy    User                       @relation("ChatRoomCreatedBy", fields: [createdById], references: [id])
+  messages     CommunityChatMessage[]
+  readReceipts CommunityChatReadReceipt[]
+
+  @@unique([communityId, slug])
+  @@index([communityId])
+  @@index([isDeleted])
+  @@index([lastMessageAt])
+  @@map("community_chat_rooms")
+}
+
+// TTL: 365 days on createdAt
+model CommunityChatMessage {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomId      String   @db.ObjectId
+  communityId String   @db.ObjectId // denorm
+  senderId    String   @db.ObjectId
+  content     String
+  images      String[] @default([])
+  replyToId   String?  @db.ObjectId
+  isSystem    Boolean  @default(false)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime  @default(now()) // TTL target
+  editedAt  DateTime?
+
+  // Relations
+  room           CommunityChatRoom          @relation(fields: [roomId], references: [id])
+  sender         User                       @relation("ChatMessageSender", fields: [senderId], references: [id])
+  replyTo        CommunityChatMessage?      @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies        CommunityChatMessage[]     @relation("MessageReplies")
+  editHistory    CommunityChatMessageEdit[]
+  contentReports ContentReport[]            @relation("ContentReportChatMsg")
+
+  @@index([roomId])
+  @@index([communityId])
+  @@index([senderId])
+  @@index([replyToId])
+  @@index([isDeleted])
+  @@index([roomId, createdAt])
+  @@index([createdAt]) // TTL target
+  @@map("community_chat_messages")
+}
+
+model CommunityChatMessageEdit {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  messageId       String   @db.ObjectId
+  previousContent String
+  editedById      String   @db.ObjectId
+  editedAt        DateTime @default(now())
+
+  message  CommunityChatMessage @relation(fields: [messageId], references: [id])
+  editedBy User                 @relation(fields: [editedById], references: [id])
+
+  @@index([messageId])
+  @@index([editedAt])
+  @@map("community_chat_message_edits")
+}
+
+model CommunityChatReadReceipt {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  roomId        String   @db.ObjectId
+  userId        String   @db.ObjectId
+  lastReadAt    DateTime
+  lastMessageId String?  @db.ObjectId
+
+  room CommunityChatRoom @relation(fields: [roomId], references: [id])
+  user User              @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@map("community_chat_read_receipts")
+}
+
+model ContentReport {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  reporterId   String       @db.ObjectId
+  postId       String?      @db.ObjectId
+  commentId    String?      @db.ObjectId
+  chatMsgId    String?      @db.ObjectId
+  listingId    String?      @db.ObjectId
+  blogId       String?      @db.ObjectId
+  reason       ReportReason
+  description  String?
+  status       String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
+  reviewedById String?      @db.ObjectId
+  reviewedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  reporter   User                  @relation("ContentReportReporter", fields: [reporterId], references: [id])
+  reviewedBy User?                 @relation("ContentReportReviewer", fields: [reviewedById], references: [id])
+  post       CommunityPost?        @relation("ContentReportPost", fields: [postId], references: [id])
+  comment    CommunityComment?     @relation("ContentReportComment", fields: [commentId], references: [id])
+  chatMsg    CommunityChatMessage? @relation("ContentReportChatMsg", fields: [chatMsgId], references: [id])
+  listing    MarketplaceListing?   @relation("ContentReportListing", fields: [listingId], references: [id])
+  blog       Blog?                 @relation("ContentReportBlog", fields: [blogId], references: [id])
+
+  @@index([reporterId])
+  @@index([postId])
+  @@index([chatMsgId])
+  @@index([listingId])
+  @@index([blogId])
+  @@index([status])
+  @@map("content_reports")
+}
+
+// ─────────────────────────────────────────────
+// CROWDFUNDING (FULL ESCROW LIFECYCLE)
+// ─────────────────────────────────────────────
+
+model LoanRequest {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId       String     @db.ObjectId
+  communityId    String?    @db.ObjectId
+  title          String
+  amount         Float
+  pledgedAmount  Float      @default(0) // cached SUM — source of truth is LoanPledge
+  reason         String
+  description    String?
+  proofDocs      String[]   @default([])
+  repaymentPlan  String?
+  deadline       DateTime?
+  status         LoanStatus @default(OPEN)
+  supporterCount Int        @default(0)
+  pledgerCount   Int        @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  farmer     FarmerProfile   @relation(fields: [farmerId], references: [id])
+  community  Community?      @relation(fields: [communityId], references: [id])
+  fundWallet LoanFundWallet?
+  milestones LoanMilestone[]
+  pledges    LoanPledge[]
+  repayments LoanRepayment[]
+  votes      LoanVote[]
+
+  @@index([farmerId])
+  @@index([communityId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([status, createdAt])
+  @@map("loan_requests")
+}
+
+model LoanFundWallet {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  loanId         String   @unique @db.ObjectId
+  totalPledged   Float    @default(0)
+  heldAmount     Float    @default(0)
+  releasedAmount Float    @default(0)
+  refundedAmount Float    @default(0)
+  lastEventAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  loan LoanRequest @relation(fields: [loanId], references: [id])
+
+  @@map("loan_fund_wallets")
+}
+
+model LoanMilestone {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  loanId          String              @db.ObjectId
+  title           String
+  description     String?
+  amount          Float
+  dueDate         DateTime?
+  status          LoanMilestoneStatus @default(PENDING)
+  completionProof String[]            @default([])
+  completedAt     DateTime?
+  releasedAt      DateTime?
+  approvedById    String?             @db.ObjectId
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+
+  loan       LoanRequest @relation(fields: [loanId], references: [id])
+  approvedBy User?       @relation("MilestoneApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([loanId])
+  @@index([status])
+  @@index([loanId, sortOrder])
+  @@map("loan_milestones")
+}
+
+model LoanPledge {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  loanId          String       @db.ObjectId
+  pledgerId       String       @db.ObjectId
+  amount          Float
+  message         String?
+  isAnonymous     Boolean      @default(false)
+  status          PledgeStatus @default(HELD)
+  statusChangedAt DateTime?
+  statusChangedBy String?      @db.ObjectId
+  pledgeIp        String?
+  pledgeDevice    String?
+  createdAt       DateTime     @default(now())
+
+  loan                   LoanRequest                 @relation(fields: [loanId], references: [id])
+  pledger                User                        @relation(fields: [pledgerId], references: [id])
+  repaymentDistributions LoanRepaymentDistribution[]
+
+  @@unique([loanId, pledgerId])
+  @@index([loanId])
+  @@index([pledgerId])
+  @@index([status])
+  @@index([loanId, status])
+  @@map("loan_pledges")
+}
+
+model LoanRepayment {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  loanId           String          @db.ObjectId
+  farmerId         String          @db.ObjectId
+  installmentNo    Int
+  amountDue        Float
+  amountPaid       Float           @default(0)
+  dueDate          DateTime
+  paidDate         DateTime?
+  status           RepaymentStatus @default(SCHEDULED)
+  paymentReference String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  loan          LoanRequest                 @relation(fields: [loanId], references: [id])
+  farmer        FarmerProfile               @relation(fields: [farmerId], references: [id])
+  distributions LoanRepaymentDistribution[]
+
+  @@unique([loanId, installmentNo])
+  @@index([loanId])
+  @@index([farmerId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([farmerId, status])
+  @@index([status, dueDate]) // cron finds overdue here
+  @@map("loan_repayments")
+}
+
+model LoanRepaymentDistribution {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  repaymentId String          @db.ObjectId
+  loanId      String          @db.ObjectId
+  pledgeId    String          @db.ObjectId
+  pledgerId   String          @db.ObjectId
+  pledgeShare Float // pledger's % of total loan
+  amountDue   Float
+  amountPaid  Float           @default(0)
+  status      RepaymentStatus @default(SCHEDULED)
+  paidAt      DateTime?
+  createdAt   DateTime        @default(now())
+
+  repayment LoanRepayment @relation(fields: [repaymentId], references: [id])
+  pledge    LoanPledge    @relation(fields: [pledgeId], references: [id])
+  pledger   User          @relation(fields: [pledgerId], references: [id])
+
+  @@unique([repaymentId, pledgeId])
+  @@index([repaymentId])
+  @@index([loanId])
+  @@index([pledgerId])
+  @@index([pledgeId])
+  @@index([status])
+  @@map("loan_repayment_distributions")
+}
+
+model LoanVote {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  loanId    String   @db.ObjectId
+  voterId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  loan  LoanRequest @relation(fields: [loanId], references: [id])
+  voter User        @relation(fields: [voterId], references: [id])
+
+  @@unique([loanId, voterId])
+  @@index([loanId])
+  @@index([voterId])
+  @@map("loan_votes")
+}
+
+// ─────────────────────────────────────────────
+// LABOR MARKETPLACE
+// ─────────────────────────────────────────────
+
+model LaborProfile {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @unique @db.ObjectId
+  skills          String[]
+  experienceYears Int?
+  dailyRate       Float?
+  isAvailable     Boolean  @default(true)
+  locationId      String?  @db.ObjectId
+  latitude        Float?
+  longitude       Float?
+  districtId      String?  @db.ObjectId
+  serviceRadiusKm Float?
+  avgRating       Float?
+  totalJobs       Int      @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id])
+  location Location?      @relation(fields: [locationId], references: [id])
+  district District?      @relation(fields: [districtId], references: [id])
+  bookings LaborBooking[]
+
+  @@index([isAvailable])
+  @@index([isDeleted])
+  @@index([districtId])
+  @@index([latitude, longitude]) // 2dsphere
+  @@index([isAvailable, districtId])
+  @@map("labor_profiles")
+}
+
+model LaborBooking {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  laborId         String             @db.ObjectId
+  farmerId        String             @db.ObjectId
+  landId          String?            @db.ObjectId
+  taskDescription String
+  startDate       DateTime
+  endDate         DateTime?
+  agreedRate      Float?
+  totalAmount     Float?
+  status          LaborBookingStatus @default(REQUESTED)
+  cancelReason    String?
+  rating          Int?
+  review          String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  labor  LaborProfile  @relation(fields: [laborId], references: [id])
+  farmer FarmerProfile @relation("LaborBookingFarmer", fields: [farmerId], references: [id])
+  land   Land?         @relation(fields: [landId], references: [id])
+
+  @@index([laborId])
+  @@index([farmerId])
+  @@index([status])
+  @@index([laborId, startDate])
+  @@index([farmerId, startDate])
+  @@map("labor_bookings")
+}
+
+// ─────────────────────────────────────────────
+// WAREHOUSE
+// ─────────────────────────────────────────────
+
+model WarehouseItem {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId    String    @db.ObjectId
+  cropId      String    @db.ObjectId
+  locationId  String    @db.ObjectId
+  quantityKg  Float
+  unit        String    @default("kg")
+  batchLabel  String?
+  storageNote String?
+  expiryDate  DateTime?
+  storedAt    DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  farmer   FarmerProfile @relation(fields: [farmerId], references: [id])
+  crop     Crop          @relation(fields: [cropId], references: [id])
+  location Location      @relation(fields: [locationId], references: [id])
+
+  @@index([farmerId])
+  @@index([cropId])
+  @@index([locationId])
+  @@index([farmerId, cropId])
+  @@map("warehouse_items")
+}
+
+// ─────────────────────────────────────────────
+// BLOG SYSTEM
+// ─────────────────────────────────────────────
+
+model BlogCategory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  slug        String   @unique
+  parentId    String?  @db.ObjectId
+  description String?
+  iconUrl     String?
+  sortOrder   Int      @default(0)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  parent   BlogCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children BlogCategory[] @relation("CategoryTree")
+  blogs    Blog[]
+
+  @@index([parentId])
+  @@index([isDeleted])
+  @@map("blog_categories")
+}
+
+model Blog {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  authorId        String       @db.ObjectId
+  categoryId      String?      @db.ObjectId
+  title           String
+  slug            String       @unique
+  summary         String?
+  content         String
+  coverImageUrl   String?
+  tags            String[]     @default([])
+  catalogId       String?      @db.ObjectId
+  audience        BlogAudience @default(GENERAL)
+  isNational      Boolean      @default(true)
+  stateId         String?      @db.ObjectId
+  districtId      String?      @db.ObjectId
+  hasLocation     Boolean      @default(false)
+  latitude        Float?
+  longitude       Float?
+  metaTitle       String?
+  metaDescription String?
+  status          BlogStatus   @default(DRAFT)
+  isFeatured      Boolean      @default(false)
+  viewCount       Int          @default(0)
+  likeCount       Int          @default(0)
+  commentCount    Int          @default(0)
+  publishedAt     DateTime?
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author         User            @relation(fields: [authorId], references: [id])
+  category       BlogCategory?   @relation(fields: [categoryId], references: [id])
+  catalog        CropCatalog?    @relation("BlogCropCatalog", fields: [catalogId], references: [id])
+  state          State?          @relation("BlogState", fields: [stateId], references: [id])
+  district       District?       @relation("BlogDistrict", fields: [districtId], references: [id])
+  views          BlogView[]
+  reactions      BlogReaction[]
+  comments       BlogComment[]
+  bookmarks      BlogBookmark[]
+  contentReports ContentReport[] @relation("ContentReportBlog")
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([isNational])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([audience])
+  @@index([isDeleted])
+  @@index([status, publishedAt])
+  @@index([status, isNational])
+  @@index([status, stateId])
+  @@index([latitude, longitude]) // 2dsphere — field-report geo blogs
+  @@map("blogs")
+}
+
+// Unique view tracking — prevents bot inflation of viewCount
+// TTL: 180 days on createdAt
+model BlogView {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId      String   @db.ObjectId
+  userId      String?  @db.ObjectId
+  fingerprint String? // anonymous browser fingerprint
+  source      String? // "community_post" | "search" | "direct" | "notification"
+  createdAt   DateTime @default(now()) // TTL target
+
+  blog Blog  @relation(fields: [blogId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([blogId])
+  @@index([userId])
+  @@index([blogId, userId])
+  @@index([blogId, fingerprint])
+  @@index([createdAt]) // TTL target
+  @@map("blog_views")
+}
+
+model BlogReaction {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String           @db.ObjectId
+  userId    String           @db.ObjectId
+  type      PostReactionType @default(LIKE)
+  createdAt DateTime         @default(now())
+
+  blog Blog @relation(fields: [blogId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([blogId, userId])
+  @@index([blogId])
+  @@map("blog_reactions")
+}
+
+model BlogComment {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  blogId   String  @db.ObjectId
+  authorId String  @db.ObjectId
+  parentId String? @db.ObjectId
+
+  content String
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blog    Blog          @relation(fields: [blogId], references: [id])
+  author  User          @relation(fields: [authorId], references: [id])
+  parent  BlogComment?  @relation("BlogCommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies BlogComment[] @relation("BlogCommentReplies")
+
+  @@index([blogId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([isDeleted])
+  @@index([blogId, createdAt])
+  @@map("blog_comments")
+}
+
+model BlogBookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blogId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  blog Blog @relation(fields: [blogId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([blogId, userId])
+  @@index([userId])
+  @@map("blog_bookmarks")
+}
+
+// ─────────────────────────────────────────────
+// AI CHAT SYSTEM
+// ─────────────────────────────────────────────
+
+model ChatSession {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  farmerId        String            @db.ObjectId
+  title           String?
+  language        String            @default("hi")
+  status          ChatSessionStatus @default(ACTIVE)
+  contextSnapshot String? // JSON: crops, alerts, weather, diseases
+  messageCount    Int               @default(0)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  farmer   FarmerProfile @relation("ChatSessionFarmer", fields: [farmerId], references: [id])
+  messages ChatMessage[]
+
+  @@index([farmerId])
+  @@index([status])
+  @@index([isDeleted])
+  @@index([farmerId, status])
+  @@index([createdAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId      String     @db.ObjectId
+  role           AIChatRole
+  content        String
+  tokensUsed     Int?
+  modelVersion   String?
+  responseTimeMs Int?
+  createdAt      DateTime   @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@index([sessionId, createdAt])
+  @@index([role])
+  @@map("chat_messages")
+}
+
+// ─────────────────────────────────────────────
+// EXPERT PROFILES
+// ─────────────────────────────────────────────
+
+model ExpertProfile {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+
+  specializations String[]
+  qualifications  String?
+  institution     String?
+  yearsExperience Int?
+  isVerified      Boolean  @default(false)
+  verifiedById    String?  @db.ObjectId
+  verificationDoc String?
+  avgRating       Float?
+  totalConsults   Int      @default(0)
+  responseSlaHrs  Int      @default(48)
+
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([isVerified])
+  @@index([isDeleted])
+  @@map("expert_profiles")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// TTL: 60 days on createdAt
+// ─────────────────────────────────────────────
+
+model Notification {
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String              @db.ObjectId
+  channel    NotificationChannel
+  status     NotificationStatus  @default(QUEUED)
+  title      String
+  body       String
+  imageUrl   String?
+  actionType String?
+  actionId   String?             @db.ObjectId
+  isRead     Boolean             @default(false)
+  readAt     DateTime?
+  sentAt     DateTime?
+  createdAt  DateTime            @default(now()) // TTL target
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([channel])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// ENTERPRISE LAYER — AUDIT, EVENTS, PERMISSIONS
+// ─────────────────────────────────────────────
+
+// Immutable audit ledger — NEVER update or delete
+model AuditLog {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  entityType    AuditEntityType
+  entityId      String          @db.ObjectId
+  action        AuditAction
+  performedById String          @db.ObjectId
+  beforeState   String? // JSON snapshot
+  afterState    String? // JSON snapshot
+  ipAddress     String?
+  deviceInfo    String?
+  userAgent     String?
+  metadata      String? // JSON
+  createdAt     DateTime        @default(now())
+
+  performedBy User @relation(fields: [performedById], references: [id])
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([entityType, entityId])
+  @@index([entityType, entityId, createdAt])
+  @@index([performedById])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// Analytics event stream — TTL 180 days on createdAt
+model UserEvent {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?   @db.ObjectId
+  fingerprint String? // anonymous session token
+  eventType   EventType
+  entityType  String? // "blog" | "listing" | "disease_report" etc.
+  entityId    String?   @db.ObjectId
+  districtId  String?   @db.ObjectId
+  source      String? // "search" | "community" | "notification" | "direct"
+  metadata    String? // JSON
+  createdAt   DateTime  @default(now()) // TTL target
+
+  user     User?     @relation(fields: [userId], references: [id])
+  district District? @relation(fields: [districtId], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([entityId])
+  @@index([districtId])
+  @@index([userId, eventType])
+  @@index([entityType, entityId, eventType])
+  @@index([createdAt]) // TTL target
+  @@map("user_events")
+}
+
+// Actor-centric admin action log
+model AdminActivityLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  adminId    String   @db.ObjectId
+  action     String // "SUSPENDED_USER", "RELEASED_MILESTONE" etc.
+  targetType String
+  targetId   String   @db.ObjectId
+  reason     String?
+  notes      String?
+  ipAddress  String?
+  deviceInfo String?
+  createdAt  DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([adminId, createdAt])
+  @@map("admin_activity_logs")
+}
+
+// Role × Resource × Action permission matrix
+model RolePermission {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  role        UserRole
+  resource    PermissionResource
+  action      PermissionAction
+  isAllowed   Boolean            @default(true)
+  createdById String             @db.ObjectId
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@unique([role, resource, action])
+  @@index([role])
+  @@index([resource])
+  @@map("role_permissions")
+}
+
+// Per-user permission exceptions — grant or revoke beyond role defaults
+model UserPermissionOverride {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String             @db.ObjectId
+  resource    PermissionResource
+  action      PermissionAction
+  isAllowed   Boolean // true = grant, false = explicit deny
+  reason      String?
+  grantedById String             @db.ObjectId
+  expiresAt   DateTime?
+  createdAt   DateTime           @default(now())
+
+  user      User @relation("PermissionOverrideUser", fields: [userId], references: [id])
+  grantedBy User @relation("PermissionOverrideGrantedBy", fields: [grantedById], references: [id])
+
+  @@unique([userId, resource, action])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("user_permission_overrides")
+}
+
+// Feature flag toggles — scoped rollout per role/district/user
+model FeatureFlag {
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  key String @unique
+
+  description       String?
+  isEnabled         Boolean  @default(false)
+  enabledRoles      String[] @default([]) // UserRole values
+  enabledDistricts  String[] @default([]) @db.ObjectId
+  enabledUserIds    String[] @default([]) @db.ObjectId
+  rolloutPercentage Int      @default(100)
+  createdById       String   @db.ObjectId
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([isEnabled])
+  @@map("feature_flags")
+}
+
+// System-wide tunable config — read at startup, cached
+model GlobalConfig {
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  key String @unique
+
+  value       String
+  valueType   String // "int" | "float" | "bool" | "string" | "json"
+  description String?
+  isSensitive Boolean  @default(false)
+  updatedById String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@map("global_config")
+}
+
+// Rate limiting tracker — TTL 24 hours on windowStart
+model RateLimitLog {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  action       String // "disease_report_submit" | "loan_pledge" | "chat_message" etc.
+  windowStart  DateTime // floored to hour — TTL target
+  requestCount Int      @default(1)
+  ipAddress    String?
+  isBlocked    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, action, windowStart])
+  @@index([userId])
+  @@index([action])
+  @@index([isBlocked])
+  @@index([windowStart]) // TTL target
+  @@map("rate_limit_logs")
+}
