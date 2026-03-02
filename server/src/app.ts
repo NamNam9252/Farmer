@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import { errorMiddleware } from './middleware/error.middleware.js';
+import { loggerMiddleware } from './middleware/logger.middleware.js';
 import v1Routes from './routes.js';
 
 const app = express();
 
 // middleware
+app.use(loggerMiddleware);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

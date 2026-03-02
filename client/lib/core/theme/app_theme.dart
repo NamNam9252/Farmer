@@ -22,6 +22,17 @@ class AppColors {
   static const Color diseaseMedium = Color(0xFFF57C00);
   static const Color diseaseLow = Color(0xFF388E3C);
   static const Color diseaseNone = Color(0xFF2E7D32);
+
+  // Auth & Onboarding Specific Colors
+  static const Color authBackground = Color(
+    0xFFF5EFE7,
+  ); // Beige/cream color for inputs
+  static const Color authButtonDark = Color(
+    0xFF2B2519,
+  ); // Dark brown almost black for primary buttons
+  static const Color authIconColor = Color(
+    0xFF8A8275,
+  ); // Muted brown for icons inside auth fields
 }
 
 class AppTextStyles {
@@ -109,9 +120,7 @@ class AppTheme {
         color: AppColors.cardBackground,
         elevation: 2,
         shadowColor: AppColors.primary.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
