@@ -1,1360 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kisan Saathi – App Preview</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
-  <style>
-    :root {
-      --primary: #2E7D32;
-      --primary-light: #4CAF50;
-      --primary-dark: #1B5E20;
-      --accent: #F9A825;
-      --surface: #F5F8F5;
-      --background: #FAFAFA;
-      --card: #FFFFFF;
-      --text-primary: #1C2B1E;
-      --text-secondary: #5D7A5F;
-      --text-hint: #9E9E9E;
-      --divider: #E0E8E0;
-      --error: #D32F2F;
-      --warning: #F57C00;
-      --success: #388E3C;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #e8ede8;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 32px 16px 64px
-    }
-
-    .phone {
-      width: 390px;
-      min-height: 844px;
-      background: var(--background);
-      border-radius: 44px;
-      box-shadow: 0 32px 80px rgba(0, 0, 0, .25), 0 0 0 8px #1a1a1a, 0 0 0 10px #333;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative
-    }
-
-    .status-bar {
-      background: var(--primary-dark);
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 24px 8px;
-      font-size: 12px;
-      font-weight: 600
-    }
-
-    .app-bar {
-      background: var(--primary);
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center
-    }
-
-    .app-bar-title h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      line-height: 1.2
-    }
-
-    .app-bar-title p {
-      font-size: 11px;
-      color: rgba(255, 255, 255, .7)
-    }
-
-    .lang-toggle {
-      background: rgba(255, 255, 255, .2);
-      border: 1px solid rgba(255, 255, 255, .38);
-      color: white;
-      font-weight: 700;
-      font-size: 13px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background .2s
-    }
-
-    .lang-toggle:hover {
-      background: rgba(255, 255, 255, .32)
-    }
-
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 16px 12px;
-      scrollbar-width: thin
-    }
-
-    .content::-webkit-scrollbar {
-      width: 3px
-    }
-
-    .content::-webkit-scrollbar-thumb {
-      background: var(--divider);
-      border-radius: 4px
-    }
-
-    .hero {
-      text-align: center;
-      margin-bottom: 20px
-    }
-
-    .hero-icon {
-      width: 100px;
-      height: 100px;
-      background: rgba(46, 125, 50, .08);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      position: relative
-    }
-
-    .hero-icon .material-icons-round {
-      font-size: 52px;
-      color: var(--primary)
-    }
-
-    .search-badge {
-      position: absolute;
-      bottom: 8px;
-      right: 8px;
-      width: 28px;
-      height: 28px;
-      background: var(--primary-dark);
-      border-radius: 50%;
-      border: 2px solid white;
-      display: flex;
-      align-items: center;
-      justify-content: center
-    }
-
-    .search-badge .material-icons-round {
-      font-size: 15px;
-      color: white
-    }
-
-    .hero h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 6px
-    }
-
-    .hero p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.4
-    }
-
-    .tip-banner {
-      background: rgba(249, 168, 37, .1);
-      border: 1px solid rgba(249, 168, 37, .3);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      margin-top: 14px;
-      margin-bottom: 20px
-    }
-
-    .tip-banner .material-icons-round {
-      font-size: 18px;
-      color: var(--accent);
-      flex-shrink: 0;
-      margin-top: 1px
-    }
-
-    .tip-banner span {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4
-    }
-
-    .action-btn {
-      background: var(--primary);
-      border-radius: 14px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(46, 125, 50, .3);
-      margin-bottom: 12px;
-      transition: transform .15s, box-shadow .15s;
-      border: none;
-      width: 100%
-    }
-
-    .action-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(46, 125, 50, .38)
-    }
-
-    .action-btn.dark {
-      background: var(--primary-dark);
-      box-shadow: 0 4px 12px rgba(27, 94, 32, .3)
-    }
-
-    .action-btn.dark:hover {
-      box-shadow: 0 6px 16px rgba(27, 94, 32, .38)
-    }
-
-    .btn-icon-wrap {
-      width: 48px;
-      height: 48px;
-      background: rgba(255, 255, 255, .2);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0
-    }
-
-    .btn-icon-wrap .material-icons-round {
-      font-size: 26px;
-      color: white
-    }
-
-    .btn-text {
-      flex: 1;
-      text-align: left
-    }
-
-    .btn-text strong {
-      display: block;
-      font-size: 17px;
-      color: white;
-      font-weight: 700
-    }
-
-    .btn-text small {
-      font-size: 13px;
-      color: rgba(255, 255, 255, .75)
-    }
-
-    .btn-arrow .material-icons-round {
-      font-size: 16px;
-      color: rgba(255, 255, 255, .7)
-    }
-
-    /* hidden real file input */
-    #fileInput {
-      display: none
-    }
-
-    /* Image preview */
-    .image-preview-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(46, 125, 50, .1);
-      margin-bottom: 12px
-    }
-
-    .img-area {
-      height: 200px;
-      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden
-    }
-
-    #previewImg {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none
-    }
-
-    .img-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-hint)
-    }
-
-    .img-placeholder .material-icons-round {
-      font-size: 64px;
-      color: var(--primary-light)
-    }
-
-    .img-actions {
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center
-    }
-
-    .filename-label {
-      font-size: 12px;
-      color: var(--text-hint);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 200px
-    }
-
-    .retake-btn {
-      border: 1px solid var(--divider);
-      background: white;
-      color: var(--text-secondary);
-      font-size: 13px;
-      font-family: inherit;
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px
-    }
-
-    .retake-btn .material-icons-round {
-      font-size: 15px
-    }
-
-    .crop-selector {
-      background: white;
-      border-radius: 12px;
-      border: 1.5px solid var(--primary);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(46, 125, 50, .05)
-    }
-
-    .crop-selector .material-icons-round {
-      color: var(--primary);
-      font-size: 22px
-    }
-
-    .crop-selector-text {
-      flex: 1
-    }
-
-    .crop-selector-text small {
-      display: block;
-      font-size: 12px;
-      color: var(--text-hint)
-    }
-
-    .crop-selector-text span {
-      font-size: 16px;
-      color: var(--text-primary);
-      font-weight: 500
-    }
-
-    .analyze-btn {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(46, 125, 50, .3);
-      transition: transform .15s, box-shadow .15s
-    }
-
-    .analyze-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(46, 125, 50, .4)
-    }
-
-    .analyze-btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-      transform: none
-    }
-
-    .analyze-btn .material-icons-round {
-      font-size: 22px
-    }
-
-    .result-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(46, 125, 50, .1);
-      margin-bottom: 24px
-    }
-
-    .result-header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      padding: 20px 16px;
-      position: relative;
-      overflow: hidden
-    }
-
-    .result-header::before {
-      content: '🌿';
-      position: absolute;
-      right: -10px;
-      top: -10px;
-      font-size: 80px;
-      opacity: .15
-    }
-
-    .result-top {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px
-    }
-
-    .result-icon-wrap {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0
-    }
-
-    .result-icon-wrap .material-icons-round {
-      font-size: 26px;
-      color: white
-    }
-
-    .result-title h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: white;
-      line-height: 1.2
-    }
-
-    .result-title .hindi {
-      font-size: 13px;
-      color: rgba(255, 255, 255, .75);
-      margin-top: 2px
-    }
-
-    .badges {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap
-    }
-
-    .badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700
-    }
-
-    .badge-medium {
-      background: var(--warning);
-      color: white
-    }
-
-    .badge-high {
-      background: var(--error);
-      color: white
-    }
-
-    .badge-low,
-    .badge-healthy {
-      background: var(--success);
-      color: white
-    }
-
-    .badge-none {
-      background: var(--primary);
-      color: white
-    }
-
-    .badge-crop {
-      background: rgba(255, 255, 255, .2);
-      border: 1px solid rgba(255, 255, 255, .38);
-      color: white
-    }
-
-    .confidence-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--divider)
-    }
-
-    .confidence-label {
-      font-size: 13px;
-      color: var(--text-hint);
-      flex-shrink: 0
-    }
-
-    .confidence-bar-wrap {
-      flex: 1;
-      background: var(--surface);
-      border-radius: 4px;
-      height: 6px;
-      overflow: hidden
-    }
-
-    .confidence-bar {
-      height: 100%;
-      background: var(--primary);
-      border-radius: 4px;
-      width: 0%;
-      transition: width 1s ease
-    }
-
-    .confidence-pct {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-      flex-shrink: 0
-    }
-
-    .info-section {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--divider)
-    }
-
-    .info-section:last-child {
-      border-bottom: none
-    }
-
-    .info-section-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 10px
-    }
-
-    .info-section-title .material-icons-round {
-      font-size: 18px;
-      color: var(--primary)
-    }
-
-    .description-text {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.6
-    }
-
-    .step-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px
-    }
-
-    .step-num {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px
-    }
-
-    .step-text {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5
-    }
-
-    .check-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px
-    }
-
-    .check-item .material-icons-round {
-      font-size: 18px;
-      color: var(--primary-light);
-    }
-
-    .buy-link-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      background: rgba(46, 125, 50, .06);
-      border-radius: 10px;
-      margin-bottom: 8px;
-      text-decoration: none;
-      color: inherit;
-      border: 1px solid rgba(46, 125, 50, .2);
-      transition: background .2s, border-color .2s;
-    }
-    .buy-link-card:hover { background: rgba(46, 125, 50, .12); border-color: rgba(46, 125, 50, .35); }
-    .buy-link-card .platform-badge {
-      background: var(--primary);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-    .buy-link-card .buy-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
-    .buy-link-card .buy-price { font-size: 12px; color: var(--primary); font-weight: 700; }
-    .buy-link-card .buy-url {
-      font-size: 10px;
-      color: var(--text-hint);
-      word-break: break-all;
-      margin-top: 2px;
-    }
-    .buy-link-card .buy-arrow { margin-left: auto; color: var(--primary); }
-
-    .result-actions {
-      padding: 14px 16px;
-      display: flex;
-      gap: 10px
-    }
-
-    .btn-outline {
-      flex: 1;
-      border: 1.5px solid var(--primary);
-      background: white;
-      color: var(--primary);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 11px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background .15s
-    }
-
-    .btn-outline:hover {
-      background: rgba(46, 125, 50, .06)
-    }
-
-    .btn-filled {
-      flex: 1;
-      background: var(--primary);
-      border: none;
-      color: white;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 11px;
-      border-radius: 10px;
-      cursor: pointer
-    }
-
-    .btn-filled:hover {
-      background: var(--primary-dark)
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px
-    }
-
-    .section-title .material-icons-round {
-      font-size: 18px;
-      color: var(--primary)
-    }
-
-    .bottom-nav {
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0 16px;
-      box-shadow: 0 -1px 0 var(--divider), 0 -4px 16px rgba(0, 0, 0, .06);
-      flex-shrink: 0
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      cursor: pointer;
-      padding: 4px 12px;
-      flex: 1
-    }
-
-    .nav-item .material-icons-round {
-      font-size: 24px;
-      color: var(--text-hint);
-      transition: color .2s
-    }
-
-    .nav-item span {
-      font-size: 10px;
-      color: var(--text-hint);
-      font-weight: 500;
-      transition: color .2s
-    }
-
-    .nav-item.active .material-icons-round,
-    .nav-item.active span {
-      color: var(--primary)
-    }
-
-    .nav-indicator {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--primary);
-      margin-bottom: 1px;
-      opacity: 0;
-      transition: opacity .2s
-    }
-
-    .nav-item.active .nav-indicator {
-      opacity: 1
-    }
-
-    /* Analyzing overlay */
-    .analyzing-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, .65);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      gap: 16px;
-      border-radius: 44px
-    }
-
-    .analyzing-overlay.show {
-      display: flex
-    }
-
-    .spinner-wrap {
-      position: relative;
-      width: 80px;
-      height: 80px
-    }
-
-    .spinner {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 4px solid rgba(255, 255, 255, .15);
-      border-top-color: white;
-      animation: spin .9s linear infinite;
-      position: absolute
-    }
-
-    .spinner-inner {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      top: 10px;
-      left: 10px
-    }
-
-    .spinner-inner .material-icons-round {
-      font-size: 30px;
-      color: white;
-      animation: pulse 1.5s ease-in-out infinite
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg)
-      }
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: .6;
-        transform: scale(.95)
-      }
-
-      50% {
-        opacity: 1;
-        transform: scale(1.05)
-      }
-    }
-
-    .analyzing-overlay p {
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      text-align: center
-    }
-
-    .analyzing-overlay small {
-      color: rgba(255, 255, 255, .7);
-      font-size: 13px;
-      text-align: center
-    }
-
-    .view {
-      display: none
-    }
-
-    .view.active {
-      display: block
-    }
-
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, .45);
-      z-index: 200;
-      display: none;
-      align-items: flex-end;
-      border-radius: 44px;
-      overflow: hidden
-    }
-
-    .modal-backdrop.show {
-      display: flex
-    }
-
-    .modal-sheet {
-      background: white;
-      border-radius: 24px 24px 0 0;
-      padding: 12px 16px 32px;
-      width: 100%;
-      max-height: 65%;
-      overflow-y: auto
-    }
-
-    .modal-handle {
-      width: 40px;
-      height: 4px;
-      background: var(--divider);
-      border-radius: 2px;
-      margin: 0 auto 16px
-    }
-
-    .modal-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 14px
-    }
-
-    .crop-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px
-    }
-
-    .crop-chip {
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1.5px solid var(--divider);
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--text-primary);
-      font-family: inherit;
-      font-weight: 500;
-      transition: all .15s
-    }
-
-    .crop-chip:hover,
-    .crop-chip.selected {
-      border-color: var(--primary);
-      background: rgba(46, 125, 50, .06);
-      color: var(--primary)
-    }
-
-    .crop-chip .material-icons-round {
-      font-size: 18px;
-      color: var(--primary)
-    }
-
-    /* Error toast */
-    .toast {
-      position: absolute;
-      bottom: 80px;
-      left: 16px;
-      right: 16px;
-      background: #323232;
-      color: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      z-index: 300;
-      opacity: 0;
-      transition: opacity .3s;
-      pointer-events: none
-    }
-
-    .toast.show {
-      opacity: 1
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DESIGN FAST TRACK_ Replication</title>
+    <style>
+        /* --- RESET & BASICS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #111;
+            --accent-red: #ff3333;
+            --transition-speed: 0.5s;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+            color: #fff; /* Inverted by mix-blend-mode usually, but keeping simple here */
+        }
+
+        .logo { font-weight: 900; letter-spacing: -1px; }
+        .lang-switch { font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        /* --- MAIN LAYOUT --- */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 100px 1fr; /* Left Content | Center Spine | Right Content */
+            min-height: 100vh;
+        }
+
+        /* --- CENTER SPINE (The Icons & Hand) --- */
+        .center-spine {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            z-index: 50;
+        }
+
+        .spine-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-bottom: 40px;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        
+        .spine-icon {
+            width: 20px;
+            height: 20px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        /* The 3D Hand Placeholder */
+        .hand-container {
+            width: 150px;
+            height: 200px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Simulating the wireframe hand with CSS/SVG */
+        .wire-hand {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #fff, #999);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        
+        /* Finger simulation */
+        .wire-hand::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: 20px;
+            width: 20px;
+            height: 60px;
+            background: inherit;
+            border-radius: 10px;
+            filter: brightness(0.9);
+        }
+
+        /* --- SECTIONS --- */
+        section {
+            padding: 100px 40px;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        h1, h2, h3 {
+            font-size: 4rem;
+            line-height: 0.9;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            max-width: 400px;
+            margin-top: 20px;
+            line-height: 1.4;
+        }
+
+        .red-text { color: var(--accent-red); }
+        
+        /* Specific Section Styles */
+        #hero h1 { font-size: 6rem; }
+        
+        #stats {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        #price {
+            background-color: var(--accent-red);
+            color: #fff;
+        }
+
+        #form-section {
+            background-color: #111;
+            color: #fff;
+            align-items: center;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border: 1px solid currentColor;
+            text-decoration: none;
+            color: inherit;
+            margin-top: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        
+        .btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* --- FLOATING ELEMENTS --- */
+        .cookie-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 200;
+            font-size: 12px;
+        }
+
+        .sotd-badge {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent-red);
+            color: #fff;
+            padding: 10px 5px;
+            writing-mode: vertical-rl;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 150;
+        }
+
+        /* Utility for text color based on bg */
+        body.light-mode { --text-color: #111; --bg-color: #f0f0f0; }
+        body.dark-mode { --text-color: #fff; --bg-color: #1a1a1a; }
+        body.red-mode { --text-color: #fff; --bg-color: #b91c1c; }
+
+    </style>
 </head>
+<body class="light-mode">
 
-<body>
-  <input type="file" id="fileInput" accept="image/*" />
+    <div class="sotd-badge">SITE OF THE DAY</div>
 
-  <div class="phone">
-    <div class="status-bar">
-      <span>9:41</span>
-      <span>
-        <span class="material-icons-round" style="font-size:13px;vertical-align:middle">signal_cellular_4_bar</span>
-        <span class="material-icons-round" style="font-size:13px;vertical-align:middle">wifi</span>
-        <span class="material-icons-round" style="font-size:13px;vertical-align:middle">battery_full</span>
-      </span>
-    </div>
+    <header>
+        <div class="logo">FRIENDS&FAMILY DIGITAL</div>
+        <div class="lang-switch">EN / RU</div>
+    </header>
 
-    <div class="app-bar">
-      <div class="app-bar-title">
-        <h1 id="appBarTitle">Crop Disease Analyser</h1>
-        <p id="appBarSub">किसान साथी</p>
-      </div>
-      <button class="lang-toggle" onclick="toggleLang()" id="langBtn">हि</button>
-    </div>
+    <div class="container">
+        
+        <!-- LEFT CONTENT COLUMN -->
+        <div class="left-col">
+            <section id="hero">
+                <h1>DESIGN<br>FAST<br>TRACK_</h1>
+                <p>This course was created by designers for designers. During our time working together, we will pump up your skills to festival level.</p>
+                <div style="margin-top: 40px; font-weight:bold;">[ DURATION ]<br>(3.5 MONTHS)/SRG_</div>
+            </section>
 
-    <div class="content" id="mainContent">
-      <!-- Hero -->
-      <div class="hero">
-        <div class="hero-icon">
-          <span class="material-icons-round">eco</span>
-          <div class="search-badge"><span class="material-icons-round">search</span></div>
-        </div>
-        <h2 id="heroTitle">Is your crop healthy?</h2>
-        <p id="heroSub">Take a photo or upload from gallery to detect crop diseases instantly</p>
-        <div class="tip-banner">
-          <span class="material-icons-round">lightbulb</span>
-          <span id="tipText">💡 Tip: Take photo in good light, close to the affected leaf for best results</span>
-        </div>
-      </div>
+            <section id="stats">
+                <h2>16 LECTURES<br>/ 40 HOURS</h2>
+                <h2 style="margin-top: 40px;">11 GROUP<br>PRACTICES<br>/ 30+ HOURS</h2>
+                <h2 style="margin-top: 40px;">7 PERSONAL<br>PRACTICES<br>/ 4+ HOURS</h2>
+            </section>
 
-      <!-- View: Initial buttons -->
-      <div id="view-initial" class="view active">
-        <button class="action-btn" onclick="triggerFileInput()">
-          <div class="btn-icon-wrap"><span class="material-icons-round">camera_alt</span></div>
-          <div class="btn-text">
-            <strong id="camLabel">Take a Photo</strong>
-            <small id="camSubLabel">फोटो खींचें</small>
-          </div>
-          <div class="btn-arrow"><span class="material-icons-round">arrow_forward_ios</span></div>
-        </button>
-        <button class="action-btn dark" onclick="triggerFileInput()">
-          <div class="btn-icon-wrap"><span class="material-icons-round">photo_library</span></div>
-          <div class="btn-text">
-            <strong id="galLabel">Upload from Gallery</strong>
-            <small id="galSubLabel">गैलरी से चुनें</small>
-          </div>
-          <div class="btn-arrow"><span class="material-icons-round">arrow_forward_ios</span></div>
-        </button>
-      </div>
+            <section id="price">
+                <h2>40K ₽/MONTH<br>(3.5 MONTHS)_</h2>
+                <p>8TH FLOW / FEBRUARY, 2 - MAY, 8</p>
+            </section>
 
-      <!-- View: Image selected -->
-      <div id="view-selected" class="view">
-        <div class="image-preview-card">
-          <div class="img-area">
-            <img id="previewImg" alt="Selected crop" />
-            <div class="img-placeholder" id="imgPlaceholder">
-              <span class="material-icons-round">eco</span>
-              <span style="font-size:13px">No image</span>
-            </div>
-          </div>
-          <div class="img-actions">
-            <span class="filename-label" id="filenameLabel">—</span>
-            <button class="retake-btn" onclick="retake()">
-              <span class="material-icons-round">replay</span> <span id="retakeLabel">Retake</span>
-            </button>
-          </div>
+            <section id="form-section">
+                <h2>SUBMIT AN<br>APPLICATION</h2>
+                <p>(WAITING LIST)</p>
+                <a href="#" class="btn">Start Application</a>
+            </section>
         </div>
 
-        <div class="crop-selector" onclick="openCropModal()">
-          <span class="material-icons-round">grass</span>
-          <div class="crop-selector-text">
-            <small id="cropLabel">Crop Type</small>
-            <span id="cropValue">Select Crop</span>
-          </div>
-          <div><span class="material-icons-round"
-              style="font-size:20px;color:var(--text-hint)">keyboard_arrow_down</span></div>
+        <!-- CENTER SPINE (Sticky) -->
+        <div class="center-spine">
+            <div class="spine-icons">
+                <div class="spine-icon"></div>
+                <div class="spine-icon"></div>
+                <div class="spine-icon"></div>
+                <div class="spine-icon"></div>
+            </div>
+
+            <!-- The Animated Hand Graphic -->
+            <div class="hand-container">
+                <!-- Using CSS to simulate the wireframe hand changing -->
+                <div class="wire-hand" id="hand-graphic"></div>
+            </div>
+
+            <div style="margin-top: 40px; display: flex; gap: 10px;">
+                <div style="background:#000; color:#fff; padding: 5px 10px; font-size: 10px;">PROJECTS</div>
+                <div style="background:var(--accent-red); color:#fff; padding: 5px 10px; font-size: 10px;">MENU</div>
+            </div>
         </div>
 
-        <button class="analyze-btn" onclick="runAnalysis()" id="analyzeBtn">
-          <span class="material-icons-round">biotech</span>
-          <span id="analyzeLabel">Analyse Crop</span>
-        </button>
-      </div>
-
-      <!-- View: Result -->
-      <div id="view-result" class="view">
-        <div class="result-card">
-          <div class="result-header">
-            <div class="result-top">
-              <div class="result-icon-wrap">
-                <span class="material-icons-round" id="rIcon">warning</span>
-              </div>
-              <div class="result-title">
-                <h3 id="rDiseaseName">—</h3>
-                <p class="hindi" id="rDiseaseHindi">—</p>
-              </div>
+        <!-- RIGHT CONTENT COLUMN -->
+        <div class="right-col">
+            <!-- Just spacing to balance grid, content flows naturally in this demo -->
+            <div style="padding: 40px;">
+                <div style="border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;">
+                    <small>Animation fast track by AVA SRG</small>
+                    <div style="height: 100px; background: #ddd; margin-top: 10px;"></div>
+                </div>
+                <h3>RELATED SKILLS</h3>
+                <p>Ongoing support and weekly feedback to make your learning truly useful.</p>
+                <br>
+                <p>Lectures on related skills—3D modeling, animation, project management, design protection.</p>
             </div>
-            <div class="badges">
-              <span class="badge" id="rSeverityBadge">—</span>
-              <span class="badge badge-crop" id="rCropBadge">—</span>
-            </div>
-          </div>
-          <div class="confidence-row">
-            <span class="confidence-label" id="rConfLabel">Confidence</span>
-            <div class="confidence-bar-wrap">
-              <div class="confidence-bar" id="rConfBar"></div>
-            </div>
-            <span class="confidence-pct" id="rConfPct">—</span>
-          </div>
-          <div class="info-section">
-            <div class="info-section-title">
-              <span class="material-icons-round">info_outline</span>
-              <span id="rDescLabel">Description</span>
-            </div>
-            <p class="description-text" id="rDesc">—</p>
-          </div>
-          <div class="info-section" id="rTreatSection">
-            <div class="info-section-title">
-              <span class="material-icons-round">medical_services</span>
-              <span id="rTreatLabel">Treatment</span>
-            </div>
-            <div id="rTreatList"></div>
-          </div>
-          <div class="info-section" id="rPrevSection">
-            <div class="info-section-title">
-              <span class="material-icons-round" style="color:var(--accent)">shield</span>
-              <span id="rPrevLabel">Prevention</span>
-            </div>
-            <div id="rPrevList"></div>
-          </div>
-          <div class="info-section" id="rBuySection">
-            <div class="info-section-title">
-              <span class="material-icons-round" style="color:var(--accent)">shopping_bag</span>
-              <span id="rBuyLabel">Buy Medicine</span>
-            </div>
-            <small id="rBuySub" style="display:block;color:var(--text-hint);font-size:11px;margin-bottom:10px">Cheapest farmer-friendly prices</small>
-            <div id="rBuyList"></div>
-          </div>
-          <div class="result-actions">
-            <button class="btn-outline" onclick="retake()" id="rRetakeBtn">Scan Again</button>
-          </div>
         </div>
-      </div>
+
     </div>
 
-    <div class="bottom-nav">
-      <div class="nav-item" onclick="switchTab(0)" id="nav0">
-        <div class="nav-indicator"></div><span class="material-icons-round">home</span><span>Home</span>
-      </div>
-      <div class="nav-item active" onclick="switchTab(1)" id="nav1">
-        <div class="nav-indicator"></div><span class="material-icons-round">biotech</span><span
-          id="navDisease">Disease</span>
-      </div>
-      <div class="nav-item" onclick="switchTab(2)" id="nav2">
-        <div class="nav-indicator"></div><span class="material-icons-round">storefront</span><span
-          id="navMarket">Market</span>
-      </div>
-      <div class="nav-item" onclick="switchTab(3)" id="nav3">
-        <div class="nav-indicator"></div><span class="material-icons-round">support_agent</span><span
-          id="navHelp">Help</span>
-      </div>
+    <div class="cookie-box">
+        <p>By using our website, you agree to our use of cookies.</p>
+        <button style="margin-top:10px; border:1px solid #000; background:none; padding:5px 10px; cursor:pointer;">OK</button>
     </div>
 
-    <div class="analyzing-overlay" id="overlay">
-      <div class="spinner-wrap">
-        <div class="spinner"></div>
-        <div class="spinner-inner"><span class="material-icons-round">eco</span></div>
-      </div>
-      <p id="overlayTitle">Analysing your crop...</p>
-      <small id="overlaySubtitle">AI is detecting diseases</small>
-    </div>
+    <script>
+        // Scroll Interaction Logic
+        const sections = document.querySelectorAll('section');
+        const body = document.body;
+        const hand = document.getElementById('hand-graphic');
+        const spineIcons = document.querySelectorAll('.spine-icon');
 
-    <div class="modal-backdrop" id="cropModal" onclick="closeCropModal(event)">
-      <div class="modal-sheet" onclick="event.stopPropagation()">
-        <div class="modal-handle"></div>
-        <div class="modal-title" id="modalTitle">Select Your Crop</div>
-        <div class="crop-grid" id="cropGrid"></div>
-      </div>
-    </div>
+        const observerOptions = {
+            threshold: 0.3
+        };
 
-    <div class="toast" id="toast"></div>
-  </div>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    
+                    // Change Theme based on section
+                    if (id === 'hero' || id === 'stats') {
+                        body.className = 'light-mode';
+                        hand.style.borderRadius = '50% 50% 50% 50% / 60% 60% 40% 40%'; // Pointing shape
+                        hand.style.transform = 'rotate(-10deg)';
+                        updateIcons(0);
+                    } else if (id === 'price') {
+                        body.className = 'red-mode';
+                        hand.style.borderRadius = '40% 60% 40% 60% / 50% 50% 50% 50%'; // Peace shape roughly
+                        hand.style.transform = 'rotate(10deg)';
+                        updateIcons(2);
+                    } else if (id === 'form-section') {
+                        body.className = 'dark-mode';
+                        hand.style.borderRadius = '50%'; // OK shape
+                        hand.style.transform = 'scale(0.8)';
+                        updateIcons(3);
+                    }
+                }
+            });
+        }, observerOptions);
 
-  <script>
-    const API = 'http://localhost:3000/api/v1/disease/analyze';
-    const CROPS = [
-      ['Tomato', '🍅'], ['Wheat', '🌾'], ['Rice', '🌾'], ['Cotton', '🌺'],
-      ['Potato', '🥔'], ['Mustard', '🌼'], ['Maize', '🌽'], ['Soybean', '🫘'],
-      ['Onion', '🧅'], ['Chilli', '🌶️'], ['Sugarcane', '🎋'], ['Groundnut', '🥜']
-    ];
-
-    let isHindi = false;
-    let selectedFile = null;
-    let selectedCrop = '';
-    let lastResult = null;
-
-    const S = {
-      en: { appBarTitle: 'Crop Disease Analyser', appBarSub: 'किसान साथी', heroTitle: 'Is your crop healthy?', heroSub: 'Take a photo or upload from gallery to detect crop diseases instantly', tip: '💡 Tip: Take photo in good light, close to the affected leaf', camLabel: 'Take a Photo', camSubLabel: 'फोटो खींचें', galLabel: 'Upload from Gallery', galSubLabel: 'गैलरी से चुनें', cropLabel: 'Crop Type', cropPlaceholder: 'Select Crop', analyzeLabel: 'Analyse Crop', rDescLabel: 'Description', rTreatLabel: 'Treatment', rPrevLabel: 'Prevention', rBuyLabel: 'Buy Medicine', rBuySub: 'Cheapest farmer-friendly prices', rConfLabel: 'Confidence', rRetakeBtn: 'Scan Again', navDisease: 'Disease', navMarket: 'Market', navHelp: 'Help', overlayTitle: 'Analysing your crop...', overlaySubtitle: 'AI is detecting diseases', modalTitle: 'Select Your Crop', retakeLabel: 'Retake' },
-      hi: { appBarTitle: 'फसल रोग जांच', appBarSub: 'Kisan Saathi', heroTitle: 'क्या आपकी फसल स्वस्थ है?', heroSub: 'फसल रोग पहचानने के लिए फोटो लें या गैलरी से चुनें', tip: '💡 सुझाव: अच्छी रोशनी में पत्ते के पास से साफ फोटो लें', camLabel: 'फोटो खींचें', camSubLabel: 'Take a Photo', galLabel: 'गैलरी से चुनें', galSubLabel: 'Upload from Gallery', cropLabel: 'फसल का प्रकार', cropPlaceholder: 'फसल चुनें', analyzeLabel: 'जांच करें', rDescLabel: 'विवरण', rTreatLabel: 'उपचार', rPrevLabel: 'बचाव', rBuyLabel: 'दवाई खरीदें', rBuySub: 'किसान-अनुकूल सस्ती कीमत पर', rConfLabel: 'सटीकता', rRetakeBtn: 'दोबारा जांचें', navDisease: 'रोग', navMarket: 'बाज़ार', navHelp: 'मदद', overlayTitle: 'जांच हो रही है...', overlaySubtitle: 'AI से रोग पहचान रहे हैं', modalTitle: 'अपनी फसल चुनें', retakeLabel: 'बदलें' }
-    };
-
-    function t(k) { return (isHindi ? S.hi : S.en)[k] || k; }
-
-    function applyStrings() {
-      document.getElementById('langBtn').textContent = isHindi ? 'EN' : 'हि';
-      ['appBarTitle', 'appBarSub', 'heroTitle', 'heroSub', 'camLabel', 'camSubLabel', 'galLabel', 'galSubLabel', 'analyzeLabel', 'rDescLabel', 'rTreatLabel', 'rPrevLabel', 'rBuyLabel', 'rConfLabel', 'rRetakeBtn', 'navDisease', 'navMarket', 'navHelp', 'overlayTitle', 'overlaySubtitle', 'modalTitle', 'retakeLabel'].forEach(k => {
-        const el = document.getElementById(k); if (el) el.textContent = t(k);
-      });
-      document.getElementById('tipText').textContent = t('tip');
-      document.getElementById('cropLabel').textContent = t('cropLabel');
-      const rBuySubEl = document.getElementById('rBuySub'); if (rBuySubEl) rBuySubEl.textContent = t('rBuySub');
-      if (!selectedCrop) document.getElementById('cropValue').textContent = t('cropPlaceholder');
-      buildCropGrid();
-      if (lastResult) renderResult(lastResult);
-    }
-
-    function toggleLang() { isHindi = !isHindi; applyStrings(); }
-
-    function buildCropGrid() {
-      const grid = document.getElementById('cropGrid');
-      grid.innerHTML = CROPS.map(([name, emoji]) => `
-      <button class="crop-chip ${selectedCrop === name ? 'selected' : ''}" onclick="selectCrop('${name}','${emoji}')">
-        <span class="material-icons-round">eco</span> ${emoji} ${name}
-      </button>`).join('');
-    }
-
-    function showView(v) {
-      ['initial', 'selected', 'result'].forEach(id => {
-        document.getElementById('view-' + id).classList.toggle('active', id === v);
-      });
-    }
-
-    function triggerFileInput() {
-      document.getElementById('fileInput').click();
-    }
-
-    document.getElementById('fileInput').addEventListener('change', function () {
-      const file = this.files[0];
-      if (!file) return;
-      selectedFile = file;
-      const url = URL.createObjectURL(file);
-      const img = document.getElementById('previewImg');
-      img.src = url;
-      img.style.display = 'block';
-      document.getElementById('imgPlaceholder').style.display = 'none';
-      document.getElementById('filenameLabel').textContent = file.name;
-      showView('selected');
-      this.value = ''; // reset so same file can be re-selected
-    });
-
-    function retake() {
-      selectedFile = null;
-      lastResult = null;
-      document.getElementById('previewImg').style.display = 'none';
-      document.getElementById('imgPlaceholder').style.display = 'flex';
-      document.getElementById('filenameLabel').textContent = '—';
-      selectedCrop = '';
-      document.getElementById('cropValue').textContent = t('cropPlaceholder');
-      showView('initial');
-    }
-
-    async function runAnalysis() {
-      if (!selectedFile) { showToast('Please select an image first'); return; }
-
-      const btn = document.getElementById('analyzeBtn');
-      btn.disabled = true;
-      document.getElementById('overlay').classList.add('show');
-
-      const form = new FormData();
-      form.append('image', selectedFile);
-      form.append('cropType', selectedCrop || 'unknown');
-      form.append('language', isHindi ? 'hi' : 'en');
-
-      try {
-        const res = await fetch(API, { method: 'POST', body: form });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.message || 'Analysis failed');
-        lastResult = json.data;
-        renderResult(json.data);
-        showView('result');
-      } catch (err) {
-        showToast(err.message || 'Server error. Is the server running?');
-        console.error(err);
-      } finally {
-        document.getElementById('overlay').classList.remove('show');
-        btn.disabled = false;
-      }
-    }
-
-    function renderResult(d) {
-      const hi = isHindi;
-      document.getElementById('rIcon').textContent = d.isHealthy ? 'check_circle' : 'warning';
-      document.getElementById('rDiseaseName').textContent = hi ? d.diseaseNameHindi : d.diseaseName;
-      document.getElementById('rDiseaseHindi').textContent = hi ? d.diseaseName : d.diseaseNameHindi;
-
-      const sev = d.severity;
-      const sevLabel = { none: 'Healthy ✓', low: 'Low Severity', medium: 'Medium Severity', high: 'High Severity' };
-      const sevHLabel = { none: 'स्वस्थ ✓', low: 'कम गंभीर', medium: 'मध्यम गंभीर', high: 'अधिक गंभीर' };
-      const sevClass = { none: 'badge-none', low: 'badge-low', medium: 'badge-medium', high: 'badge-high' };
-      const badge = document.getElementById('rSeverityBadge');
-      badge.textContent = hi ? sevHLabel[sev] : sevLabel[sev];
-      badge.className = 'badge ' + (sevClass[sev] || 'badge-medium');
-
-      document.getElementById('rCropBadge').textContent = '🌱 ' + (d.cropName || selectedCrop || 'Crop');
-
-      const pct = Math.round((d.confidenceScore || 0) * 100);
-      document.getElementById('rConfPct').textContent = pct + '%';
-      setTimeout(() => { document.getElementById('rConfBar').style.width = pct + '%'; }, 150);
-
-      document.getElementById('rDesc').textContent = hi ? d.descriptionHindi : d.description;
-
-      const treats = hi ? d.treatmentsHindi : d.treatments;
-      const treatEl = document.getElementById('rTreatList');
-      document.getElementById('rTreatSection').style.display = treats?.length ? '' : 'none';
-      treatEl.innerHTML = (treats || []).map((s, i) => `
-      <div class="step-item">
-        <div class="step-num">${i + 1}</div>
-        <p class="step-text">${s}</p>
-      </div>`).join('');
-
-      const prevs = hi ? d.preventionsHindi : d.preventions;
-      const prevEl = document.getElementById('rPrevList');
-      document.getElementById('rPrevSection').style.display = prevs?.length ? '' : 'none';
-      prevEl.innerHTML = (prevs || []).map(s => `
-      <div class="check-item">
-        <span class="material-icons-round">check_circle_outline</span>
-        <p class="step-text">${s}</p>
-      </div>`).join('');
-
-      // --- Buy Medicine links: one compare card per unique treatment ---
-      let links = [];
-      if (!d.isHealthy && Array.isArray(d.treatments) && d.treatments.length) {
-        const seen = new Set();
-        d.treatments.forEach((line, idx) => {
-          const baseText = line || '';
-          let med = baseText.split('@')[0];
-          med = med.replace(/^Apply\s+/i, '').trim();
-          if (!med) return;
-          const key = med.toLowerCase();
-          if (seen.has(key)) return;
-          seen.add(key);
-          const encoded = encodeURIComponent(med);
-          links.push({
-            name: med,
-            nameHindi: (d.diseaseNameHindi || '') + ' की दवाई',
-            platform: 'Best Price',
-            url: 'https://www.google.com/search?tbm=shop&q=' + encoded,
-            priceRange: 'Compare ₹'
-          });
+        sections.forEach(section => {
+            observer.observe(section);
         });
-      }
 
-      const buySection = document.getElementById('rBuySection');
-      const buyList = document.getElementById('rBuyList');
-      buySection.style.display = links.length ? '' : 'none';
-      buyList.innerHTML = links.map(p => {
-        const name = (hi && p.nameHindi) ? p.nameHindi : p.name;
-        const url = (p.url || '').startsWith('http') ? p.url : 'https://www.bighaat.com/search?q=' + encodeURIComponent(p.name || '');
-        const enc = encodeURIComponent(url);
-        return `<div class="buy-link-card" onclick="openBuyLinkEncoded('${enc}')">
-          <span class="platform-badge">${p.platform || 'Buy'}</span>
-          <div style="flex:1;min-width:0">
-            <div class="buy-name">${name}</div>
-            <div class="buy-price">${p.priceRange || ''}</div>
-            <div class="buy-url">${url}</div>
-          </div>
-          <span class="material-icons-round buy-arrow" style="font-size:18px">open_in_new</span>
-        </div>`;
-      }).join('');
-    }
-
-    function openCropModal() { buildCropGrid(); document.getElementById('cropModal').classList.add('show'); }
-    function closeCropModal(e) { document.getElementById('cropModal').classList.remove('show'); }
-    function selectCrop(name) {
-      selectedCrop = name;
-      document.getElementById('cropValue').textContent = CROPS.find(c => c[0] === name)?.[1] + ' ' + name || name;
-      buildCropGrid();
-      setTimeout(closeCropModal, 180);
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
-    function switchTab(i) {
-      [0, 1, 2, 3].forEach(j => document.getElementById('nav' + j).classList.toggle('active', j === i));
-    }
-
-    function openBuyLinkEncoded(u) {
-      try {
-        const url = decodeURIComponent(u);
-        window.open(url, '_blank');
-      } catch (e) {
-        console.error(e);
-        showToast('Could not open link');
-      }
-    }
-
-    buildCropGrid();
-  </script>
+        function updateIcons(activeIndex) {
+            spineIcons.forEach((icon, index) => {
+                if(index === activeIndex) {
+                    icon.style.opacity = '1';
+                    icon.style.transform = 'scale(1.2)';
+                } else {
+                    icon.style.opacity = '0.2';
+                    icon.style.transform = 'scale(1)';
+                }
+            });
+        }
+    </script>
 </body>
-
 </html>
