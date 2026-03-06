@@ -161,7 +161,7 @@ export class DiseaseService {
 
         return {
           id: uuidv4(),
-          imagePath,
+          imagePath: path.basename(imagePath), // Return just filename
           cropName: cropType || parsed.cropName || '',
           createdAt: new Date().toISOString(),
           diseaseName: 'Unknown',
@@ -205,7 +205,7 @@ export class DiseaseService {
         if (attempt === MAX_RETRIES || lastError === null) {
           try {
             if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-          } catch (_) {}
+          } catch (_) { }
         }
       }
     }
