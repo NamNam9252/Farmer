@@ -17,11 +17,11 @@ app.use('/api/v1', v1Routes);
 
 // Base route
 app.get('/', (_req, res) => {
-    res.json({ message: 'Kisan Saathi API v1', success: true });
+    res.json({ message: 'AgriAI API v1', success: true });
 });
 
 app.get('/api/v1', (_req, res) => {
-    res.json({ message: 'Kisan Saathi API v1 - Running', success: true });
+    res.json({ message: 'AgriAI API v1 - Running', success: true });
 });
 
 // Final error handling middleware

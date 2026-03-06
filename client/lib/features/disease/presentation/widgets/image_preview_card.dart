@@ -25,7 +25,7 @@ class ImagePreviewCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -41,12 +41,17 @@ class ImagePreviewCard extends ConsumerWidget {
               child: Image.file(
                 image,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.surface,
-                  child: const Center(
-                    child: Icon(Icons.broken_image_rounded, size: 48, color: AppColors.textHint),
-                  ),
-                ),
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: AppColors.surface,
+                      child: const Center(
+                        child: Icon(
+                          Icons.broken_image_rounded,
+                          size: 48,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    ),
               ),
             ),
             // Overlay gradient
@@ -62,7 +67,7 @@ class ImagePreviewCard extends ConsumerWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                     ],
                   ),
                 ),
@@ -75,7 +80,10 @@ class ImagePreviewCard extends ConsumerWidget {
               child: GestureDetector(
                 onTap: onRetake,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(20),
@@ -83,7 +91,11 @@ class ImagePreviewCard extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                      const Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         isHindi ? AppStrings.retakeHindi : AppStrings.retake,
@@ -103,7 +115,11 @@ class ImagePreviewCard extends ConsumerWidget {
               left: 12,
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.white70, size: 16),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white70,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     isHindi ? 'फोटो चुनी गई' : 'Photo selected',

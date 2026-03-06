@@ -497,7 +497,6 @@ model State {
   // Relations
   districts         District[]
   pincodes          Pincode[]
-  users             User[]                  @relation("UserPrimaryState")
   locations         Location[]
   diseaseReports    DiseaseReport[]         @relation("DiseaseReportState")
   diseaseAggregates DiseaseAggregateDaily[]
@@ -521,7 +520,6 @@ model District {
   // Relations
   state               State                   @relation(fields: [stateId], references: [id])
   pincodes            Pincode[]
-  users               User[]                  @relation("UserPrimaryDistrict")
   locations           Location[]
   marketPrices        MarketPrice[]
   diseaseReports      DiseaseReport[]         @relation("DiseaseReportDistrict")
@@ -555,7 +553,6 @@ model Pincode {
   // Relations
   district  District   @relation(fields: [districtId], references: [id])
   state     State      @relation(fields: [stateId], references: [id])
-  users     User[]     @relation("UserPrimaryPincode")
   locations Location[]
   alerts    Alert[]    @relation("AlertPincode")
 
@@ -583,12 +580,8 @@ model User {
   profileImageUrl   String?
   bio               String?
 
-  // Denorm primary location — for fast alert fan-out
-  primaryStateId    String? @db.ObjectId
-  primaryDistrictId String? @db.ObjectId
-  primaryPincodeId  String? @db.ObjectId
-  primaryLatitude   Float?
-  primaryLongitude  Float?
+  // Primary location reference
+  primaryLocationId String? @db.ObjectId
 
   isPhoneVerified Boolean   @default(false)
   isEmailVerified Boolean   @default(false)
@@ -610,9 +603,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations — primary geo
-  primaryState    State?    @relation("UserPrimaryState", fields: [primaryStateId], references: [id])
-  primaryDistrict District? @relation("UserPrimaryDistrict", fields: [primaryDistrictId], references: [id])
-  primaryPincode  Pincode?  @relation("UserPrimaryPincode", fields: [primaryPincodeId], references: [id])
+  primaryLocation Location? @relation("UserPrimaryLocation", fields: [primaryLocationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   // Relations — owned
   locations     Location[]
@@ -670,9 +661,7 @@ model User {
   @@index([status])
   @@index([isDeleted])
   @@index([isFlagged])
-  @@index([primaryLatitude, primaryLongitude]) // 2dsphere
-  @@index([primaryDistrictId])
-  @@index([primaryPincodeId])
+  @@index([primaryLocationId])
   @@map("users")
 }
 
@@ -737,6 +726,7 @@ model Location {
 
   // Relations
   user                User                 @relation(fields: [userId], references: [id])
+  primaryForUsers     User[]               @relation("UserPrimaryLocation")
   state               State                @relation(fields: [stateId], references: [id])
   district            District             @relation(fields: [districtId], references: [id])
   pincode             Pincode              @relation(fields: [pincodeId], references: [id])

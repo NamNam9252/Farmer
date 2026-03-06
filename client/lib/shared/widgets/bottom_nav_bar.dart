@@ -12,7 +12,16 @@ class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Widget child;
 
-  static const List<({String path, IconData icon, IconData activeIcon, String label, String labelHindi})> _tabs = [
+  static const List<
+    ({
+      String path,
+      IconData icon,
+      IconData activeIcon,
+      String label,
+      String labelHindi,
+    })
+  >
+  _tabs = [
     (
       path: '/',
       icon: Icons.home_outlined,
@@ -52,7 +61,7 @@ class AppBottomNavBar extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               blurRadius: 12,
               offset: const Offset(0, -4),
             ),
@@ -63,48 +72,58 @@ class AppBottomNavBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _tabs.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final tab = entry.value;
-                final isSelected = idx == currentIndex;
+              children:
+                  _tabs.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final tab = entry.value;
+                    final isSelected = idx == currentIndex;
 
-                return GestureDetector(
-                  onTap: () => context.go(tab.path),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary.withOpacity(0.1)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSelected ? tab.activeIcon : tab.icon,
-                          color: isSelected ? AppColors.primary : AppColors.textHint,
-                          size: 24,
+                    return GestureDetector(
+                      onTap: () => context.go(tab.path),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 8,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          tab.labelHindi,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textHint,
-                          ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? AppColors.primary.withValues(alpha: 0.1)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isSelected ? tab.activeIcon : tab.icon,
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.textHint,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              tab.labelHindi,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight:
+                                    isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
+                                color:
+                                    isSelected
+                                        ? AppColors.primary
+                                        : AppColors.textHint,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ),

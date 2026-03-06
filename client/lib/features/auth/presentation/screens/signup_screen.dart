@@ -54,6 +54,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     if (name.isNotEmpty &&
         phone.isNotEmpty &&
+        email.isNotEmpty &&
         password.isNotEmpty &&
         confirm.isNotEmpty) {
       if (password != confirm) {
@@ -67,7 +68,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           .signup(
             name: name,
             phone: phone,
-            email: email.isEmpty ? null : email,
+            email: email,
             password: password,
             role: _selectedRole,
           );
@@ -121,7 +122,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             top: 50,
             left: 20,
             child: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.9),
+              backgroundColor: Colors.white.withValues(alpha: 0.9),
               radius: 20,
               child: IconButton(
                 icon: const Icon(
@@ -151,7 +152,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -212,7 +213,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         color: AppColors.authBackground,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.divider.withOpacity(0.5),
+                          color: AppColors.divider.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Row(
@@ -239,7 +240,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                               ? [
                                                 BoxShadow(
                                                   color: Colors.black
-                                                      .withOpacity(0.05),
+                                                      .withValues(alpha: 0.05),
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -287,7 +288,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                     CustomAuthField(
                       controller: _emailController,
-                      hintText: 'Email (Optional)',
+                      hintText: 'Email',
                       prefixIcon: CupertinoIcons.mail,
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -300,7 +301,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       isPassword: true,
                       suffixIcon: Icon(
                         CupertinoIcons.eye_slash,
-                        color: AppColors.authIconColor.withOpacity(0.7),
+                        color: AppColors.authIconColor.withValues(alpha: 0.7),
                         size: 20,
                       ),
                     ),
@@ -313,7 +314,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       isPassword: true,
                       suffixIcon: Icon(
                         CupertinoIcons.eye_slash,
-                        color: AppColors.authIconColor.withOpacity(0.7),
+                        color: AppColors.authIconColor.withValues(alpha: 0.7),
                         size: 20,
                       ),
                     ),
