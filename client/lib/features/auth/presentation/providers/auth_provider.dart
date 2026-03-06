@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/secure_storage_service.dart';
 import '../../data/api/auth_api.dart';
 import '../../data/repository/auth_repository_impl.dart';
@@ -9,7 +10,7 @@ import '../state/auth_state.dart';
 part 'auth_provider.g.dart';
 
 @riverpod
-AuthRepositoryImpl authRepository(AuthRepositoryRef ref) {
+AuthRepositoryImpl authRepository(Ref ref) {
   return AuthRepositoryImpl(AuthApi(), SecureStorageService());
 }
 
@@ -30,7 +31,14 @@ class AuthController extends _$AuthController {
       if (isAuth) {
         // Without a /me endpoint, restoring user from partial data
         state = const Authenticated(
-          User(id: '', name: 'Farmer User', phone: '', role: UserRole.farmer),
+          User(
+            id: '',
+            name: 'Farmer User',
+            phone: '',
+            role: UserRole.farmer,
+            status: 'ACTIVE',
+            isEmailVerified: true,
+          ),
         );
       } else {
         state = const Unauthenticated();
@@ -57,7 +65,7 @@ class AuthController extends _$AuthController {
     required String phone,
     required String password,
     required UserRole role,
-    String? email,
+    required String email,
   }) async {
     state = const AuthLoading();
     try {
@@ -70,6 +78,30 @@ class AuthController extends _$AuthController {
         role: role,
         email: email,
       );
+      state = Authenticated(user);
+    } catch (e) {
+      state = AuthError(e.toString());
+    }
+  }
+
+  Future<void> requestOtp(String email) async {
+    state = const AuthLoading();
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final requestOtpUseCase = RequestOtpUseCase(repository);
+      await requestOtpUseCase.execute(email: email);
+      state = const AuthPendingVerification();
+    } catch (e) {
+      state = AuthError(e.toString());
+    }
+  }
+
+  Future<void> verifyOtp(String email, String otp) async {
+    state = const AuthLoading();
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final verifyOtpUseCase = VerifyOtpUseCase(repository);
+      final user = await verifyOtpUseCase.execute(email: email, otp: otp);
       state = Authenticated(user);
     } catch (e) {
       state = AuthError(e.toString());

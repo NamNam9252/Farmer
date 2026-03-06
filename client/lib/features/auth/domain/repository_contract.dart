@@ -7,8 +7,10 @@ abstract class AuthRepository {
     required String phone,
     required String password,
     required UserRole role,
-    String? email,
+    required String email,
   });
+  Future<void> requestOtp({required String email});
+  Future<User> verifyOtp({required String email, required String otp});
   Future<void> logout();
   Future<bool> isAuthenticated();
 }

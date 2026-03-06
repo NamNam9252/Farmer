@@ -61,7 +61,7 @@ class PastReportsSection extends ConsumerWidget {
                   ),
                 ),
               ),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (error, stackTrace) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -118,10 +118,12 @@ class _ReportTile extends ConsumerWidget {
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays == 0)
+    if (diff.inDays == 0) {
       return isHindi ? AppStrings.todayHindi : AppStrings.today;
-    if (diff.inDays == 1)
+    }
+    if (diff.inDays == 1) {
       return isHindi ? AppStrings.yesterdayHindi : AppStrings.yesterday;
+    }
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 
@@ -131,7 +133,7 @@ class _ReportTile extends ConsumerWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       elevation: 1,
-      shadowColor: AppColors.primary.withOpacity(0.1),
+      shadowColor: AppColors.primary.withValues(alpha: 0.1),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () {
@@ -152,7 +154,7 @@ class _ReportTile extends ConsumerWidget {
                             File(report.imagePath),
                             fit: BoxFit.cover,
                             errorBuilder:
-                                (_, __, ___) => Container(
+                                (context, error, stackTrace) => Container(
                                   color: AppColors.surface,
                                   child: const Icon(
                                     Icons.image_not_supported,
@@ -200,7 +202,7 @@ class _ReportTile extends ConsumerWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _color.withOpacity(0.1),
+                            color: _color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(

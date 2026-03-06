@@ -12,6 +12,10 @@ class AuthLoading extends AuthState {
   const AuthLoading();
 }
 
+class AuthPendingVerification extends AuthState {
+  const AuthPendingVerification();
+}
+
 class Authenticated extends AuthState {
   final User user;
   const Authenticated(this.user);

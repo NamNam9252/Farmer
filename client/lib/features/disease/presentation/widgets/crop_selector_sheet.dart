@@ -35,7 +35,11 @@ class CropSelectorSheet extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Row(
               children: [
-                const Icon(Icons.grass_rounded, color: AppColors.primary, size: 22),
+                const Icon(
+                  Icons.grass_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   isHindi ? 'फसल चुनें' : 'Select Your Crop',
@@ -58,12 +62,14 @@ class CropSelectorSheet extends ConsumerWidget {
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.symmetric(vertical: 3),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withOpacity(0.08)
-                        : Colors.transparent,
+                    color:
+                        isSelected
+                            ? AppColors.primary.withValues(alpha: 0.08)
+                            : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      color:
+                          isSelected ? AppColors.primary : Colors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -76,9 +82,8 @@ class CropSelectorSheet extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.surface,
+                        color:
+                            isSelected ? AppColors.primary : AppColors.surface,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -90,14 +95,22 @@ class CropSelectorSheet extends ConsumerWidget {
                     title: Text(
                       crop,
                       style: AppTextStyles.body1.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color:
+                            isSelected
+                                ? AppColors.primary
+                                : AppColors.textPrimary,
                       ),
                     ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded,
-                            color: AppColors.primary, size: 20)
-                        : null,
+                    trailing:
+                        isSelected
+                            ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            )
+                            : null,
                   ),
                 );
               },

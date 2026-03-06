@@ -32,7 +32,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final data = apiResponse.data!;
       final token = data['token'] as String;
-      final userModel = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+      final userModel = UserModel.fromJson(
+        data['user'] as Map<String, dynamic>,
+      );
 
       await _secureStorageService.saveToken(token);
       return userModel;
@@ -47,7 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     required String password,
     required UserRole role,
-    String? email,
+    required String email,
   }) async {
     try {
       final response = await _authApi.signup({
@@ -55,7 +57,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'phone': phone,
         'password': password,
         'role': UserModel.roleToString(role),
-        if (email != null && email.isNotEmpty) 'email': email,
+        'email': email,
       });
 
       final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
@@ -69,7 +71,46 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final data = apiResponse.data!;
       final token = data['token'] as String;
-      final userModel = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+      final userModel = UserModel.fromJson(
+        data['user'] as Map<String, dynamic>,
+      );
+
+      await _secureStorageService.saveToken(token);
+      return userModel;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<void> requestOtp({required String email}) async {
+    try {
+      final response = await _authApi.requestOtp({'email': email});
+      _checkSuccess(response);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<User> verifyOtp({required String email, required String otp}) async {
+    try {
+      final response = await _authApi.verifyOtp({'email': email, 'otp': otp});
+
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data,
+        (data) => data as Map<String, dynamic>,
+      );
+
+      if (!apiResponse.success) {
+        throw AppError(message: apiResponse.message, type: AppErrorType.server);
+      }
+
+      final data = apiResponse.data!;
+      final token = data['token'] as String;
+      final userModel = UserModel.fromJson(
+        data['user'] as Map<String, dynamic>,
+      );
 
       await _secureStorageService.saveToken(token);
       return userModel;
@@ -89,6 +130,17 @@ class AuthRepositoryImpl implements AuthRepository {
     return token != null && token.isNotEmpty;
   }
 
+  void _checkSuccess(Response response) {
+    final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(
+      response.data,
+      (data) => data as Map<String, dynamic>? ?? {},
+    );
+
+    if (!apiResponse.success) {
+      throw AppError(message: apiResponse.message, type: AppErrorType.server);
+    }
+  }
+
   AppError _handleDioError(DioException e) {
     if (e.response != null) {
       final data = e.response?.data;
@@ -97,10 +149,22 @@ class AuthRepositoryImpl implements AuthRepository {
         message = data['message'];
       }
       if (e.response?.statusCode == 401) {
-        return AppError(message: message, type: AppErrorType.unauthorized, originalError: e);
+        return AppError(
+          message: message,
+          type: AppErrorType.unauthorized,
+          originalError: e,
+        );
       }
-      return AppError(message: message, type: AppErrorType.server, originalError: e);
+      return AppError(
+        message: message,
+        type: AppErrorType.server,
+        originalError: e,
+      );
     }
-    return AppError(message: 'Network connection failed', type: AppErrorType.network, originalError: e);
+    return AppError(
+      message: 'Network connection failed',
+      type: AppErrorType.network,
+      originalError: e,
+    );
   }
 }

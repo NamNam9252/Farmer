@@ -36,7 +36,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (phone.isNotEmpty && password.isNotEmpty) {
       ref.read(authControllerProvider.notifier).login(phone, password);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter phone and password')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter phone and password')),
+      );
     }
   }
 
@@ -52,7 +54,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (next is Authenticated) {
         context.go(RouteNames.disease);
       } else if (next is AuthError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(next.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.message)));
       }
     });
 
@@ -65,26 +69,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         children: [
           // Background Image
           Positioned(
-             top: 0,
-             left: 0,
-             right: 0,
-             height: MediaQuery.of(context).size.height * 0.55,
-             child: Image.asset(
-               'assets/onboarding/login_bg.png',
-               fit: BoxFit.cover,
-             ),
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.55,
+            child: Image.asset(
+              'assets/onboarding/login_bg.png',
+              fit: BoxFit.cover,
+            ),
           ),
-          
+
           // Back Arrow
           Positioned(
             top: 50,
             left: 20,
             child: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.9),
+              backgroundColor: Colors.white.withValues(alpha: 0.9),
               radius: 20,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
-                onPressed: () => context.canPop() ? context.pop() : context.go(RouteNames.onboarding),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.black,
+                  size: 20,
+                ),
+                onPressed:
+                    () =>
+                        context.canPop()
+                            ? context.pop()
+                            : context.go(RouteNames.onboarding),
                 padding: EdgeInsets.zero,
               ),
             ),
@@ -97,9 +109,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: GestureDetector(
               onTap: _toggleLanguage,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -109,7 +124,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(width: 4),
                     Text(
                       _currentLanguage,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -131,7 +149,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 32.0,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -145,23 +166,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     CustomAuthField(
                       controller: _phoneController,
                       hintText: 'Phone or Email',
                       prefixIcon: CupertinoIcons.device_phone_portrait,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     CustomAuthField(
                       controller: _passwordController,
                       hintText: 'Password',
                       prefixIcon: CupertinoIcons.lock,
                       isPassword: true,
-                      suffixIcon: Icon(CupertinoIcons.eye_slash, color: AppColors.authIconColor.withOpacity(0.7), size: 20),
+                      suffixIcon: Icon(
+                        CupertinoIcons.eye_slash,
+                        color: AppColors.authIconColor.withValues(alpha: 0.7),
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -176,13 +201,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   setState(() => _rememberMe = val ?? false);
                                 },
                                 activeColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             const Text(
                               'Remember Me',
-                              style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -197,20 +227,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 32),
-                    
+
                     CustomAuthButton(
                       text: 'Sign In',
                       onPressed: _login,
                       isLoading: isLoading,
                     ),
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           'New here? ',
-                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => context.go(RouteNames.signup),
@@ -229,7 +262,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

@@ -1,4 +1,4 @@
-import { PrismaClient, User, UserRole, UserStatus } from '@prisma/client';
+import { PrismaClient, User, UserRole, UserStatus, VerificationChannel } from '@prisma/client';
 import { SignupInput } from '../../schema/auth.schema.js';
 
 const prisma = new PrismaClient();
@@ -24,8 +24,43 @@ export class AuthRepository {
                 email: data.email,
                 passwordHash,
                 role: data.role as UserRole,
-                status: UserStatus.ACTIVE, // Normally this would be PENDING_VERIFICATION, simplifying for now
+                status: UserStatus.PENDING_VERIFICATION,
             },
+        });
+    }
+
+    async createVerification(userId: string, otpHash: string): Promise<any> {
+        return prisma.userVerification.create({
+            data: {
+                userId,
+                channel: VerificationChannel.EMAIL_LINK,
+                otpHash,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 mins
+            }
+        });
+    }
+
+    async findVerificationOrReject(userId: string): Promise<any> {
+        return prisma.userVerification.findFirst({
+            where: {
+                userId,
+                isUsed: false,
+                expiresAt: { gt: new Date() }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    async markVerificationUsedAndActivateUser(verificationId: string, userId: string): Promise<User> {
+        return prisma.$transaction(async (tx) => {
+            await tx.userVerification.update({
+                where: { id: verificationId },
+                data: { isUsed: true }
+            });
+            return tx.user.update({
+                where: { id: userId },
+                data: { status: UserStatus.ACTIVE, isEmailVerified: true }
+            });
         });
     }
 }
