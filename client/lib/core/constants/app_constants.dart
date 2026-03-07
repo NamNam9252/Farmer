@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String baseUrl = 'http://172.16.65.10:3000/api/v1';
+  static const String baseUrl = 'http://172.16.65.35:3000/api/v1';
   static const String diseaseEndpoint = '/disease';
   static const String analyzeEndpoint = '/disease/analyze';
   static const String reportsEndpoint = '/disease/reports';
