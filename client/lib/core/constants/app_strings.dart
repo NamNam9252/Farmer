@@ -138,4 +138,16 @@ class AppStrings {
   static const String yesHindi = 'हाँ';
   static const String no = 'No';
   static const String noHindi = 'नहीं';
+
+  // Weather Forecast
+  static const String weatherForecast = '5-Day Forecast';
+  static const String weatherForecastHindi = '5-दिन का पूर्वानुमान';
+  static const String max = 'Max';
+  static const String maxHindi = 'अधिकतम';
+  static const String min = 'Min';
+  static const String minHindi = 'न्यूनतम';
+  static const String rainChance = 'Rain Chance';
+  static const String rainChanceHindi = 'बारिश की संभावना';
+  static const String humidityLabel = 'Humidity';
+  static const String humidityLabelHindi = 'नमी';
 }

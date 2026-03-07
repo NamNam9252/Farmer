@@ -264,7 +264,51 @@ class MarketBookScreen extends ConsumerWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      price.market,
+                      style: AppTextStyles.headline3.copyWith(fontSize: 14),
+                    ),
+                    Text(
+                      price.date,
+                      style: AppTextStyles.caption.copyWith(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Text(
+                  price.commodity,
+                  style: AppTextStyles.label.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
           _buildPriceRow(isHindi ? AppStrings.averagePriceHindi : AppStrings.averagePrice, price.averagePrice, AppColors.primary, isHindi),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
