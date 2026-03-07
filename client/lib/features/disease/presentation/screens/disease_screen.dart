@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/language_provider.dart';
 import '../providers/disease_provider.dart';
 import '../widgets/crop_selector_sheet.dart';
 import '../widgets/disease_result_card.dart';

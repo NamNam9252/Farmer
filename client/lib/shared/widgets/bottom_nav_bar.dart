@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/language_provider.dart';
 
-class AppBottomNavBar extends StatelessWidget {
+class AppBottomNavBar extends ConsumerWidget {
   const AppBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -17,8 +19,8 @@ class AppBottomNavBar extends StatelessWidget {
       String path,
       IconData icon,
       IconData activeIcon,
-      String label,
-      String labelHindi,
+      String labelEn,
+      String labelHi,
     })
   >
   _tabs = [
@@ -26,34 +28,37 @@ class AppBottomNavBar extends StatelessWidget {
       path: '/',
       icon: Icons.home_outlined,
       activeIcon: Icons.home_rounded,
-      label: 'Home',
-      labelHindi: 'होम',
+      labelEn: 'HOME',
+      labelHi: 'होम',
     ),
     (
       path: '/disease',
-      icon: Icons.biotech_outlined,
-      activeIcon: Icons.biotech_rounded,
-      label: 'Disease',
-      labelHindi: 'रोग',
+      icon: Icons.eco_outlined,
+      activeIcon: Icons.eco_rounded,
+      labelEn: 'DISEASE',
+      labelHi: 'रोग',
     ),
     (
       path: '/market',
       icon: Icons.storefront_outlined,
       activeIcon: Icons.storefront_rounded,
-      label: 'Market',
-      labelHindi: 'बाज़ार',
+      labelEn: 'MARKET',
+      labelHi: 'बाज़ार',
     ),
     (
-      path: '/help',
-      icon: Icons.support_agent_outlined,
-      activeIcon: Icons.support_agent_rounded,
-      label: 'Help',
-      labelHindi: 'मदद',
+      path: '/profile',
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+      labelEn: 'PROFILE',
+      labelHi: 'प्रोफ़ाइल',
     ),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider);
+    final isHindi = lang == 'hi';
+
     return Scaffold(
       body: child,
       bottomNavigationBar: Container(
@@ -77,13 +82,14 @@ class AppBottomNavBar extends StatelessWidget {
                     final idx = entry.key;
                     final tab = entry.value;
                     final isSelected = idx == currentIndex;
+                    final label = isHindi ? tab.labelHi : tab.labelEn;
 
                     return GestureDetector(
                       onTap: () => context.go(tab.path),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
+                          horizontal: 16,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
@@ -106,9 +112,9 @@ class AppBottomNavBar extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              tab.labelHindi,
+                              label,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight:
                                     isSelected
                                         ? FontWeight.w700
@@ -117,6 +123,7 @@ class AppBottomNavBar extends StatelessWidget {
                                     isSelected
                                         ? AppColors.primary
                                         : AppColors.textHint,
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],

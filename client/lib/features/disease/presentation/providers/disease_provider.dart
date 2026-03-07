@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/language_provider.dart';
 import '../../domain/entities/disease_report.dart';
 import '../../domain/usecases/analyze_disease_usecase.dart';
 import '../../domain/disease_repository_contract.dart';
@@ -117,6 +118,3 @@ final pastReportsProvider = FutureProvider<List<DiseaseReport>>((ref) async {
   final repo = ref.watch(diseaseRepositoryProvider);
   return repo.getLocalReports();
 });
-
-// Language provider
-final languageProvider = StateProvider<String>((ref) => 'hi');

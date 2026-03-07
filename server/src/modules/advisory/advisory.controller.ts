@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AdvisoryService } from './advisory.service.js';
-import { WeatherService } from './weather.service.js';
+import { WeatherService } from '../weather/weather.service.js';
 import { advisorySchema, ResolvedAdvisoryInput } from '../../schema/advisory.schema.js';
 
 let advisoryService: AdvisoryService | null = null;
@@ -23,6 +23,7 @@ export const getRecommendation = async (
 ): Promise<void> => {
   try {
     const parsed = advisorySchema.safeParse(req.body);
+    console.log(parsed);
     if (!parsed.success) {
       res.status(400).json({
         success: false,
