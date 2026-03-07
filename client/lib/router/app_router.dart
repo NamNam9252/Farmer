@@ -14,6 +14,9 @@ import '../features/auth/presentation/providers/auth_provider.dart';
 import '../features/auth/presentation/state/auth_state.dart';
 import '../shared/widgets/bottom_nav_bar.dart';
 import '../core/theme/app_theme.dart';
+import '../features/home/presentation/screens/home_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/advisory/presentation/screens/advisory_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -35,28 +38,30 @@ GoRouter appRouter(Ref ref) {
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
       final isAuth = authState is Authenticated;
-      final isPendingVerification = authState is AuthPendingVerification;
       final isLoading = authState is AuthLoading || authState is AuthInitial;
 
       final isGoingToSplash = state.uri.path == RouteNames.splash;
       final isGoingToLogin = state.uri.path == RouteNames.login;
       final isGoingToSignup = state.uri.path == RouteNames.signup;
       final isGoingToOnboarding = state.uri.path == RouteNames.onboarding;
-      
-      print('Router: path=${state.uri.path}, isAuth=$isAuth, isLoading=$isLoading');
 
       if (isLoading) {
         return isGoingToSplash ? null : RouteNames.splash;
       }
-      
-      if (!isAuth && !isGoingToLogin && !isGoingToSignup && !isGoingToOnboarding) {
-        print('Router: Not auth, redirecting to login/onboarding');
+
+      if (!isAuth &&
+          !isGoingToLogin &&
+          !isGoingToSignup &&
+          !isGoingToOnboarding) {
         return hasSeenOnboarding ? RouteNames.login : RouteNames.onboarding;
       }
-      
-      if (isAuth && (isGoingToSplash || isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
-        print('Router: Authenticated, redirecting to disease');
-        return RouteNames.disease;
+
+      if (isAuth &&
+          (isGoingToSplash ||
+              isGoingToLogin ||
+              isGoingToSignup ||
+              isGoingToOnboarding)) {
+        return RouteNames.home;
       }
 
       return null;
@@ -64,13 +69,12 @@ GoRouter appRouter(Ref ref) {
     routes: [
       GoRoute(
         path: RouteNames.splash,
-        builder:
-            (context, state) => const Scaffold(
-              backgroundColor: AppColors.primary,
-              body: Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              ),
-            ),
+        builder: (context, state) => const Scaffold(
+          backgroundColor: AppColors.primary,
+          body: Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+        ),
       ),
       GoRoute(
         path: RouteNames.onboarding,
@@ -105,19 +109,14 @@ GoRouter appRouter(Ref ref) {
           int currentIndex = 0;
           if (location.startsWith(RouteNames.disease)) currentIndex = 1;
           if (location.startsWith(RouteNames.market)) currentIndex = 2;
-          if (location.startsWith(RouteNames.help)) currentIndex = 3;
+          if (location.startsWith(RouteNames.profile)) currentIndex = 3;
 
           return AppBottomNavBar(currentIndex: currentIndex, child: child);
         },
         routes: [
           GoRoute(
             path: RouteNames.home,
-            builder:
-                (context, state) => const _PlaceholderScreen(
-                  title: 'होम',
-                  subtitle: 'Home - Coming Soon',
-                  icon: Icons.home_rounded,
-                ),
+            builder: (context, state) => const HomeScreen(),
           ),
           GoRoute(
             path: RouteNames.disease,
@@ -128,13 +127,20 @@ GoRouter appRouter(Ref ref) {
             builder: (context, state) => const MarketBookScreen(),
           ),
           GoRoute(
+            path: RouteNames.profile,
+            builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
             path: RouteNames.help,
-            builder:
-                (context, state) => const _PlaceholderScreen(
-                  title: 'मदद',
-                  subtitle: 'Help & Support - Coming Soon',
-                  icon: Icons.support_agent_rounded,
-                ),
+            builder: (context, state) => const _PlaceholderScreen(
+              title: 'मदद',
+              subtitle: 'Help & Support - Coming Soon',
+              icon: Icons.support_agent_rounded,
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.advisory,
+            builder: (context, state) => const AdvisoryScreen(),
           ),
         ],
       ),
@@ -142,7 +148,7 @@ GoRouter appRouter(Ref ref) {
   );
 }
 
-// Temporary placeholder screen
+// Temporary placeholder screen for coming-soon features
 class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen({
     required this.title,

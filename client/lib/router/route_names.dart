@@ -10,4 +10,6 @@ class RouteNames {
   static const String disease = '/disease';
   static const String market = '/market';
   static const String help = '/help';
+  static const String profile = '/profile';
+  static const String advisory = '/advisory';
 }

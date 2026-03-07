@@ -1,12 +1,14 @@
 class AppConstants {
   AppConstants._();
 
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  static const String baseUrl = 'http://172.16.65.10:3000/api/v1';
   static const String diseaseEndpoint = '/disease';
   static const String analyzeEndpoint = '/disease/analyze';
   static const String reportsEndpoint = '/disease/reports';
   static const String marketEndpoint = '/market';
   static const String marketPricesEndpoint = '/market/prices';
+  static const String advisoryEndpoint = '/advisory/recommendation';
+  static const String weatherEndpoint = '/weather';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 60);

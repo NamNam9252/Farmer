@@ -4,6 +4,7 @@ import diseaseRoutes from './modules/disease/disease.routes.js';
 import marketRoutes from './modules/market/market.routes.js';
 import usersRoutes from './modules/users/users.routes.js';
 import advisoryRoutes from './modules/advisory/advisory.routes.js'; // ADD THIS
+import weatherRoutes from './modules/weather/weather.routes.js';
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.use('/users', usersRoutes);
 router.use('/disease', diseaseRoutes);
 router.use('/market', marketRoutes);
 router.use('/advisory', advisoryRoutes); // ADD THIS
+router.use('/weather', weatherRoutes);
 
 export default router;

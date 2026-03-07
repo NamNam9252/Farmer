@@ -102,4 +102,40 @@ class AppStrings {
   static const String selectMarketHindi = 'मंडी चुनें';
   static const String noMarketData = 'No market prices found for your selection.';
   static const String noMarketDataHindi = 'आपकी पसंद के लिए कोई मंडी भाव नहीं मिले।';
+
+  // Advisory Screen
+  static const String advisoryTitle = 'Crop Advisory';
+  static const String advisoryTitleHindi = 'फसल सलाह';
+  static const String advisorySubtitle = 'Get expert advice for your crop';
+  static const String advisorySubtitleHindi = 'अपनी फसल के लिए विशेषज्ञ सलाह पाएं';
+  static const String selectCrop = 'Select Crop';
+  static const String selectCropHindi = 'फसल चुनें';
+  static const String daysSinceSowing = 'Days Since Sowing';
+  static const String daysSinceSowingHindi = 'बुवाई के बाद दिन';
+  static const String soilNitrogen = 'Nitrogen (N)';
+  static const String soilNitrogenHindi = 'नाइट्रोजन (N)';
+  static const String soilPhosphorus = 'Phosphorus (P)';
+  static const String soilPhosphorusHindi = 'फॉस्फोरस (P)';
+  static const String soilPotassium = 'Potassium (K)';
+  static const String soilPotassiumHindi = 'पोटैशियम (K)';
+  static const String soilMoisture = 'Soil Moisture';
+  static const String soilMoistureHindi = 'मिट्टी की नमी';
+  static const String pestReported = 'Pest Reported?';
+  static const String pestReportedHindi = 'कीट की शिकायत?';
+  static const String getAdvisory = 'Get Advisory';
+  static const String getAdvisoryHindi = 'सलाह लें';
+  static const String advisoryResults = 'Recommendations';
+  static const String advisoryResultsHindi = 'सिफारिशें';
+  static const String riskHigh = 'HIGH RISK';
+  static const String riskHighHindi = 'उच्च जोखिम';
+  static const String riskMedium = 'MEDIUM';
+  static const String riskMediumHindi = 'मध्यम';
+  static const String riskLow = 'LOW';
+  static const String riskLowHindi = 'कम';
+  static const String noAdvisory = 'Fill the form and tap "Get Advisory"';
+  static const String noAdvisoryHindi = 'फ़ॉर्म भरें और "सलाह लें" दबाएं';
+  static const String yes = 'Yes';
+  static const String yesHindi = 'हाँ';
+  static const String no = 'No';
+  static const String noHindi = 'नहीं';
 }
