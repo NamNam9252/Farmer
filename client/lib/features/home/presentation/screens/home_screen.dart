@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../weather/presentation/providers/weather_provider.dart';
+import '../../../weather/data/models/weather_model.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -45,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
           children: [
             _buildHeader(context, ref, userName, lang, isHindi, locationText),
             const SizedBox(height: 16),
-            _buildWeatherCard(isHindi, weatherState),
+            _buildWeatherCard(context, isHindi, weatherState),
             const SizedBox(height: 24),
             _buildServicesSection(context, isHindi),
             const SizedBox(height: 24),
@@ -158,7 +161,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeatherCard(bool isHindi, WeatherState weatherState) {
+  Widget _buildWeatherCard(
+    BuildContext context,
+    bool isHindi,
+    WeatherState weatherState,
+  ) {
     final w = weatherState.weather;
     final tempText = w != null ? '${w.temperature.round()}°C' : '--°C';
     final rainProb = w?.rainProbability ?? 0;
@@ -199,69 +206,291 @@ class HomeScreen extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFDFF0FA),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isHindi ? 'मौसम अपडेट' : 'WEATHER UPDATE',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1565C0),
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    tempText,
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1565C0),
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1565C0),
-                    ),
-                  ),
-                  if (w != null) ...[
-                    const SizedBox(height: 6),
+      child: GestureDetector(
+        onTap: () {
+          if (w != null) {
+            _showWeatherForecast(context, isHindi, weatherState);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFDFF0FA),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      isHindi
-                          ? 'नमी: ${humidityVal.round()}%'
-                          : 'Humidity: ${humidityVal.round()}%',
+                      isHindi ? 'मौसम अपडेट' : 'WEATHER UPDATE',
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF1976D2),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1565C0),
+                        letterSpacing: 0.8,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      tempText,
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1565C0),
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                    if (w != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        isHindi
+                            ? 'नमी: ${humidityVal.round()}%'
+                            : 'Humidity: ${humidityVal.round()}%',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF1976D2),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            Icon(
-              weatherIcon,
-              size: 72,
-              color: iconColor,
-            ),
-          ],
+              Icon(
+                weatherIcon,
+                size: 72,
+                color: iconColor,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _showWeatherForecast(
+    BuildContext context,
+    bool isHindi,
+    WeatherState weatherState,
+  ) {
+    if (weatherState.weather == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isHindi
+                          ? AppStrings.weatherForecastHindi
+                          : AppStrings.weatherForecast,
+                      style: AppTextStyles.headline1,
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  itemCount: weatherState.weather!.forecast.length,
+                  itemBuilder: (context, index) {
+                    final forecast = weatherState.weather!.forecast[index];
+                    final date = DateTime.parse(forecast.date);
+                    final isToday = index == 0;
+
+                    // Date Formatting
+                    String dateStr;
+                    if (isToday) {
+                      dateStr = isHindi ? 'आज' : 'Today';
+                    } else {
+                      dateStr = isHindi
+                          ? DateFormat('EEEE', 'hi').format(date)
+                          : DateFormat('EEEE').format(date);
+                    }
+
+                    final fullDateStr = isHindi
+                        ? DateFormat('d MMMM', 'hi').format(date)
+                        : DateFormat('d MMMM').format(date);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isToday
+                            ? AppColors.primary.withValues(alpha: 0.05)
+                            : Colors.grey[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isToday
+                              ? AppColors.primary.withValues(alpha: 0.2)
+                              : Colors.grey[200]!,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  dateStr,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: isToday
+                                        ? AppColors.primary
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  fullDateStr,
+                                  style: AppTextStyles.body2,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.water_drop_rounded,
+                                      size: 14,
+                                      color: Colors.blue,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${forecast.rainProbability}%',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.opacity_rounded,
+                                      size: 14,
+                                      color: Colors.teal,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${forecast.humidity}%',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    const Icon(Icons.arrow_upward_rounded,
+                                        size: 12, color: Colors.red),
+                                    const SizedBox(width: 1),
+                                    Text(
+                                      '${forecast.maxTemp}°',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.arrow_downward_rounded,
+                                        size: 12, color: Colors.blue),
+                                    const SizedBox(width: 1),
+                                    Text(
+                                      '${forecast.minTemp}°',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  isHindi
+                                      ? '${forecast.rainSum} mm ${AppStrings.rainChanceHindi}'
+                                      : '${forecast.rainSum} mm rain',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

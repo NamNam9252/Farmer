@@ -3,7 +3,7 @@ import '../../data/api/weather_api.dart';
 import '../../data/models/weather_model.dart';
 import '../../../../core/services/location_service.dart';
 
-/// State for weather data — holds weather + location info.
+/// State for weather data — holds current weather + forecast + location info.
 class WeatherState {
   final WeatherModel? weather;
   final String district;
@@ -50,12 +50,12 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
   final WeatherApi _api = WeatherApi();
 
-  /// Fetch location + weather in one step.
+  /// Fetches GPS location then fetches current weather + 5-day forecast.
   Future<void> fetchWeather() async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // 1. Get GPS location
+      // 1. Get GPS location permission + coordinates
       final location = await LocationService.getCurrentLocation();
 
       state = state.copyWith(
@@ -65,7 +65,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         longitude: location.longitude,
       );
 
-      // 2. Fetch weather from backend
+      // 2. Fetch current conditions + 5-day forecast from backend
       final weather = await _api.getWeather(
         latitude: location.latitude,
         longitude: location.longitude,
