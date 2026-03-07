@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'route_names.dart';
 import '../features/disease/presentation/screens/disease_screen.dart';
+import '../features/market/presentation/screens/market_book_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/otp_verification_screen.dart';
@@ -41,35 +42,21 @@ GoRouter appRouter(Ref ref) {
       final isGoingToLogin = state.uri.path == RouteNames.login;
       final isGoingToSignup = state.uri.path == RouteNames.signup;
       final isGoingToOnboarding = state.uri.path == RouteNames.onboarding;
-      final isGoingToOtp = state.uri.path == RouteNames.otpVerification;
+      
+      print('Router: path=${state.uri.path}, isAuth=$isAuth, isLoading=$isLoading');
 
       if (isLoading) {
         return isGoingToSplash ? null : RouteNames.splash;
       }
-
-      if (isPendingVerification) {
-        if (!isGoingToOtp) {
-          return RouteNames.otpVerification;
-        }
-        return null;
-      }
-
-      if (!isAuth &&
-          !isGoingToLogin &&
-          !isGoingToSignup &&
-          !isGoingToOnboarding &&
-          !isGoingToOtp) {
+      
+      if (!isAuth && !isGoingToLogin && !isGoingToSignup && !isGoingToOnboarding) {
+        print('Router: Not auth, redirecting to login/onboarding');
         return hasSeenOnboarding ? RouteNames.login : RouteNames.onboarding;
       }
-
-      if (authState is Authenticated) {
-        if (isGoingToSplash ||
-            isGoingToLogin ||
-            isGoingToSignup ||
-            isGoingToOnboarding ||
-            isGoingToOtp) {
-          return RouteNames.disease;
-        }
+      
+      if (isAuth && (isGoingToSplash || isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
+        print('Router: Authenticated, redirecting to disease');
+        return RouteNames.disease;
       }
 
       return null;
@@ -138,12 +125,7 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: RouteNames.market,
-            builder:
-                (context, state) => const _PlaceholderScreen(
-                  title: 'बाज़ार',
-                  subtitle: 'Marketplace - Coming Soon',
-                  icon: Icons.storefront_rounded,
-                ),
+            builder: (context, state) => const MarketBookScreen(),
           ),
           GoRoute(
             path: RouteNames.help,

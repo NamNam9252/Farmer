@@ -23,13 +23,14 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> _init() async {
+    print('AuthControler: _init starting');
     state = const AuthLoading();
     try {
       final repository = ref.read(authRepositoryProvider);
       final checkAuth = CheckAuthUseCase(repository);
       final isAuth = await checkAuth.execute();
+      print('AuthControler: isAuth = $isAuth');
       if (isAuth) {
-        // Without a /me endpoint, restoring user from partial data
         state = const Authenticated(
           User(
             id: '',
@@ -43,19 +44,23 @@ class AuthController extends _$AuthController {
       } else {
         state = const Unauthenticated();
       }
-    } catch (_) {
+    } catch (e) {
+      print('AuthControler: _init error = $e');
       state = const Unauthenticated();
     }
   }
 
   Future<void> login(String phone, String password) async {
+    print('AuthControler: login starting for $phone');
     state = const AuthLoading();
     try {
       final repository = ref.read(authRepositoryProvider);
       final loginUseCase = LoginUseCase(repository);
       final user = await loginUseCase.execute(phone: phone, password: password);
+      print('AuthControler: login success for ${user.name}');
       state = Authenticated(user);
     } catch (e) {
+      print('AuthControler: login failed = $e');
       state = AuthError(e.toString());
     }
   }

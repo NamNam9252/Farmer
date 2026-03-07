@@ -14,7 +14,6 @@ class MarketPrice {
     required this.averagePrice,
     required this.lowestPrice,
     required this.highestPrice,
-    required this.unit,
+    this.unit = 'quintal',
   });
 }
-
