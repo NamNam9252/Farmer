@@ -38,7 +38,7 @@ class CustomAuthField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            color: AppColors.authIconColor.withOpacity(0.7),
+            color: AppColors.authIconColor.withValues(alpha: 0.7),
             fontSize: 14,
           ),
           prefixIcon: Icon(

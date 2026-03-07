@@ -38,12 +38,12 @@ class DiseaseResultCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: _severityColor.withOpacity(0.3),
+          color: _severityColor.withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: _severityColor.withOpacity(0.12),
+            color: _severityColor.withValues(alpha: 0.12),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -77,7 +77,7 @@ class DiseaseResultCard extends StatelessWidget {
             child: Icon(
               Icons.eco_rounded,
               size: 100,
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
             ),
           ),
           Row(
@@ -86,7 +86,7 @@ class DiseaseResultCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Center(

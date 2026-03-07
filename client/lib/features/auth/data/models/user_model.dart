@@ -7,6 +7,8 @@ class UserModel extends User {
     required super.phone,
     super.email,
     required super.role,
+    required super.status,
+    required super.isEmailVerified,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -16,6 +18,8 @@ class UserModel extends User {
       phone: json['phone'] ?? '',
       email: json['email'],
       role: _parseRole(json['role'] ?? ''),
+      status: json['status'] ?? 'ACTIVE',
+      isEmailVerified: json['isEmailVerified'] ?? true,
     );
   }
 

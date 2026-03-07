@@ -418,5 +418,15 @@ Frontend must be:
 
 ---
 
+# 2️⃣1️⃣ DEPRECATION & ASSET RULES
+
+- **NEVER** use deprecated Flutter or Dart functions, methods, or classes.
+  - Example: Use `.withValues(alpha: ...)` instead of `.withOpacity(...)`.
+  - Example: Use `Ref` instead of deprecated Riverpod `TypeRef` (e.g., avoid `AuthRepositoryRef`).
+- **NEVER** use deprecated assets. 
+- All code must pass `flutter analyze` with 0 issues before being merged.
+
+---
+
 **This rulebook is mandatory for all contributors.**
 

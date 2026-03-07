@@ -6,6 +6,8 @@ class User {
   final String phone;
   final String? email;
   final UserRole role;
+  final String status;
+  final bool isEmailVerified;
 
   const User({
     required this.id,
@@ -13,5 +15,7 @@ class User {
     required this.phone,
     this.email,
     required this.role,
+    required this.status,
+    required this.isEmailVerified,
   });
 }

@@ -137,7 +137,9 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
                             ImagePreviewCard(
                               image: state.selectedImage!,
                               onRetake: () {
-                                ref.read(diseaseAnalysisProvider.notifier).clearAll();
+                                ref
+                                    .read(diseaseAnalysisProvider.notifier)
+                                    .clearAll();
                               },
                             ),
                             const SizedBox(height: 12),
@@ -152,7 +154,9 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
                               report: state.result!,
                               isHindi: isHindi,
                               onRetake: () {
-                                ref.read(diseaseAnalysisProvider.notifier).clearAll();
+                                ref
+                                    .read(diseaseAnalysisProvider.notifier)
+                                    .clearAll();
                               },
                             )
                           else ...[
@@ -208,7 +212,7 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white38),
             ),
@@ -233,17 +237,13 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             shape: BoxShape.circle,
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(
-                Icons.eco_rounded,
-                size: 64,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.eco_rounded, size: 64, color: AppColors.primary),
               Positioned(
                 bottom: 16,
                 right: 16,
@@ -267,7 +267,9 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
         ),
         const SizedBox(height: 16),
         Text(
-          isHindi ? AppStrings.diseaseSubtitleHindi : AppStrings.diseaseSubtitle,
+          isHindi
+              ? AppStrings.diseaseSubtitleHindi
+              : AppStrings.diseaseSubtitle,
           style: AppTextStyles.headline2,
           textAlign: TextAlign.center,
         ),
@@ -297,8 +299,14 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
         const SizedBox(height: 12),
         _ActionButton(
           icon: Icons.photo_library_rounded,
-          label: isHindi ? AppStrings.uploadGalleryHindi : AppStrings.uploadGallery,
-          sublabel: isHindi ? AppStrings.uploadGallery : AppStrings.uploadGalleryHindi,
+          label:
+              isHindi
+                  ? AppStrings.uploadGalleryHindi
+                  : AppStrings.uploadGallery,
+          sublabel:
+              isHindi
+                  ? AppStrings.uploadGallery
+                  : AppStrings.uploadGalleryHindi,
           color: AppColors.primaryDark,
           onTap: () => _pickImage(ImageSource.gallery),
         ),
@@ -320,7 +328,7 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.05),
+              color: AppColors.primary.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -330,7 +338,8 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
           children: [
             Icon(
               Icons.grass_rounded,
-              color: selectedCrop.isEmpty ? AppColors.textHint : AppColors.primary,
+              color:
+                  selectedCrop.isEmpty ? AppColors.textHint : AppColors.primary,
               size: 22,
             ),
             const SizedBox(width: 12),
@@ -347,18 +356,16 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
                         ? (isHindi ? 'फसल चुनें' : 'Select Crop')
                         : selectedCrop,
                     style: AppTextStyles.body1.copyWith(
-                      color: selectedCrop.isEmpty
-                          ? AppColors.textHint
-                          : AppColors.textPrimary,
+                      color:
+                          selectedCrop.isEmpty
+                              ? AppColors.textHint
+                              : AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: AppColors.textHint,
-            ),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textHint),
           ],
         ),
       ),
@@ -408,7 +415,7 @@ class _ActionButton extends StatelessWidget {
       color: color,
       borderRadius: BorderRadius.circular(14),
       elevation: 3,
-      shadowColor: color.withOpacity(0.3),
+      shadowColor: color.withValues(alpha: 0.3),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
@@ -420,7 +427,7 @@ class _ActionButton extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 26),
@@ -440,14 +447,18 @@ class _ActionButton extends StatelessWidget {
                   Text(
                     sublabel,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
+                      color: Colors.white.withValues(alpha: 0.75),
                       fontSize: 13,
                     ),
                   ),
                 ],
               ),
               const Spacer(),
-              Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 16),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white70,
+                size: 16,
+              ),
             ],
           ),
         ),
