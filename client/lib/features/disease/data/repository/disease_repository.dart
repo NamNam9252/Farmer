@@ -16,13 +16,15 @@ class DiseaseRepository implements IDiseaseRepository {
     required String cropType,
     String language = 'hi',
   }) async {
-    final report = await _api.analyzeImage(
+    final reportFromServer = await _api.analyzeImage(
       imageFile: imageFile,
       cropType: cropType,
       language: language,
     );
-    await _saveReportLocally(report);
-    return report;
+    // Use local path for the report so it's viewable on the device
+    final report = reportFromServer.copyWith(imagePath: imageFile.path);
+    await _saveReportLocally(report as DiseaseReportModel);
+    return report as DiseaseReportModel;
   }
 
   @override

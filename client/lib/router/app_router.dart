@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'route_names.dart';
 import '../features/disease/presentation/screens/disease_screen.dart';
+import '../features/market/presentation/screens/market_book_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
@@ -35,15 +36,19 @@ GoRouter appRouter(AppRouterRef ref) {
       final isGoingToSignup = state.uri.path == RouteNames.signup;
       final isGoingToOnboarding = state.uri.path == RouteNames.onboarding;
       
+      print('Router: path=${state.uri.path}, isAuth=$isAuth, isLoading=$isLoading');
+
       if (isLoading) {
         return isGoingToSplash ? null : RouteNames.splash;
       }
       
       if (!isAuth && !isGoingToLogin && !isGoingToSignup && !isGoingToOnboarding) {
+        print('Router: Not auth, redirecting to login/onboarding');
         return hasSeenOnboarding ? RouteNames.login : RouteNames.onboarding;
       }
       
       if (isAuth && (isGoingToSplash || isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
+        print('Router: Authenticated, redirecting to disease');
         return RouteNames.disease;
       }
       
@@ -94,11 +99,7 @@ GoRouter appRouter(AppRouterRef ref) {
           ),
           GoRoute(
             path: RouteNames.market,
-            builder: (context, state) => const _PlaceholderScreen(
-              title: 'बाज़ार',
-              subtitle: 'Marketplace - Coming Soon',
-              icon: Icons.storefront_rounded,
-            ),
+            builder: (context, state) => const MarketBookScreen(),
           ),
           GoRoute(
             path: RouteNames.help,
