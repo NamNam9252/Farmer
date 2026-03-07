@@ -78,4 +78,28 @@ class AppStrings {
   static const String todayHindi = 'आज';
   static const String yesterday = 'Yesterday';
   static const String yesterdayHindi = 'कल';
+  
+  // Market Book
+  static const String marketTitle = 'Market Book';
+  static const String marketTitleHindi = 'मंडी भाव';
+  static const String commodity = 'Commodity';
+  static const String commodityHindi = 'फसल';
+  static const String market = 'Market';
+  static const String marketHindi = 'मंडी';
+  static const String date = 'Date';
+  static const String dateHindi = 'तारीख';
+  static const String averagePrice = 'Average Price';
+  static const String averagePriceHindi = 'औसत भाव';
+  static const String minPrice = 'Min';
+  static const String minPriceHindi = 'न्यूनतम';
+  static const String maxPrice = 'Max';
+  static const String maxPriceHindi = 'अधिकतम';
+  static const String perQuintal = 'per quintal';
+  static const String perQuintalHindi = 'प्रति क्विंटल';
+  static const String selectCommodity = 'Select Commodity';
+  static const String selectCommodityHindi = 'फसल चुनें';
+  static const String selectMarket = 'Select Market';
+  static const String selectMarketHindi = 'मंडी चुनें';
+  static const String noMarketData = 'No market prices found for your selection.';
+  static const String noMarketDataHindi = 'आपकी पसंद के लिए कोई मंडी भाव नहीं मिले।';
 }
