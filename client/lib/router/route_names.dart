@@ -12,4 +12,5 @@ class RouteNames {
   static const String help = '/help';
   static const String profile = '/profile';
   static const String advisory = '/advisory';
+  static const String cropRecommendation = '/crop-recommendation';
 }

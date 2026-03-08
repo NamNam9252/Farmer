@@ -542,13 +542,13 @@ class HomeScreen extends ConsumerWidget {
         onTap: () => _showComingSoon(context, isHindi),
       ),
       _ServiceItem(
-        labelEn: 'Crop Diary',
-        labelHi: 'फसल डायरी',
-        icon: Icons.menu_book_rounded,
+        labelEn: 'Smart\nFarming',
+        labelHi: 'स्मार्ट\nखेती',
+        icon: Icons.analytics_rounded,
         iconColor: Colors.white,
-        iconBgColor: const Color(0xFF5D4037),
-        cardBgColor: const Color(0xFFEFEBE9),
-        onTap: () => _showComingSoon(context, isHindi),
+        iconBgColor: const Color(0xFF00897B),
+        cardBgColor: const Color(0xFFE0F2F1),
+        onTap: () => context.go(RouteNames.cropRecommendation),
       ),
     ];
 
