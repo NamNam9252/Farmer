@@ -565,13 +565,15 @@ class HomeScreen extends ConsumerWidget {
                 style: AppTextStyles.headline2,
               ),
               GestureDetector(
-                onTap: () => _showComingSoon(context, isHindi),
+                onTap: () => _showAllFeatures(context, isHindi),
                 child: Text(
                   isHindi ? 'सभी देखें' : 'View All',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: AppColors.primary,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.primary,
                   ),
                 ),
               ),
@@ -583,10 +585,10 @@ class HomeScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: services.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
+              crossAxisCount: 3,
+              mainAxisSpacing: 16,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.05,
+              childAspectRatio: 0.78,
             ),
             itemBuilder: (context, index) {
               return _ServiceCard(item: services[index], isHindi: isHindi);
@@ -641,6 +643,222 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  void _showAllFeatures(BuildContext context, bool isHindi) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.88,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (_, scrollController) {
+            final allFeatures = [
+              _ServiceItem(
+                labelEn: 'Market\n(Mandi)',
+                labelHi: 'बाज़ार\n(मंडी)',
+                icon: Icons.storefront_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFFF57C00),
+                cardBgColor: const Color(0xFFFFF3E0),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.go(RouteNames.market);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Crop\nAdvisory',
+                labelHi: 'फसल\nसलाह',
+                icon: Icons.psychology_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF4CAF50),
+                cardBgColor: const Color(0xFFE8F5E9),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.go(RouteNames.advisory);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Disease\nDetection',
+                labelHi: 'रोग\nपहचान',
+                icon: Icons.pest_control_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFFE53935),
+                cardBgColor: const Color(0xFFFFEBEE),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.go(RouteNames.disease);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Crop\nRecommendation',
+                labelHi: 'फसल\nसिफारिश',
+                icon: Icons.agriculture_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF00897B),
+                cardBgColor: const Color(0xFFE0F2F1),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.go(RouteNames.cropRecommendation);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Govt\nSchemes',
+                labelHi: 'सरकारी\nयोजनाएं',
+                icon: Icons.account_balance_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF1E88E5),
+                cardBgColor: const Color(0xFFE3F2FD),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showComingSoon(context, isHindi);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Community\nFund',
+                labelHi: 'सामुदायिक\nनिधि',
+                icon: Icons.groups_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF8E24AA),
+                cardBgColor: const Color(0xFFF3E5F5),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showComingSoon(context, isHindi);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Warehouse\nStorage',
+                labelHi: 'भंडारण\nसेवा',
+                icon: Icons.warehouse_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF6D4C41),
+                cardBgColor: const Color(0xFFEFEBE9),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showComingSoon(context, isHindi);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Weather\nAlerts',
+                labelHi: 'मौसम\nचेतावनी',
+                icon: Icons.thunderstorm_rounded,
+                iconColor: Colors.white,
+                iconBgColor: const Color(0xFF0288D1),
+                cardBgColor: const Color(0xFFE1F5FE),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showComingSoon(context, isHindi);
+                },
+              ),
+            ];
+
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.apps_rounded,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isHindi ? 'सभी सेवाएं' : 'All Services',
+                              style: AppTextStyles.headline2,
+                            ),
+                            Text(
+                              isHindi
+                                  ? 'अपनी ज़रूरत की सेवा चुनें'
+                                  : 'Choose a service you need',
+                              style: AppTextStyles.body2,
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: AppColors.textSecondary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Divider(),
+                  ),
+                  Expanded(
+                    child: GridView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      itemCount: allFeatures.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.78,
+                      ),
+                      itemBuilder: (_, index) {
+                        return _ServiceCard(
+                            item: allFeatures[index], isHindi: isHindi);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showComingSoon(BuildContext context, bool isHindi) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -664,7 +882,7 @@ class _ServiceItem {
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,
-    required this.cardBgColor,
+    this.cardBgColor = Colors.transparent,
     required this.onTap,
   });
 
@@ -687,37 +905,57 @@ class _ServiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: item.onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: item.cardBgColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  blurRadius: 6,
+                  offset: const Offset(-2, -2),
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.divider.withValues(alpha: 0.5),
+                width: 1.2,
+              ),
+            ),
+            child: Container(
+              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: item.iconBgColor,
+                color: item.iconBgColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(item.icon, color: item.iconColor, size: 28),
+              child: Icon(item.icon, color: item.iconBgColor, size: 30),
             ),
-            const SizedBox(height: 10),
-            Text(
-              isHindi ? item.labelHi : item.labelEn,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                height: 1.3,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isHindi
+                ? item.labelHi.replaceAll('\n', ' ')
+                : item.labelEn.replaceAll('\n', ' '),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              height: 1.3,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
