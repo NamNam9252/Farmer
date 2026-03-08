@@ -617,6 +617,7 @@ model User {
   // Relations — authored / performed
   createdCommunities         Community[]                 @relation("CommunityCreatedBy")
   communityMemberships       CommunityMember[]
+  communityJoinRequests      CommunityJoinRequest[]
   communityPosts             CommunityPost[]
   communityPostReactions     CommunityPostReaction[]
   communityComments          CommunityComment[]
@@ -1604,12 +1605,13 @@ model Community {
   updatedAt DateTime @updatedAt
 
   // Relations
-  createdBy    User                @relation("CommunityCreatedBy", fields: [createdById], references: [id])
-  state        State?              @relation("CommunityState", fields: [stateId], references: [id])
-  district     District?           @relation("CommunityDistrict", fields: [districtId], references: [id])
-  location     Location?           @relation("CommunityLocation", fields: [locationId], references: [id])
-  catalog      CropCatalog?        @relation("CommunityCatalog", fields: [catalogId], references: [id])
+  createdBy    User                   @relation("CommunityCreatedBy", fields: [createdById], references: [id])
+  state        State?                 @relation("CommunityState", fields: [stateId], references: [id])
+  district     District?              @relation("CommunityDistrict", fields: [districtId], references: [id])
+  location     Location?              @relation("CommunityLocation", fields: [locationId], references: [id])
+  catalog      CropCatalog?           @relation("CommunityCatalog", fields: [catalogId], references: [id])
   members      CommunityMember[]
+  joinRequests CommunityJoinRequest[]
   posts        CommunityPost[]
   chatRooms    CommunityChatRoom[]
   loanRequests LoanRequest[]
@@ -1624,6 +1626,31 @@ model Community {
   @@index([isActive, type])
   @@index([centerLatitude, centerLongitude]) // 2dsphere
   @@map("communities")
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CommunityJoinRequest {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  communityId String            @db.ObjectId
+  userId      String            @db.ObjectId
+  status      JoinRequestStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  community Community @relation(fields: [communityId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+  @@index([status])
+  @@map("community_join_requests")
 }
 
 model CommunityMember {

@@ -241,3 +241,119 @@ Base Path: `/api/v1/disease`
     "retryAfter": 60
   }
   ```
+
+---
+
+## 4. Community Routes
+Base Path: `/api/v1/community`
+*(All routes require Bearer Token Authentication)*
+
+### A. Create Community
+- **Endpoint:** `POST /api/v1/community`
+- **Description:** Creates a new community.
+- **Request Body (JSON):**
+  ```json
+  {
+    "name": "Community Name",
+    "description": "Optional description",
+    "type": "GENERAL | DISTRICT | CROP_SPECIFIC | STATE_WIDE | RADIUS_BASED",
+    "isPrivate": false,
+    "latitude": 12.345,
+    "longitude": 67.890,
+    "radiusKm": 50
+  }
+  ```
+
+### B. Get Nearby Communities
+- **Endpoint:** `GET /api/v1/community/nearby?lat={lat}&lng={lng}&radius={radius}`
+- **Description:** Returns a list of nearby communities based on the provided coordinates and radius.
+
+### C. Join Community
+- **Endpoint:** `POST /api/v1/community/:id/join`
+- **Description:** Joins a specific community. If it is a private community, it creates a `PENDING` join request instead of an immediate join.
+- **Success Response (Private Community):**
+  ```json
+  {
+    "success": true,
+    "data": { "message": "Join request sent and pending approval", "request": { ... } }
+  }
+  ```
+
+---
+
+## 4.1 Community Admin & Membership
+Base Path: `/api/v1/community`
+*(All routes require Bearer Token Authentication)*
+
+### A. List Members
+- **Endpoint:** `GET /api/v1/community/:id/members`
+- **Description:** Returns the list of members in the community, with Admins appearing first. Each member includes safe user details (`id`, `name`, `profileImageUrl`).
+
+### B. List Pending Join Requests
+- **Endpoint:** `GET /api/v1/community/:id/requests`
+- **Description:** Lists `PENDING` join requests. **Requires `ADMIN` or `MODERATOR` role.**
+
+### C. Approve Join Request
+- **Endpoint:** `POST /api/v1/community/:id/requests/:requestId/approve`
+- **Description:** Approves a pending join request and creates a `CommunityMember` entry. **Requires `ADMIN` or `MODERATOR` role.**
+
+### D. Reject Join Request
+- **Endpoint:** `POST /api/v1/community/:id/requests/:requestId/reject`
+- **Description:** Rejects a pending join request. **Requires `ADMIN` or `MODERATOR` role.**
+
+### E. Update Member Role
+- **Endpoint:** `POST /api/v1/community/:id/members/:memberId/role`
+- **Description:** Modifies a member's role within a community.
+- **Request Body (JSON):**
+  ```json
+  {
+    "role": "ADMIN" | "MODERATOR" | "MEMBER"
+  }
+  ```
+- **Requirements:** **Requires `ADMIN` role.**
+
+---
+
+## 4.2 Loans
+
+### A. Create Loan Request
+- **Endpoint:** `POST /api/v1/community/:id/loan`
+- **Description:** Creates a community loan request (only for registered farmers).
+- **Request Body (JSON):**
+  ```json
+  {
+    "title": "Need funds for seeds",
+    "amount": 5000,
+    "reason": "Buying new high-yield seeds",
+    "description": "I need support to buy seeds for the upcoming season.",
+    "deadline": "2024-12-31"
+  }
+  ```
+
+### E. Vote / Approve Loan
+- **Endpoint:** `POST /api/v1/community/loan/:loanId/vote`
+- **Description:** Upvotes/Approves a loan request in a community.
+
+### F. Fund a Loan (Crowdfunding)
+- **Endpoint:** `POST /api/v1/community/loan/:loanId/fund`
+- **Description:** Pledges funds towards a loan request.
+- **Request Body (JSON):**
+  ```json
+  {
+    "amount": 1000,
+    "message": "Best of luck!",
+    "isAnonymous": false
+  }
+  ```
+
+---
+
+## WebSocket - Realtime Chat
+- **Endpoint/URL:** `ws://localhost:3000` (or `http://localhost:3000` for Socket.IO clients)
+- **Authentication:** Provide the Bearer token in `auth.token` or `headers.authorization` during the socket connection.
+
+### Available Events
+- **`join_room`**: Connects the socket to a room. Payload: `{ roomId: "string", communityId: "string" }`
+- **`leave_room`**: Disconnects from a room. Payload: `{ roomId: "string" }`
+- **`send_message`**: Sends a message to the room. Payload: `{ roomId, communityId, content, images, replyToId }`
+- **`new_message`**: Received from server when a new message is broadcasted to the room.
