@@ -12,6 +12,7 @@ router.get('/nearby', CommunityController.getNearbyCommunities);
 router.get('/:id', CommunityController.getCommunityDetails);
 router.post('/:id/join', CommunityController.joinCommunity); // Handles both direct join and request
 router.post('/:id/leave', CommunityController.leaveCommunity);
+router.delete('/:id', CommunityController.deleteCommunity);
 
 // Admin & Membership
 router.get('/:id/members', CommunityController.listMembers);

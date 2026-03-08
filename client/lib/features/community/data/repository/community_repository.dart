@@ -68,4 +68,8 @@ class CommunityRepository {
   Future<void> rejectJoinRequest(String communityId, String requestId) async {
     return _api.rejectJoinRequest(communityId, requestId);
   }
+
+  Future<void> deleteCommunity(String id) async {
+    return _api.deleteCommunity(id);
+  }
 }

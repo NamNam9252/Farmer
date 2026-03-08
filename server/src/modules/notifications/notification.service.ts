@@ -39,3 +39,23 @@ export const markAsRead = async (notificationId: string) => {
         }
     });
 };
+
+export const createBulkNotifications = async (data: {
+    userIds: string[];
+    title: string;
+    body: string;
+    actionType?: string;
+    actionId?: string;
+}) => {
+    return prisma.notification.createMany({
+        data: data.userIds.map(id => ({
+            userId: id,
+            title: data.title,
+            body: data.body,
+            channel: NotificationChannel.IN_APP,
+            status: NotificationStatus.QUEUED,
+            actionType: data.actionType,
+            actionId: data.actionId,
+        }))
+    });
+};

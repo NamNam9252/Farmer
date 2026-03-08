@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/services/location_provider.dart';
+import '../../../community/presentation/providers/community_provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
@@ -24,12 +26,6 @@ class HomeScreen extends ConsumerWidget {
     final isHindi = lang == 'hi';
     final weatherState = ref.watch(weatherProvider);
 
-    // Trigger weather fetch on first load
-    if (weatherState.weather == null &&
-        !weatherState.isLoading &&
-        weatherState.error == null) {
-      Future.microtask(() => ref.read(weatherProvider.notifier).fetchWeather());
-    }
 
     // Trigger notification fetch on first load
     final notificationState = ref.watch(notificationProvider);
@@ -39,31 +35,99 @@ class HomeScreen extends ConsumerWidget {
       Future.microtask(() => ref.read(notificationProvider.notifier).loadNotifications());
     }
 
+    // Trigger eager location and community fetch
+    final locState = ref.watch(locationProvider);
+    final communityState = ref.watch(communityListProvider);
+
+    if (locState.position == null && !locState.isLoading && locState.error == null) {
+      Future.microtask(() async {
+        await ref.read(locationProvider.notifier).refreshLocation();
+        final updatedLoc = ref.read(locationProvider).position;
+        if (updatedLoc != null) {
+          // 1. Fetch communities
+          if (communityState.communities.isEmpty && !communityState.isLoading) {
+            ref.read(communityListProvider.notifier).loadNearby(
+              updatedLoc.latitude, 
+              updatedLoc.longitude,
+            );
+          }
+          // 2. Fetch weather
+          if (weatherState.weather == null && !weatherState.isLoading) {
+            ref.read(weatherProvider.notifier).fetchWeather(
+              latitude: updatedLoc.latitude,
+              longitude: updatedLoc.longitude,
+              district: updatedLoc.district,
+              stateName: updatedLoc.state,
+            );
+          }
+        }
+      });
+    } else if (locState.position != null &&
+        weatherState.weather == null &&
+        !weatherState.isLoading &&
+        weatherState.error == null) {
+      // If location is already available but weather isn't, trigger weather
+      Future.microtask(() => ref.read(weatherProvider.notifier).fetchWeather(
+            latitude: locState.position!.latitude,
+            longitude: locState.position!.longitude,
+            district: locState.position!.district,
+            stateName: locState.position!.state,
+          ));
+    }
+
     String userName = isHindi ? 'किसान' : 'Farmer';
     if (authState is Authenticated) {
       userName = authState.user.name;
     }
 
-    // Location from weather provider or fallback
+    // Location from location provider or weather provider or fallback
     String locationText = isHindi ? 'हापुड़, उत्तर प्रदेश' : 'Hapur, Uttar Pradesh';
-    if (weatherState.district.isNotEmpty) {
+    if (locState.position != null) {
+      locationText = '${locState.position!.district}, ${locState.position!.state}';
+    } else if (weatherState.district.isNotEmpty) {
       locationText = '${weatherState.district}, ${weatherState.state}';
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
-          children: [
-            _buildHeader(context, ref, userName, lang, isHindi, locationText),
-            const SizedBox(height: 16),
-            _buildWeatherCard(context, isHindi, weatherState),
-            const SizedBox(height: 24),
-            _buildServicesSection(context, isHindi),
-            const SizedBox(height: 24),
-            _buildMandiPricesSection(isHindi),
-          ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // 1. Force refresh location
+          await ref.read(locationProvider.notifier).refreshLocation(force: true);
+          final updatedLoc = ref.read(locationProvider).position;
+          
+          if (updatedLoc != null) {
+            // 2. Refresh communities
+            await ref.read(communityListProvider.notifier).loadNearby(
+              updatedLoc.latitude,
+              updatedLoc.longitude,
+            );
+            
+            // 3. Refresh weather
+            await ref.read(weatherProvider.notifier).fetchWeather(
+              latitude: updatedLoc.latitude,
+              longitude: updatedLoc.longitude,
+              district: updatedLoc.district,
+              stateName: updatedLoc.state,
+            );
+          }
+          
+          // 4. Refresh notifications
+          await ref.read(notificationProvider.notifier).loadNotifications();
+        },
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              _buildHeader(context, ref, userName, lang, isHindi, locationText),
+              const SizedBox(height: 16),
+              _buildWeatherCard(context, isHindi, weatherState),
+              const SizedBox(height: 24),
+              _buildServicesSection(context, isHindi),
+              const SizedBox(height: 24),
+              _buildMandiPricesSection(isHindi),
+            ],
+          ),
         ),
       ),
     );

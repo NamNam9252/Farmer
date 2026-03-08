@@ -405,3 +405,43 @@ export const getChatroomMessages = async (roomId: string, limit: number, cursor?
     const messages = await prisma.communityChatMessage.findMany(args);
     return messages.reverse();
 };
+
+export const deleteCommunity = async (userId: string, communityId: string) => {
+    const community = await prisma.community.findUnique({
+        where: { id: communityId },
+        include: { members: { select: { userId: true } } }
+    });
+
+    if (!community) {
+        throw new Error('Community not found');
+    }
+
+    if (community.createdById !== userId) {
+        throw new Error('You do not have permission to delete this community');
+    }
+
+    // Soft delete
+    await prisma.community.update({
+        where: { id: communityId },
+        data: {
+            isActive: false,
+            isDeleted: true
+        }
+    });
+
+    // Notify all members except the admin
+    const memberIds = community.members
+        .map(m => m.userId)
+        .filter(id => id !== userId);
+    if (memberIds.length > 0) {
+        await NotificationService.createBulkNotifications({
+            userIds: memberIds,
+            title: 'Community Deleted',
+            body: `The community "${community.name}" has been deleted by the admin.`,
+            actionType: 'COMMUNITY_DELETED',
+            actionId: communityId
+        });
+    }
+
+    return { success: true };
+};
