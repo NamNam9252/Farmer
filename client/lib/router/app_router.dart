@@ -17,6 +17,7 @@ import '../core/theme/app_theme.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/advisory/presentation/screens/advisory_screen.dart';
+import '../features/crop_recommendation/presentation/screens/crop_recommendation_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -141,6 +142,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.advisory,
             builder: (context, state) => const AdvisoryScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.cropRecommendation,
+            builder: (context, state) => const CropRecommendationScreen(),
           ),
         ],
       ),
