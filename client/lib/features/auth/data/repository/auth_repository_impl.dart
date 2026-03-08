@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/errors/app_error.dart';
 import '../../../../core/network/api_response.dart';
@@ -32,11 +33,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final data = apiResponse.data!;
       final token = data['token'] as String;
-      final userModel = UserModel.fromJson(
-        data['user'] as Map<String, dynamic>,
-      );
+      final userMap = data['user'] as Map<String, dynamic>;
+      final userModel = UserModel.fromJson(userMap);
 
       await _secureStorageService.saveToken(token);
+      await _secureStorageService.saveUser(jsonEncode(userMap));
       return userModel;
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -71,11 +72,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final data = apiResponse.data!;
       final token = data['token'] as String;
-      final userModel = UserModel.fromJson(
-        data['user'] as Map<String, dynamic>,
-      );
+      final userMap = data['user'] as Map<String, dynamic>;
+      final userModel = UserModel.fromJson(userMap);
 
       await _secureStorageService.saveToken(token);
+      await _secureStorageService.saveUser(jsonEncode(userMap));
       return userModel;
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -108,11 +109,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final data = apiResponse.data!;
       final token = data['token'] as String;
-      final userModel = UserModel.fromJson(
-        data['user'] as Map<String, dynamic>,
-      );
+      final userMap = data['user'] as Map<String, dynamic>;
+      final userModel = UserModel.fromJson(userMap);
 
       await _secureStorageService.saveToken(token);
+      await _secureStorageService.saveUser(jsonEncode(userMap));
       return userModel;
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -128,6 +129,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> isAuthenticated() async {
     final token = await _secureStorageService.getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  @override
+  Future<User?> getUser() async {
+    final userJson = await _secureStorageService.getUser();
+    if (userJson == null) return null;
+    try {
+      final userMap = jsonDecode(userJson) as Map<String, dynamic>;
+      return UserModel.fromJson(userMap);
+    } catch (e) {
+      return null;
+    }
   }
 
   void _checkSuccess(Response response) {

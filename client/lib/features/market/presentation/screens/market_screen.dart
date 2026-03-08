@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../providers/market_provider.dart';
+import '../../../../router/route_names.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class MarketScreen extends ConsumerWidget {
   const MarketScreen({super.key});
@@ -15,6 +18,20 @@ class MarketScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('बाज़ार भाव'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go(RouteNames.home);
+            }
+          },
+        ),
+        actions: const [
+          LanguageToggle(color: Colors.white),
+          SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Padding(

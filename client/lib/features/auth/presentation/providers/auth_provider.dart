@@ -31,16 +31,12 @@ class AuthController extends _$AuthController {
       final isAuth = await checkAuth.execute();
       print('AuthControler: isAuth = $isAuth');
       if (isAuth) {
-        state = const Authenticated(
-          User(
-            id: '',
-            name: 'Farmer User',
-            phone: '',
-            role: UserRole.farmer,
-            status: 'ACTIVE',
-            isEmailVerified: true,
-          ),
-        );
+        final user = await repository.getUser();
+        if (user != null) {
+          state = Authenticated(user);
+        } else {
+          state = const Unauthenticated();
+        }
       } else {
         state = const Unauthenticated();
       }

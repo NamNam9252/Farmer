@@ -30,7 +30,8 @@ export const getNearbyCommunities = async (req: Request, res: Response, next: Ne
 
 export const getCommunityDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const community = await CommunityService.getCommunityDetails(req.params.id as string);
+        const userId = (req as any).user?.id;
+        const community = await CommunityService.getCommunityDetails(req.params.id as string, userId);
         if (!community) {
             return res.status(404).json({ success: false, message: 'Community not found.' });
         }

@@ -7,6 +7,7 @@ import advisoryRoutes from './modules/advisory/advisory.routes.js';
 import weatherRoutes from './modules/weather/weather.routes.js';
 import cropRecommendationRoutes from './modules/crop-recommendation/crop-recommendation.routes.js';
 import communityRoutes from './modules/community/community.routes.js';
+import notificationRoutes from './modules/notifications/notification.routes.js';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/advisory', advisoryRoutes);
 router.use('/weather', weatherRoutes);
 router.use('/crop-recommendation', cropRecommendationRoutes);
 router.use('/community', communityRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

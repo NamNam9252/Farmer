@@ -1,17 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/disease_provider.dart';
+import '../../../../router/route_names.dart';
 import '../widgets/crop_selector_sheet.dart';
 import '../widgets/disease_result_card.dart';
 import '../widgets/past_reports_section.dart';
 import '../widgets/image_preview_card.dart';
 import '../widgets/tip_banner.dart';
 import '../widgets/analyzing_overlay.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class DiseaseScreen extends ConsumerStatefulWidget {
   const DiseaseScreen({super.key});
@@ -185,48 +188,27 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
       snap: true,
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            isHindi ? AppStrings.diseaseTitleHindi : 'Disease Analyser',
-            style: const TextStyle(fontSize: 11, color: Colors.white70),
-          ),
-        ],
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            context.go(RouteNames.home);
+          }
+        },
       ),
-      actions: [
-        // Language Toggle
-        GestureDetector(
-          onTap: () {
-            ref.read(languageProvider.notifier).state =
-                lang == 'hi' ? 'en' : 'hi';
-          },
-          child: Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white38),
-            ),
-            child: Text(
-              lang == 'hi' ? 'EN' : 'हि',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-          ),
+      title: Text(
+        isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
+      ),
+      actions: const [
+        LanguageToggle(color: Colors.white),
+        SizedBox(width: 8),
       ],
     );
   }

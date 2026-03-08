@@ -8,6 +8,7 @@ import '../../../../router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../auth/domain/entities/user.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -30,31 +31,19 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(isHindi ? 'प्रोफ़ाइल' : 'Profile'),
-        actions: [
-          // Language Toggle
-          GestureDetector(
-            onTap: () {
-              ref.read(languageProvider.notifier).state =
-                  lang == 'hi' ? 'en' : 'hi';
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white38),
-              ),
-              child: Text(
-                lang == 'hi' ? 'EN' : 'हि',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go(RouteNames.home);
+            }
+          },
+        ),
+        actions: const [
+          LanguageToggle(color: Colors.white),
+          SizedBox(width: 8),
         ],
       ),
       body: Padding(
@@ -96,6 +85,32 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            const SizedBox(height: 24),
+            
+            // Settings section with Language Toggle
+            Text(
+              isHindi ? 'सेटिंग्स' : 'Settings',
+              style: AppTextStyles.headline3,
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.language_rounded, color: AppColors.primary),
+                    title: Text(isHindi ? 'भाषा' : 'Language'),
+                    subtitle: Text(isHindi ? 'हिंदी / English' : 'English / हिंदी'),
+                    trailing: const LanguageToggle(),
+                    onTap: () {
+                      ref.read(languageProvider.notifier).state =
+                          lang == 'hi' ? 'en' : 'hi';
+                    },
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),

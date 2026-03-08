@@ -13,4 +13,7 @@ class RouteNames {
   static const String profile = '/profile';
   static const String advisory = '/advisory';
   static const String cropRecommendation = '/crop-recommendation';
+  static const String community = '/community';
+  static const String communityDetail = '/community/:id';
+  static const String communityJoinRequests = '/community/:id/requests';
 }
