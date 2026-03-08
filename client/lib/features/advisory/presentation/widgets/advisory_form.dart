@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/advisory_provider.dart';
+import '../../../../shared/widgets/crop_picker_sheet.dart';
 
 /// Input form widget for the advisory screen.
 /// Contains crop, days, soil NPK, moisture, and pest toggle.
@@ -43,19 +44,10 @@ class AdvisoryForm extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // --- Crop Selector ---
+        // --- Crop Selector (Image-based) ---
         _buildLabel(isHindi ? AppStrings.selectCropHindi : AppStrings.selectCrop),
         const SizedBox(height: 6),
-        _buildDropdown<String>(
-          value: state.crop,
-          items: _crops
-              .map((c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(isHindi ? _cropLabelsHi[c]! : _cropLabelsEn[c]!),
-                  ))
-              .toList(),
-          onChanged: (v) => ref.read(advisoryProvider.notifier).setCrop(v!),
-        ),
+        _buildCropSelector(context, ref, state, isHindi),
         const SizedBox(height: 16),
 
         // --- Days since sowing ---
@@ -159,6 +151,66 @@ class AdvisoryForm extends ConsumerWidget {
       style: AppTextStyles.body2.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildCropSelector(
+      BuildContext context, WidgetRef ref, AdvisoryState state, bool isHindi) {
+    final crop = CropCatalog.getById(state.crop);
+    final emoji = crop?.emoji ?? '🌾';
+    final bgColor = crop?.bgColor ?? AppColors.surface;
+    final label = crop != null
+        ? (isHindi ? crop.nameHi : crop.nameEn)
+        : state.crop;
+
+    return GestureDetector(
+      onTap: () async {
+        final result = await showCropPickerSheet(
+          context: context,
+          isHindi: isHindi,
+          multiSelect: false,
+          initialSelected: [state.crop],
+        );
+        if (result != null && result.isNotEmpty) {
+          ref.read(advisoryProvider.notifier).setCrop(result.first);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Center(
+                child: Text(emoji, style: const TextStyle(fontSize: 24)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.body1.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }
