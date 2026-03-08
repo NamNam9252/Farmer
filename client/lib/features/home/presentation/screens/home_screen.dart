@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -11,6 +12,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../weather/presentation/providers/weather_provider.dart';
 import '../../../weather/data/models/weather_model.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -27,6 +29,14 @@ class HomeScreen extends ConsumerWidget {
         !weatherState.isLoading &&
         weatherState.error == null) {
       Future.microtask(() => ref.read(weatherProvider.notifier).fetchWeather());
+    }
+
+    // Trigger notification fetch on first load
+    final notificationState = ref.watch(notificationProvider);
+    if (!notificationState.hasLoaded && 
+        !notificationState.isLoading && 
+        notificationState.error == null) {
+      Future.microtask(() => ref.read(notificationProvider.notifier).loadNotifications());
     }
 
     String userName = isHindi ? 'किसान' : 'Farmer';
@@ -108,53 +118,63 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           // Language Toggle
-          GestureDetector(
-            onTap: () {
-              ref.read(languageProvider.notifier).state =
-                  lang == 'hi' ? 'en' : 'hi';
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Text(
-                lang == 'hi' ? 'EN' : 'हि',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
+          const LanguageToggle(),
           const SizedBox(width: 8),
           // Bell Icon
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+          Consumer(
+            builder: (context, ref, child) {
+              final notificationState = ref.watch(notificationProvider);
+              final unreadCount = notificationState.notifications.where((n) => !n.isRead).length;
+
+              return GestureDetector(
+                onTap: () => _showNotifications(context, ref, isHindi),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          size: 24,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              unreadCount > 9 ? '9+' : unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-            child: const Padding(
-              padding: EdgeInsets.all(8),
-              child: Icon(
-                Icons.notifications_outlined,
-                size: 24,
-                color: AppColors.textPrimary,
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -539,7 +559,7 @@ class HomeScreen extends ConsumerWidget {
         iconColor: Colors.white,
         iconBgColor: const Color(0xFF8E24AA),
         cardBgColor: const Color(0xFFF3E5F5),
-        onTap: () => _showComingSoon(context, isHindi),
+        onTap: () => context.go(RouteNames.community),
       ),
       _ServiceItem(
         labelEn: 'Smart\nFarming',
@@ -725,7 +745,7 @@ class HomeScreen extends ConsumerWidget {
                 cardBgColor: const Color(0xFFF3E5F5),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showComingSoon(context, isHindi);
+                  context.go(RouteNames.community);
                 },
               ),
               _ServiceItem(
@@ -871,6 +891,104 @@ class HomeScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
       ),
+    );
+  }
+
+  void _showNotifications(BuildContext context, WidgetRef ref, bool isHindi) {
+    ref.read(notificationProvider.notifier).loadNotifications();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final state = ref.watch(notificationProvider);
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF5FBF6),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isHindi ? 'सूचनाएं' : 'Notifications',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1B5E20),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: state.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : state.notifications.isEmpty
+                            ? Center(child: Text(isHindi ? 'कोई सूचना नहीं' : 'No notifications'))
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: state.notifications.length,
+                                itemBuilder: (context, index) {
+                                  final n = state.notifications[index];
+                                  return Card(
+                                    color: n.isRead ? Colors.white : const Color(0xFFE8F5E9),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: ListTile(
+                                      title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      subtitle: Text(n.body),
+                                      trailing: n.isRead ? null : const Icon(Icons.circle, color: Color(0xFF2E7D32), size: 12),
+                                      onTap: () {
+                                        ref.read(notificationProvider.notifier).markAsRead(n.id);
+                                        if (n.actionType == 'COMMUNITY_JOIN_REQUEST') {
+                                           Navigator.pop(context);
+                                           // Navigate directly to the management screen
+                                           context.go('/community/${n.actionId}/requests');
+                                        } else if (n.actionType == 'COMMUNITY_JOIN_APPROVED') {
+                                           Navigator.pop(context);
+                                           // Navigate to community detail
+                                           context.go('/community/${n.actionId}');
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

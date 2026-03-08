@@ -18,6 +18,9 @@ import '../features/home/presentation/screens/home_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/advisory/presentation/screens/advisory_screen.dart';
 import '../features/crop_recommendation/presentation/screens/crop_recommendation_screen.dart';
+import '../features/community/presentation/screens/community_screen.dart';
+import '../features/community/presentation/screens/community_detail_screen.dart';
+import '../features/community/presentation/screens/join_requests_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -146,6 +149,32 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.cropRecommendation,
             builder: (context, state) => const CropRecommendationScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.community,
+            builder: (context, state) => const CommunityScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  final name = state.uri.queryParameters['name'] ?? 'Community';
+                  return CommunityDetailScreen(
+                    communityId: id,
+                    communityName: name,
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'requests',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return JoinRequestsScreen(communityId: id);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

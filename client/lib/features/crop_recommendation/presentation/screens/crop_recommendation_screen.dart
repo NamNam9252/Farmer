@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/crop_recommendation_provider.dart';
 import '../../domain/entities/crop_recommendation.dart';
+import '../../../../router/route_names.dart';
 import '../../../../shared/widgets/crop_picker_sheet.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class CropRecommendationScreen extends ConsumerWidget {
   const CropRecommendationScreen({super.key});
@@ -18,34 +21,22 @@ class CropRecommendationScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(isHindi ? 'फसल सिफारिश' : 'Crop Recommendation'),
+        title: const SizedBox.shrink(),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        actions: [
-          // Language Toggle
-          GestureDetector(
-            onTap: () {
-              ref.read(languageProvider.notifier).state =
-                  lang == 'hi' ? 'en' : 'hi';
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-              ),
-              child: Text(
-                lang == 'hi' ? 'EN' : 'हि',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go(RouteNames.home);
+            }
+          },
+        ),
+        actions: const [
+          LanguageToggle(color: Colors.white),
+          SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(

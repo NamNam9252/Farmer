@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/language_provider.dart';
+import '../../../../router/route_names.dart';
 import '../providers/advisory_provider.dart';
 import '../widgets/advisory_form.dart';
 import '../widgets/recommendation_card.dart';
+import '../../../../shared/widgets/language_toggle.dart';
 
 class AdvisoryScreen extends ConsumerWidget {
   const AdvisoryScreen({super.key});
@@ -28,6 +31,16 @@ class AdvisoryScreen extends ConsumerWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             expandedHeight: 120,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  context.go(RouteNames.home);
+                }
+              },
+            ),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 isHindi
@@ -37,35 +50,9 @@ class AdvisoryScreen extends ConsumerWidget {
               ),
               background: Container(color: AppColors.primary),
             ),
-            actions: [
-              // Language Toggle
-              GestureDetector(
-                onTap: () {
-                  ref.read(languageProvider.notifier).state =
-                      lang == 'hi' ? 'en' : 'hi';
-                },
-                child: Container(
-                  margin:
-                      const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white38),
-                  ),
-                  child: Center(
-                    child: Text(
-                      lang == 'hi' ? 'EN' : 'हि',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            actions: const [
+              LanguageToggle(color: Colors.white),
+              SizedBox(width: 8),
             ],
           ),
 

@@ -1,4 +1,5 @@
-import { PrismaClient, CommunityType } from '@prisma/client';
+import { PrismaClient, CommunityType, NotificationChannel } from '@prisma/client';
+import * as NotificationService from '../notifications/notification.service.js';
 
 const prisma = new PrismaClient();
 
@@ -69,8 +70,8 @@ export const createCommunity = async (userId: string, data: any) => {
     return community;
 };
 
-export const getCommunityDetails = async (communityId: string) => {
-    return prisma.community.findUnique({
+export const getCommunityDetails = async (communityId: string, userId?: string) => {
+    const community = await prisma.community.findUnique({
         where: { id: communityId },
         include: {
             createdBy: { select: { id: true, name: true } },
@@ -84,6 +85,18 @@ export const getCommunityDetails = async (communityId: string) => {
             }
         }
     });
+
+    if (!community) return null;
+
+    let isPending = false;
+    if (userId) {
+        const pendingReq = await prisma.communityJoinRequest.findFirst({
+            where: { communityId, userId, status: 'PENDING' }
+        });
+        isPending = !!pendingReq;
+    }
+
+    return { ...community, isPending };
 };
 
 export const joinCommunity = async (userId: string, communityId: string) => {
@@ -121,6 +134,16 @@ export const joinCommunity = async (userId: string, communityId: string) => {
                 userId
             }
         });
+
+        // Notify Admin
+        await NotificationService.createNotification({
+            userId: community.createdById,
+            title: 'New Community Join Request',
+            body: `A user has requested to join "${community.name}".`,
+            actionType: 'COMMUNITY_JOIN_REQUEST',
+            actionId: communityId
+        });
+
         return { message: 'Join request sent and pending approval', request };
     }
 
@@ -220,6 +243,15 @@ export const approveJoinRequest = async (adminId: string, communityId: string, r
     await prisma.community.update({
         where: { id: communityId },
         data: { memberCount: { increment: 1 } }
+    });
+
+    // Notify User
+    await NotificationService.createNotification({
+        userId: request.userId,
+        title: 'Join Request Approved',
+        body: `Your request to join "${adminMember.communityId}" has been approved!`, // Minor: community name would be better
+        actionType: 'COMMUNITY_APPROVED',
+        actionId: communityId
     });
 
     return member;
