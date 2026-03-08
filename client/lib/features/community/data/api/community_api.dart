@@ -217,6 +217,21 @@ class CommunityApi {
       throw CommunityApiException(msg ?? e.message ?? 'Network error');
     }
   }
+
+  /// DELETE /community/:id
+  Future<void> deleteCommunity(String id) async {
+    try {
+      final response = await _client.dio.delete(
+        '${AppConstants.communityEndpoint}/$id',
+      );
+
+      if (response.statusCode == 200) return;
+      throw CommunityApiException('Server error: ${response.statusCode}');
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] as String?;
+      throw CommunityApiException(msg ?? e.message ?? 'Network error');
+    }
+  }
 }
 
 class CommunityApiException implements Exception {

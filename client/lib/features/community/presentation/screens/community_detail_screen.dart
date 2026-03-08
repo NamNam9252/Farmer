@@ -6,6 +6,7 @@ import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
+import '../../../../core/services/location_provider.dart';
 import '../providers/community_provider.dart';
 import 'community_chat_screen.dart';
 import 'join_requests_screen.dart';
@@ -126,10 +127,16 @@ class _CommunityDetailScreenState
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.manage_accounts_rounded, color: Colors.white),
+                              icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
                               tooltip: isHindi ? 'अनुरोध प्रबंधित करें' : 'Manage Requests',
                             ),
-                        ],
+                           if (currentUserId != null && community.createdBy?.id == currentUserId)
+                             IconButton(
+                               onPressed: () => _showDeleteConfirmation(context, isHindi),
+                               icon: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                               tooltip: isHindi ? 'समुदाय हटाएं' : 'Delete Community',
+                             ),
+                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -480,6 +487,55 @@ class _CommunityDetailScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, bool isHindi) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isHindi ? 'समुदाय हटाएं?' : 'Delete Community?'),
+        content: Text(
+          isHindi 
+            ? 'क्या आप वाकई इस समुदाय को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।' 
+            : 'Are you sure you want to delete this community? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(isHindi ? 'नहीं' : 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await ref.read(communityDetailProvider.notifier).deleteCommunity(widget.communityId);
+                // Refresh the community list immediately
+                final pos = ref.read(locationProvider).position;
+                await ref.read(communityListProvider.notifier).loadNearby(
+                  pos?.latitude ?? 0.0,
+                  pos?.longitude ?? 0.0,
+                );
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(isHindi ? 'समुदाय हटा दिया गया' : 'Community deleted')),
+                  );
+                  context.go(RouteNames.community);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString())),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text(isHindi ? 'हां, हटाएं' : 'Yes, Delete', style: const TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

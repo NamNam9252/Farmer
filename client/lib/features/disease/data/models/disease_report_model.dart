@@ -79,6 +79,45 @@ class DiseaseReportModel extends DiseaseReport {
 
   String toJsonString() => jsonEncode(toJson());
 
+  @override
+  DiseaseReportModel copyWith({
+    String? id,
+    String? imagePath,
+    String? diseaseName,
+    String? diseaseNameHindi,
+    String? cropName,
+    double? confidenceScore,
+    DiseaseSeverity? severity,
+    bool? isHealthy,
+    String? description,
+    String? descriptionHindi,
+    List<String>? treatments,
+    List<String>? treatmentsHindi,
+    List<String>? preventions,
+    List<String>? preventionsHindi,
+    List<ProductLink>? productLinks,
+    DateTime? createdAt,
+  }) {
+    return DiseaseReportModel(
+      id: id ?? this.id,
+      imagePath: imagePath ?? this.imagePath,
+      diseaseName: diseaseName ?? this.diseaseName,
+      diseaseNameHindi: diseaseNameHindi ?? this.diseaseNameHindi,
+      cropName: cropName ?? this.cropName,
+      confidenceScore: confidenceScore ?? this.confidenceScore,
+      severity: severity ?? this.severity,
+      isHealthy: isHealthy ?? this.isHealthy,
+      description: description ?? this.description,
+      descriptionHindi: descriptionHindi ?? this.descriptionHindi,
+      treatments: treatments ?? this.treatments,
+      treatmentsHindi: treatmentsHindi ?? this.treatmentsHindi,
+      preventions: preventions ?? this.preventions,
+      preventionsHindi: preventionsHindi ?? this.preventionsHindi,
+      productLinks: productLinks ?? this.productLinks,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   static DiseaseReportModel fromJsonString(String jsonString) =>
       DiseaseReportModel.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
 

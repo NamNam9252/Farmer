@@ -103,6 +103,16 @@ export const rejectJoinRequest = async (req: Request, res: Response, next: NextF
     }
 };
 
+export const deleteCommunity = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = (req as any).user.id;
+        const result = await CommunityService.deleteCommunity(userId, req.params.id as string);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const updateMemberRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = (req as any).user.id;

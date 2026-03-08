@@ -22,9 +22,10 @@ class DiseaseRepository implements IDiseaseRepository {
       language: language,
     );
     // Use local path for the report so it's viewable on the device
+    // Now copyWith returns DiseaseReportModel properly
     final report = reportFromServer.copyWith(imagePath: imageFile.path);
-    await _saveReportLocally(report as DiseaseReportModel);
-    return report as DiseaseReportModel;
+    await _saveReportLocally(report);
+    return report;
   }
 
   @override

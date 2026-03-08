@@ -50,25 +50,45 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
   final WeatherApi _api = WeatherApi();
 
-  /// Fetches GPS location then fetches current weather + 5-day forecast.
-  Future<void> fetchWeather() async {
+  /// Fetches weather data. If coordinates are provided, skips internal GPS fetch.
+  Future<void> fetchWeather({
+    double? latitude,
+    double? longitude,
+    String? district,
+    String? stateName,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // 1. Get GPS location permission + coordinates
-      final location = await LocationService.getCurrentLocation();
+      double finalLat = latitude ?? 0.0;
+      double finalLng = longitude ?? 0.0;
 
-      state = state.copyWith(
-        district: location.district,
-        state: location.state,
-        latitude: location.latitude,
-        longitude: location.longitude,
-      );
+      if (latitude == null || longitude == null) {
+        // Fallback to internal GPS if not provided
+        final location = await LocationService.getCurrentLocation();
+        finalLat = location.latitude;
+        finalLng = location.longitude;
 
-      // 2. Fetch current conditions + 5-day forecast from backend
+        state = state.copyWith(
+          district: location.district,
+          state: location.state,
+          latitude: finalLat,
+          longitude: finalLng,
+        );
+      } else if (district != null || stateName != null) {
+        // Update district/state if provided from external source
+        state = state.copyWith(
+          district: district,
+          state: stateName,
+          latitude: finalLat,
+          longitude: finalLng,
+        );
+      }
+
+      // Fetch current conditions + 5-day forecast from backend
       final weather = await _api.getWeather(
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: finalLat,
+        longitude: finalLng,
       );
 
       state = state.copyWith(weather: weather, isLoading: false);

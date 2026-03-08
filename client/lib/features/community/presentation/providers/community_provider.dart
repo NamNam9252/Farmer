@@ -194,6 +194,17 @@ class CommunityDetailNotifier extends StateNotifier<CommunityDetailState> {
       state = state.copyWith(error: e.toString());
     }
   }
+
+  Future<void> deleteCommunity(String communityId) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await _repo.deleteCommunity(communityId);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 final communityListProvider =
