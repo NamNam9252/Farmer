@@ -10,6 +10,8 @@ interface AuthSocket extends Socket {
     user?: { id: string; role: string };
 }
 
+let ioInstance: Server | null = null;
+
 export function setupSocket(server: HttpServer) {
     const io = new Server(server, {
         cors: {
@@ -17,6 +19,8 @@ export function setupSocket(server: HttpServer) {
             methods: ['GET', 'POST']
         }
     });
+
+    ioInstance = io;
 
     // Middleware for Auth
     io.use((socket: AuthSocket, next) => {
@@ -38,9 +42,13 @@ export function setupSocket(server: HttpServer) {
         const userId = socket.user?.id;
         console.log(`User connected to socket: ${userId} (${socket.id})`);
 
+        // Join a private room for the user to receive targeted notifications
+        if (userId) {
+            socket.join(`user_${userId}`);
+        }
+
         socket.on('join_room', async (data: { roomId: string; communityId: string }) => {
             const { roomId } = data;
-            // Additional check: Is user part of the community? (can be added here)
             socket.join(roomId);
             console.log(`User ${userId} joined room ${roomId}`);
         });
@@ -55,7 +63,6 @@ export function setupSocket(server: HttpServer) {
             try {
                 if (!userId) return;
                 
-                // Save to DB
                 const message = await prisma.communityChatMessage.create({
                     data: {
                         roomId: data.roomId,
@@ -72,7 +79,6 @@ export function setupSocket(server: HttpServer) {
                     }
                 });
 
-                // Update room lastMessageAt
                 await prisma.communityChatRoom.update({
                     where: { id: data.roomId },
                     data: { 
@@ -81,7 +87,6 @@ export function setupSocket(server: HttpServer) {
                     }
                 });
 
-                // Broadcast
                 io.to(data.roomId).emit('new_message', message);
             } catch (error) {
                 console.error('Socket send_message error:', error);
@@ -95,4 +100,10 @@ export function setupSocket(server: HttpServer) {
     });
 
     return io;
+}
+
+export function sendNotificationToUser(userId: string, notification: any) {
+    if (ioInstance) {
+        ioInstance.to(`user_${userId}`).emit('new_notification', notification);
+    }
 }

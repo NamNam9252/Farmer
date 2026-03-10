@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/secure_storage_service.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../data/api/auth_api.dart';
 import '../../data/repository/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
@@ -34,6 +35,8 @@ class AuthController extends _$AuthController {
         final user = await repository.getUser();
         if (user != null) {
           state = Authenticated(user);
+          // Connect socket if previously authenticated
+          SocketService.instance.connect();
         } else {
           state = const Unauthenticated();
         }
@@ -55,6 +58,8 @@ class AuthController extends _$AuthController {
       final user = await loginUseCase.execute(phone: phone, password: password);
       print('AuthControler: login success for ${user.name}');
       state = Authenticated(user);
+      // Connect socket on login
+      SocketService.instance.connect();
     } catch (e) {
       print('AuthControler: login failed = $e');
       state = AuthError(e.toString());
@@ -80,6 +85,8 @@ class AuthController extends _$AuthController {
         email: email,
       );
       state = Authenticated(user);
+      // Connect socket on signup
+      SocketService.instance.connect();
     } catch (e) {
       state = AuthError(e.toString());
     }
@@ -104,6 +111,8 @@ class AuthController extends _$AuthController {
       final verifyOtpUseCase = VerifyOtpUseCase(repository);
       final user = await verifyOtpUseCase.execute(email: email, otp: otp);
       state = Authenticated(user);
+      // Connect socket on OTP verification success
+      SocketService.instance.connect();
     } catch (e) {
       state = AuthError(e.toString());
     }
@@ -116,6 +125,8 @@ class AuthController extends _$AuthController {
       final logoutUseCase = LogoutUseCase(repository);
       await logoutUseCase.execute();
       state = const Unauthenticated();
+      // Disconnect socket on logout
+      SocketService.instance.disconnect();
     } catch (e) {
       state = AuthError(e.toString());
     }

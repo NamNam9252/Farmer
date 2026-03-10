@@ -2,6 +2,8 @@ import { PrismaClient, NotificationChannel, NotificationStatus } from '@prisma/c
 
 const prisma = new PrismaClient();
 
+import { sendNotificationToUser } from '../../socket.js';
+
 export const createNotification = async (data: {
     userId: string;
     title: string;
@@ -9,7 +11,7 @@ export const createNotification = async (data: {
     actionType?: string;
     actionId?: string;
 }) => {
-    return prisma.notification.create({
+    const notification = await prisma.notification.create({
         data: {
             userId: data.userId,
             title: data.title,
@@ -20,6 +22,11 @@ export const createNotification = async (data: {
             actionId: data.actionId,
         }
     });
+
+    // Emit real-time update via socket
+    sendNotificationToUser(data.userId, notification);
+
+    return notification;
 };
 
 export const getUserNotifications = async (userId: string) => {

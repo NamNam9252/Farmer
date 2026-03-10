@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/api/notification_api.dart';
 import '../../data/models/notification_model.dart';
+import '../../../../core/services/socket_service.dart';
 
 class NotificationState {
   final bool isLoading;
@@ -31,9 +33,26 @@ class NotificationState {
 }
 
 class NotificationNotifier extends StateNotifier<NotificationState> {
-  NotificationNotifier() : super(NotificationState());
+  NotificationNotifier() : super(NotificationState()) {
+    _initSocket();
+  }
 
   final _api = NotificationApi();
+  StreamSubscription? _socketSubscription;
+
+  void _initSocket() {
+    _socketSubscription?.cancel();
+    _socketSubscription = SocketService.instance.notificationStream.listen((data) {
+      // Refresh notifications when a new one arrives via socket
+      loadNotifications();
+    });
+  }
+
+  @override
+  void dispose() {
+    _socketSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> loadNotifications() async {
     state = state.copyWith(isLoading: true, error: null);

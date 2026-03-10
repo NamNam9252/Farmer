@@ -8,6 +8,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'core/services/socket_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -15,6 +17,9 @@ void main() async {
   await initializeDateFormatting('en', null);
   
   final prefs = await SharedPreferences.getInstance();
+
+  // Try to connect socket if token exists
+  SocketService.instance.connect();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -49,6 +54,7 @@ class KisanSaathiApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: router,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
