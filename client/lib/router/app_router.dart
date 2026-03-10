@@ -21,13 +21,23 @@ import '../features/crop_recommendation/presentation/screens/crop_recommendation
 import '../features/community/presentation/screens/community_screen.dart';
 import '../features/community/presentation/screens/community_detail_screen.dart';
 import '../features/community/presentation/screens/join_requests_screen.dart';
+import '../features/marketplace_new/presentation/screens/marketplace_new_home_screen.dart';
+import '../features/marketplace_new/presentation/screens/post_item_screen.dart';
+import '../features/marketplace_new/presentation/screens/post_demand_screen.dart';
+import '../features/marketplace_new/presentation/screens/browse_items_screen.dart';
+import '../features/marketplace_new/presentation/screens/browse_demands_screen.dart';
+import '../features/marketplace_new/presentation/screens/item_detail_screen.dart';
+import '../features/marketplace_new/presentation/screens/demand_detail_screen.dart';
+import '../features/marketplace_new/presentation/screens/my_listings_screen.dart';
+import '../features/marketplace_new/presentation/screens/my_purchase_requests_screen.dart';
+import '../features/marketplace_new/presentation/screens/my_demand_offers_screen.dart';
+import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
 
 part 'app_router.g.dart';
 
-// Create a provider for SharedPreferences to check onboarding status synchronously during routing
 final sharedPrefsProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError(),
 );
@@ -151,11 +161,77 @@ GoRouter appRouter(Ref ref) {
             builder: (context, state) => const CropRecommendationScreen(),
           ),
           GoRoute(
+            path: RouteNames.marketplaceNew,
+            name: RouteNames.marketplaceNew,
+            builder: (context, state) => const MarketplaceNewHomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'post-item',
+                name: RouteNames.postItem,
+                builder: (context, state) {
+                  final item = state.extra as MarketplaceItem?;
+                  return PostItemScreen(item: item);
+                },
+              ),
+              GoRoute(
+                path: 'post-demand',
+                name: RouteNames.postDemand,
+                builder: (context, state) {
+                  final demand = state.extra as MarketplaceDemand?;
+                  return PostDemandScreen(demand: demand);
+                },
+              ),
+              GoRoute(
+                path: 'browse-items',
+                name: RouteNames.browseItems,
+                builder: (context, state) => const BrowseItemsScreen(),
+              ),
+              GoRoute(
+                path: 'browse-demands',
+                name: RouteNames.browseDemands,
+                builder: (context, state) => const BrowseDemandsScreen(),
+              ),
+              GoRoute(
+                path: 'item-detail',
+                name: RouteNames.itemDetail,
+                builder: (context, state) {
+                  final item = state.extra as MarketplaceItem;
+                  return ItemDetailScreen(item: item);
+                },
+              ),
+              GoRoute(
+                path: 'demand-detail',
+                name: RouteNames.demandDetail,
+                builder: (context, state) {
+                  final demand = state.extra as MarketplaceDemand;
+                  return DemandDetailScreen(demand: demand);
+                },
+              ),
+              GoRoute(
+                path: 'my-listings',
+                name: RouteNames.myListings,
+                builder: (context, state) => const MyListingsScreen(),
+              ),
+              GoRoute(
+                path: 'purchase-requests',
+                name: RouteNames.myPurchaseRequests,
+                builder: (context, state) => const MyPurchaseRequestsScreen(),
+              ),
+              GoRoute(
+                path: 'demand-offers',
+                name: RouteNames.myDemandOffers,
+                builder: (context, state) => const MyDemandOffersScreen(),
+              ),
+            ],
+          ),
+          GoRoute(
             path: RouteNames.community,
+            name: RouteNames.community,
             builder: (context, state) => const CommunityScreen(),
             routes: [
               GoRoute(
                 path: ':id',
+                name: RouteNames.communityDetail,
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   final name = state.uri.queryParameters['name'] ?? 'Community';
@@ -167,6 +243,7 @@ GoRouter appRouter(Ref ref) {
                 routes: [
                   GoRoute(
                     path: 'requests',
+                    name: RouteNames.communityJoinRequests,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return JoinRequestsScreen(communityId: id);
@@ -182,7 +259,6 @@ GoRouter appRouter(Ref ref) {
   );
 }
 
-// Temporary placeholder screen for coming-soon features
 class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen({
     required this.title,

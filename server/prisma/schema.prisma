@@ -658,6 +658,14 @@ model User {
   stockLogsPerformed         ListingStockLog[]           @relation("StockLogPerformedBy")
   rateLimitLogs              RateLimitLog[]
 
+  // Marketplace New Relations
+  marketplaceItems           MarketplaceNewItem[]        @relation("SellerItems")
+  marketplaceDemands         MarketplaceNewDemand[]      @relation("BuyerDemands")
+  marketplacePurchaseRequests MarketplaceNewPurchaseRequest[] @relation("BuyerRequests")
+  marketplaceIncomingRequests MarketplaceNewPurchaseRequest[] @relation("SellerRequests")
+  marketplaceSentOffers       MarketplaceNewDemandOffer[] @relation("SellerOffers")
+  marketplaceIncomingOffers   MarketplaceNewDemandOffer[] @relation("BuyerOffers")
+
   @@index([role])
   @@index([status])
   @@index([isDeleted])
@@ -1857,9 +1865,11 @@ model ContentReport {
   postId       String?      @db.ObjectId
   commentId    String?      @db.ObjectId
   chatMsgId    String?      @db.ObjectId
-  listingId    String?      @db.ObjectId
-  blogId       String?      @db.ObjectId
-  reason       ReportReason
+  listingId            String?      @db.ObjectId
+  blogId               String?      @db.ObjectId
+  newMarketplaceItemId String?      @db.ObjectId
+  newMarketplaceDemandId String?    @db.ObjectId
+  reason               ReportReason
   description  String?
   status       String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
   reviewedById String?      @db.ObjectId
@@ -1873,12 +1883,16 @@ model ContentReport {
   chatMsg    CommunityChatMessage? @relation("ContentReportChatMsg", fields: [chatMsgId], references: [id])
   listing    MarketplaceListing?   @relation("ContentReportListing", fields: [listingId], references: [id])
   blog       Blog?                 @relation("ContentReportBlog", fields: [blogId], references: [id])
+  newItem    MarketplaceNewItem?   @relation("ContentReportNewItem", fields: [newMarketplaceItemId], references: [id])
+  newDemand  MarketplaceNewDemand? @relation("ContentReportNewDemand", fields: [newMarketplaceDemandId], references: [id])
 
   @@index([reporterId])
   @@index([postId])
   @@index([chatMsgId])
   @@index([listingId])
   @@index([blogId])
+  @@index([newMarketplaceItemId])
+  @@index([newMarketplaceDemandId])
   @@index([status])
   @@map("content_reports")
 }
@@ -2620,4 +2634,129 @@ model RateLimitLog {
   @@index([isBlocked])
   @@index([windowStart]) // TTL target
   @@map("rate_limit_logs")
+}
+
+// ─────────────────────────────────────────────
+// NEW MARKETPLACE MODULE (REQUEST-BASED)
+// ─────────────────────────────────────────────
+
+enum MarketplaceCategory {
+  CROPS
+  FRUITS
+  VEGETABLES
+  GRAINS
+  SEEDS
+  FERTILIZERS
+  PESTICIDES
+  FARMING_EQUIPMENT
+  LIVESTOCK_PRODUCTS
+  OTHER
+}
+
+enum MarketplaceItemStatus {
+  ACTIVE
+  INACTIVE
+  SOLD
+}
+
+enum MarketplaceDemandStatus {
+  OPEN
+  FULFILLED
+  CLOSED
+}
+
+enum MarketplaceRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model MarketplaceNewItem {
+  id            String                @id @default(auto()) @map("_id") @db.ObjectId
+  sellerId      String                @db.ObjectId
+  itemName      String
+  category      MarketplaceCategory
+  quantity      String
+  pricePerUnit  Float
+  location      String
+  description   String?
+  imageUrl      String?
+  status        MarketplaceItemStatus @default(ACTIVE)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  seller        User                  @relation("SellerItems", fields: [sellerId], references: [id])
+  purchaseRequests MarketplaceNewPurchaseRequest[]
+  reports       ContentReport[]       @relation("ContentReportNewItem")
+
+  @@index([sellerId])
+  @@index([category])
+  @@index([status])
+  @@map("marketplace_new_items")
+}
+
+model MarketplaceNewDemand {
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId         String                @db.ObjectId
+  itemName        String
+  category      MarketplaceCategory
+  quantityNeeded  String
+  expectedPrice   Float
+  location        String
+  description     String?
+  status          MarketplaceDemandStatus @default(OPEN)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  buyer           User                  @relation("BuyerDemands", fields: [buyerId], references: [id])
+  offers          MarketplaceNewDemandOffer[]
+  reports         ContentReport[]       @relation("ContentReportNewDemand")
+
+  @@index([buyerId])
+  @@index([category])
+  @@index([status])
+  @@map("marketplace_new_demands")
+}
+
+model MarketplaceNewPurchaseRequest {
+  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
+  itemId            String                 @db.ObjectId
+  buyerId           String                 @db.ObjectId
+  sellerId          String                 @db.ObjectId
+  requestedQuantity String
+  message           String?
+  status            MarketplaceRequestStatus @default(PENDING)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  item              MarketplaceNewItem     @relation(fields: [itemId], references: [id])
+  buyer             User                   @relation("BuyerRequests", fields: [buyerId], references: [id])
+  seller            User                   @relation("SellerRequests", fields: [sellerId], references: [id])
+
+  @@index([itemId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@map("marketplace_new_purchase_requests")
+}
+
+model MarketplaceNewDemandOffer {
+  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
+  demandId          String                 @db.ObjectId
+  sellerId          String                 @db.ObjectId
+  buyerId           String                 @db.ObjectId
+  quantityAvailable String
+  offeredPrice      Float
+  message           String?
+  status            MarketplaceRequestStatus @default(PENDING)
+  createdAt         DateTime               @updatedAt
+  updatedAt         DateTime               @updatedAt
+
+  demand            MarketplaceNewDemand   @relation(fields: [demandId], references: [id])
+  seller            User                   @relation("SellerOffers", fields: [sellerId], references: [id])
+  buyer             User                   @relation("BuyerOffers", fields: [buyerId], references: [id])
+
+  @@index([demandId])
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("marketplace_new_demand_offers")
 }

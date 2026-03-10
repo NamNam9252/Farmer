@@ -590,6 +590,15 @@ class HomeScreen extends ConsumerWidget {
         onTap: () => context.go(RouteNames.market),
       ),
       _ServiceItem(
+        labelEn: 'Marketplace\n(New)',
+        labelHi: 'मार्केटप्लेस\n(नया)',
+        icon: Icons.shopping_bag_rounded,
+        iconColor: Colors.white,
+        iconBgColor: const Color(0xFF2E7D32),
+        cardBgColor: const Color(0xFFE8F5E9),
+        onTap: () => context.push(RouteNames.marketplaceNew),
+      ),
+      _ServiceItem(
         labelEn: 'Crop\nAdvisory',
         labelHi: 'फसल\nसलाह',
         icon: Icons.psychology_rounded,
