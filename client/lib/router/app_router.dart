@@ -42,6 +42,9 @@ final sharedPrefsProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError(),
 );
 
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 @riverpod
 GoRouter appRouter(Ref ref) {
   final authState = ref.watch(authControllerProvider);
@@ -49,6 +52,7 @@ GoRouter appRouter(Ref ref) {
   final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
       final isAuth = authState is Authenticated;
