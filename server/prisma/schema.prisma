@@ -1576,6 +1576,7 @@ model NewsArticle {
   @@index([districtId])
   @@index([isDeleted])
   @@index([isPublished, publishedAt])
+  @@unique([sourceUrl])
   @@map("news_articles")
 }
 
