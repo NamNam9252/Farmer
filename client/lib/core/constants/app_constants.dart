@@ -8,6 +8,7 @@ class AppConstants {
   static const String marketEndpoint = '/market';
   static const String marketPricesEndpoint = '/market/prices';
   static const String advisoryEndpoint = '/advisory/recommendation';
+  static const String marketplaceNewEndpoint = '/marketplace';
   static const String weatherEndpoint = '/weather';
   static const String cropRecommendationEndpoint = '/crop-recommendation/recommend';
   static const String communityEndpoint = '/community';

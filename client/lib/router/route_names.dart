@@ -13,6 +13,16 @@ class RouteNames {
   static const String profile = '/profile';
   static const String advisory = '/advisory';
   static const String cropRecommendation = '/crop-recommendation';
+  static const String marketplaceNew = '/marketplace-new';
+  static const String postItem = '/marketplace-new/post-item';
+  static const String postDemand = '/marketplace-new/post-demand';
+  static const String browseItems = '/marketplace-new/browse-items';
+  static const String browseDemands = '/marketplace-new/browse-demands';
+  static const String itemDetail = '/marketplace-new/item-detail';
+  static const String demandDetail = '/marketplace-new/demand-detail';
+  static const String myPurchaseRequests = '/marketplace-new/purchase-requests';
+  static const String myDemandOffers = '/marketplace-new/demand-offers';
+  static const String myListings = '/marketplace-new/my-listings';
   static const String community = '/community';
   static const String communityDetail = '/community/:id';
   static const String communityJoinRequests = '/community/:id/requests';
