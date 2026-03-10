@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/services/socket_service.dart';
+import 'shared/widgets/global_command_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +56,9 @@ class KisanSaathiApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       routerConfig: router,
       scaffoldMessengerKey: scaffoldMessengerKey,
+      builder: (context, child) {
+        return GlobalCommandBar(child: child!);
+      },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
