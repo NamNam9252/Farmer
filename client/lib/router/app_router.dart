@@ -33,6 +33,7 @@ import '../features/marketplace_new/presentation/screens/my_purchase_requests_sc
 import '../features/marketplace_new/presentation/screens/my_demand_offers_screen.dart';
 import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
+import '../features/weather/presentation/screens/weather_details_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -261,6 +262,10 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.chatbot,
             builder: (context, state) => const ChatbotScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.weatherDetails,
+            builder: (context, state) => const WeatherDetailsScreen(),
           ),
         ],
       ),

@@ -27,4 +27,5 @@ class RouteNames {
   static const String communityDetail = '/community/:id';
   static const String communityJoinRequests = '/community/:id/requests';
   static const String chatbot = '/chatbot';
+  static const String weatherDetails = '/weather-details';
 }

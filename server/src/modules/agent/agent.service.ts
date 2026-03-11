@@ -50,7 +50,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'get_weather',
-            description: 'Fetch current weather and 5-day forecast for a location. Use when user asks about weather, rain, temperature, humidity.',
+            description: 'Get current weather and 5-day forecast for a location. Returns temperature, humidity, rain probability, daily forecast, and hourly forecast. Note: Alerts and AI overviews may be empty on the free plan.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -104,10 +104,10 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
                     pricePerUnit: { type: 'number', description: 'Price per unit in INR' },
                     unit: { type: 'string', enum: ['KG', 'QUINTAL', 'TON', 'PIECE', 'DOZEN', 'BUNDLE', 'BAG', 'LITER', 'OTHER'], description: 'Unit of measurement' },
                     quantityAvailable: { type: 'number', description: 'Quantity available for sale' },
-                    category: { type: 'string', enum: ['CEREAL', 'PULSE', 'OILSEED', 'VEGETABLE', 'FRUIT', 'SPICE', 'FIBER', 'DAIRY', 'FERTILIZER', 'SEED', 'EQUIPMENT', 'OTHER'], description: 'Category of the item' },
+                    category: { type: 'string', enum: ['CROPS', 'FRUITS', 'VEGETABLES', 'GRAINS', 'SEEDS', 'FERTILIZERS', 'PESTICIDES', 'FARMING_EQUIPMENT', 'LIVESTOCK_PRODUCTS', 'OTHER'], description: 'Category of the item' },
                     location: { type: 'string', description: 'Pickup location' },
                 },
-                required: ['itemName', 'pricePerUnit', 'unit', 'quantityAvailable', 'category'],
+                required: ['itemName', 'pricePerUnit', 'unit', 'quantityAvailable', 'category', 'location'],
             },
         },
     },
@@ -121,12 +121,13 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
                 properties: {
                     itemName: { type: 'string', description: 'Name of item needed' },
                     description: { type: 'string', description: 'Description of demand' },
-                    budgetPerUnit: { type: 'number', description: 'Budget per unit in INR' },
+                    expectedPrice: { type: 'number', description: 'Expected price per unit in INR' },
                     unit: { type: 'string', enum: ['KG', 'QUINTAL', 'TON', 'PIECE', 'DOZEN', 'BUNDLE', 'BAG', 'LITER', 'OTHER'], description: 'Unit' },
                     quantityNeeded: { type: 'number', description: 'Quantity needed' },
-                    category: { type: 'string', enum: ['CEREAL', 'PULSE', 'OILSEED', 'VEGETABLE', 'FRUIT', 'SPICE', 'FIBER', 'DAIRY', 'FERTILIZER', 'SEED', 'EQUIPMENT', 'OTHER'], description: 'Category' },
+                    location: { type: 'string', description: 'Delivery/Preferred location' },
+                    category: { type: 'string', enum: ['CROPS', 'FRUITS', 'VEGETABLES', 'GRAINS', 'SEEDS', 'FERTILIZERS', 'PESTICIDES', 'FARMING_EQUIPMENT', 'LIVESTOCK_PRODUCTS', 'OTHER'], description: 'Category' },
                 },
-                required: ['itemName', 'budgetPerUnit', 'unit', 'quantityNeeded', 'category'],
+                required: ['itemName', 'expectedPrice', 'unit', 'quantityNeeded', 'category', 'location'],
             },
         },
     },
@@ -396,7 +397,14 @@ async function executeTool(
                 action: {
                     type: 'confirm',
                     confirmAction: 'create_marketplace_listing',
-                    confirmPayload: args,
+                    confirmPayload: {
+                        itemName: args.itemName,
+                        description: args.description,
+                        pricePerUnit: args.pricePerUnit,
+                        quantity: `${args.quantityAvailable} ${args.unit}`,
+                        category: args.category,
+                        location: args.location,
+                    },
                     message: `Create listing: ${args.itemName} at ₹${args.pricePerUnit}/${args.unit}?`,
                 },
             };
@@ -408,8 +416,15 @@ async function executeTool(
                 action: {
                     type: 'confirm',
                     confirmAction: 'create_demand_post',
-                    confirmPayload: args,
-                    message: `Post demand: ${args.itemName}, budget ₹${args.budgetPerUnit}/${args.unit}?`,
+                    confirmPayload: {
+                        itemName: args.itemName,
+                        description: args.description,
+                        expectedPrice: args.expectedPrice || args.budgetPerUnit,
+                        quantityNeeded: args.unit ? `${args.quantityNeeded} ${args.unit}` : String(args.quantityNeeded),
+                        category: args.category,
+                        location: args.location,
+                    },
+                    message: `Post demand: ${args.itemName}, budget ₹${args.expectedPrice || args.budgetPerUnit}/${args.unit}?`,
                 },
             };
         }
@@ -566,10 +581,23 @@ export async function executeConfirmedAction(
     payload: any
 ): Promise<any> {
     switch (action) {
-        case 'create_marketplace_listing':
-            return marketplaceService.createItem(userId, payload);
-        case 'create_demand_post':
-            return marketplaceService.createDemand(userId, payload);
+        case 'create_marketplace_listing': {
+            const mappedPayload = { ...payload };
+            if (payload.quantityAvailable && !payload.quantity) {
+                mappedPayload.quantity = payload.unit ? `${payload.quantityAvailable} ${payload.unit}` : String(payload.quantityAvailable);
+            }
+            return marketplaceService.createItem(userId, mappedPayload);
+        }
+        case 'create_demand_post': {
+            const mappedPayload = { ...payload };
+            if (payload.budgetPerUnit && !payload.expectedPrice) {
+                mappedPayload.expectedPrice = payload.budgetPerUnit;
+            }
+            if (typeof payload.quantityNeeded === 'number') {
+                mappedPayload.quantityNeeded = payload.unit ? `${payload.quantityNeeded} ${payload.unit}` : String(payload.quantityNeeded);
+            }
+            return marketplaceService.createDemand(userId, mappedPayload);
+        }
         case 'join_community':
             return CommunityService.joinCommunity(userId, payload.communityId);
         default:
