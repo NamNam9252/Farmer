@@ -11,6 +11,7 @@ import notificationRoutes from './modules/notifications/notification.routes.js';
 import marketplaceNewRoutes from './modules/marketplace-new/marketplace-new.routes.js';
 import newsRoutes from './modules/news/news.route.js';
 import schemesRoutes from './modules/news/schemes.route.js';
+import agentRoutes from './modules/agent/agent.routes.js';
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/marketplace', marketplaceNewRoutes);
 router.use('/news', newsRoutes);
 router.use('/schemes', schemesRoutes);
+router.use('/agent', agentRoutes);
 
 export default router;

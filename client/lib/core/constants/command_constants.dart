@@ -10,6 +10,7 @@ class CommandConstants {
     RouteNames.cropRecommendation: ['crop', 'recommendation', 'fasal', 'kheti', 'production'],
     RouteNames.marketplaceNew: ['marketplace', 'buy', 'sell', 'vyapar', 'trade', 'listing'],
     RouteNames.community: ['community', 'group', 'samuh', 'charcha', 'forum'],
+    RouteNames.chatbot: ['chatbot', 'bot', 'assistant', 'sahayak', 'help me', 'madad'],
   };
 
   static String? getRouteFromCommand(String input) {
