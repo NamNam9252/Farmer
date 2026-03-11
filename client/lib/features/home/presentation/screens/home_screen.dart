@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../notifications/presentation/widgets/notification_sheet.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/location_provider.dart';
 import '../../../community/presentation/providers/community_provider.dart';
@@ -91,6 +91,12 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        elevation: 6,
+        onPressed: () => context.push(RouteNames.chatbot),
+        child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 26),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           // 1. Force refresh location
