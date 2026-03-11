@@ -126,7 +126,10 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               _buildServicesSection(context, isHindi),
               const SizedBox(height: 24),
+              const SizedBox(height: 24),
               _buildMandiPricesSection(isHindi),
+              const SizedBox(height: 24),
+              _buildNewsSection(context, isHindi),
             ],
           ),
         ),
@@ -624,7 +627,7 @@ class HomeScreen extends ConsumerWidget {
         iconColor: Colors.white,
         iconBgColor: const Color(0xFF1E88E5),
         cardBgColor: const Color(0xFFE3F2FD),
-        onTap: () => _showComingSoon(context, isHindi),
+        onTap: () => context.push(RouteNames.schemes),
       ),
       _ServiceItem(
         labelEn: 'Community\nFund',
@@ -968,6 +971,96 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildNewsSection(BuildContext context, bool isHindi) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isHindi ? 'नवीनतम कृषि समाचार' : 'Latest Agri News',
+                style: AppTextStyles.headline2,
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.arrow_forward_rounded, color: AppColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 220,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 280,
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha:0.1),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                          image: const DecorationImage(
+                            image: NetworkImage('https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=2070&auto=format&fit=crop'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isHindi ? 'नई योजना: किसान क्रेडिट कार्ड' : 'New Scheme: Kisan Credit Card',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isHindi ? 'आज से आवेदन शुरू' : 'Applications open today',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ServiceItem {

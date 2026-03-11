@@ -9,6 +9,8 @@ import cropRecommendationRoutes from './modules/crop-recommendation/crop-recomme
 import communityRoutes from './modules/community/community.routes.js';
 import notificationRoutes from './modules/notifications/notification.routes.js';
 import marketplaceNewRoutes from './modules/marketplace-new/marketplace-new.routes.js';
+import newsRoutes from './modules/news/news.route.js';
+import schemesRoutes from './modules/news/schemes.route.js';
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.use('/crop-recommendation', cropRecommendationRoutes);
 router.use('/community', communityRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/marketplace', marketplaceNewRoutes);
+router.use('/news', newsRoutes);
+router.use('/schemes', schemesRoutes);
 
 export default router;
