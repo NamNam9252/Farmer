@@ -1,9 +1,12 @@
 import { dedup_article } from "../../core/utils/dedup.util";
 import { KrishiJagaranSource } from "./crawler/sources/krishijagaran.source";
-import { NewsRepository } from "./news.repository";
+import { NewsRepository } from "./news.repository.js";
 
 export class NewsService {
-  constructor() {}
+  async getAllNews() {
+    return NewsRepository.get_recent_articles();
+  }
+  constructor() { }
 
   public async crawl_news() {
     const crawled = await KrishiJagaranSource.get_articles();

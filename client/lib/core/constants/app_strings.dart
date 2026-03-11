@@ -150,4 +150,8 @@ class AppStrings {
   static const String rainChanceHindi = 'बारिश की संभावना';
   static const String humidityLabel = 'Humidity';
   static const String humidityLabelHindi = 'नमी';
+
+  // Schemes
+  static const String schemesTitle = 'Government Schemes';
+  static const String schemesTitleHindi = 'सरकारी योजनाएं';
 }

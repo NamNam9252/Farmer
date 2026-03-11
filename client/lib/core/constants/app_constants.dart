@@ -14,6 +14,8 @@ class AppConstants {
   static const String weatherEndpoint = '/weather';
   static const String cropRecommendationEndpoint = '/crop-recommendation/recommend';
   static const String communityEndpoint = '/community';
+  static const String schemesEndpoint = '/schemes';
+  static const String newsEndpoint = '/news';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 60);
