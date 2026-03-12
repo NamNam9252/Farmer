@@ -135,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               _buildMandiPricesSection(isHindi),
               const SizedBox(height: 24),
-              _buildNewsSection(context, isHindi),
+              // _buildNewsSection(context, isHindi),
             ],
           ),
         ),
