@@ -666,6 +666,13 @@ model User {
   marketplaceSentOffers       MarketplaceNewDemandOffer[] @relation("SellerOffers")
   marketplaceIncomingOffers   MarketplaceNewDemandOffer[] @relation("BuyerOffers")
 
+  // Warehouse
+  ownedListings    WarehouseListing[]      @relation("OwnedListings")
+  submittedOffers  WarehouseRentalOffer[]  @relation("SubmittedOffers")
+  ownedRentals     WarehouseRental[]       @relation("OwnedRentals")
+  leasedRentals    WarehouseRental[]       @relation("LeasedRentals")
+  ownedInventory   WarehouseInventoryItem[] @relation("OwnedInventory")
+
   @@index([role])
   @@index([status])
   @@index([isDeleted])
@@ -745,6 +752,9 @@ model Location {
   orderDeliveries     Order[]              @relation("OrderDeliveryLocation")
   laborProfiles       LaborProfile[]
   communities         Community[]          @relation("CommunityLocation")
+
+  warehouseListings  WarehouseListing[]
+  inventoryItems     WarehouseInventoryItem[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -2760,4 +2770,122 @@ model MarketplaceNewDemandOffer {
   @@index([sellerId])
   @@index([buyerId])
   @@map("marketplace_new_demand_offers")
+}
+
+// Add these to your existing schema.prisma
+
+enum WarehouseListingStatus {
+  OPEN
+  RENTED
+  CLOSED
+}
+
+enum WarehouseOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum WarehouseRentalStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum WarehouseSourceType {
+  OWNED
+  LEASED
+}
+
+enum WarehouseItemType {
+  CROP
+  MACHINERY
+  EQUIPMENT
+  INPUT
+  OTHER
+}
+
+model WarehouseListing {
+  id                  String                 @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId             String                 @db.ObjectId
+  locationId          String                 @db.ObjectId
+  title               String
+  totalAreaSqft       Float
+  askingPricePerMonth Float
+  availableFrom       DateTime
+  availableUntil      DateTime
+  amenities           String[]
+  status              WarehouseListingStatus @default(OPEN)
+  latitude            Float
+  longitude           Float
+  isDeleted           Boolean                @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  owner    User       @relation("OwnedListings", fields: [ownerId], references: [id])
+  location Location   @relation(fields: [locationId], references: [id])
+  offers   WarehouseRentalOffer[]
+  rentals  WarehouseRental[]
+}
+
+model WarehouseRentalOffer {
+  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  listingId            String               @db.ObjectId
+  offererId            String               @db.ObjectId
+  offeredPricePerMonth Float
+  requestedFrom        DateTime
+  requestedUntil       DateTime
+  message              String?
+  status               WarehouseOfferStatus @default(PENDING)
+  respondedAt          DateTime?
+  createdAt            DateTime             @default(now())
+
+  listing  WarehouseListing @relation(fields: [listingId], references: [id])
+  offerer  User             @relation("SubmittedOffers", fields: [offererId], references: [id])
+  rental   WarehouseRental?
+}
+
+model WarehouseRental {
+  id          String                @id @default(auto()) @map("_id") @db.ObjectId
+  listingId   String                @db.ObjectId
+  offerId     String                @unique @db.ObjectId
+  ownerId     String                @db.ObjectId
+  tenantId    String                @db.ObjectId
+  monthlyRent Float
+  startDate   DateTime
+  endDate     DateTime
+  status      WarehouseRentalStatus @default(ACTIVE)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  listing   WarehouseListing       @relation(fields: [listingId], references: [id])
+  offer     WarehouseRentalOffer   @relation(fields: [offerId], references: [id])
+  owner     User                   @relation("OwnedRentals",  fields: [ownerId],  references: [id])
+  tenant    User                   @relation("LeasedRentals", fields: [tenantId], references: [id])
+  inventory WarehouseInventoryItem[]
+}
+
+model WarehouseInventoryItem {
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId    String              @db.ObjectId
+  sourceType WarehouseSourceType
+  rentalId   String?             @db.ObjectId
+  locationId String?             @db.ObjectId
+  itemType   WarehouseItemType
+  name       String
+  quantity   Float
+  unit       String
+  batchLabel String?
+  expiryDate DateTime?
+  storedAt   DateTime            @default(now())
+  isDeleted  Boolean             @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  owner    User             @relation("OwnedInventory", fields: [ownerId],   references: [id])
+  rental   WarehouseRental? @relation(fields: [rentalId],   references: [id])
+  location Location?        @relation(fields: [locationId], references: [id])
 }
