@@ -263,6 +263,8 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.schemes,
             builder: (context, state) => const SchemesScreen(),
+          ),
+          GoRoute(
             path: RouteNames.chatbot,
             builder: (context, state) => const ChatbotScreen(),
           ),
