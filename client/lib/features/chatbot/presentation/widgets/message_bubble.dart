@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/tts_service.dart';
 import '../../data/models/chat_models.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
   final VoidCallback? onConfirmAction;
   final VoidCallback? onNavigateAction;
@@ -42,7 +44,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (message.isLoading) {
       return _buildTypingIndicator();
     }
@@ -143,6 +145,68 @@ class MessageBubble extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // TTS Control for Assistant
+                if (!isUser && !message.isLoading) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // Prioritize ttsLanguageHint from backend for custom voice summary
+                          final String lang = message.ttsLanguageHint ?? 
+                              message.languageHint ?? 
+                              (message.content.contains(RegExp(r'[\u0900-\u097F]')) ? 'hi' : 'en');
+                          
+                          // Use ttsMessage if available, otherwise fallback to main content
+                          final String textToSpeak = message.ttsMessage ?? message.content;
+
+                          ref.read(ttsServiceProvider).speak(
+                                textToSpeak,
+                                lang,
+                              );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.volume_up_rounded, size: 14, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                isUser ? '' : 'Listen',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Stop button (optional, but helpful)
+                      GestureDetector(
+                        onTap: () => ref.read(ttsServiceProvider).stop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          ),
+                          child: const Icon(Icons.stop_rounded, size: 14, color: Colors.grey),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
 
                 // Action buttons
                 if (message.action != null) ...[

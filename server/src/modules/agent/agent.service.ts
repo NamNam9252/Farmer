@@ -321,6 +321,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 
 // ─── System Prompt ───────────────────────────────────────────
 const getSystemPrompt = (lat?: number, lng?: number, imagePath?: string) => `You are **KrishiMitra** (कृषिमित्र), the intelligent AI assistant for the "Farmer One Stop Solution" app. You help Indian farmers in both Hindi and English.
+The user is interacting with you via **VOICE** or **TEXT**. 
 
 ${lat && lng ? `## User Context:
 - Current Latitude: ${lat}
@@ -343,15 +344,15 @@ You can perform ANY action a user can do manually in the app:
 7. **Advisory** — Farming advisory based on current field conditions
 8. **Profile** — View user profile information
 
-## Rules:
-- Respond in the SAME LANGUAGE the user uses. If they speak Hindi, reply in Hindi. If English, reply in English.
-- **Use Markdown Formatting**: Always use markdown to make your responses readable. 
-  - Use **bold** for emphasis or key terms.
-  - Use bullet points or numbered lists for steps or lists of items.
-  - Use ### Headers to organize long responses.
-- **STRICT: Do NOT use Markdown tables.** Tables do not fit on mobile screens.
-- For comparisons, use short bullet lists or compact key-value lines instead.
-- For WRITE operations (creating listings, joining communities), ALWAYS call the tool with type "confirm" so the user sees a confirmation popup BEFORE the action happens.
+## Rules for Response:
+- **DUAL OUTPUT**: You can provide your response in two formats. 
+  1. **Option A (Natural)**: Just write plain text. The system will automatically generate a clean summary for TTS.
+  2. **Option B (Structured)**: If you want a specific, custom TTS summary, output a JSON object like this: {"message": "Visual text with emojis", "ttsMessage": "Short clean summary for voice"}.
+- **Visual 'message'** can contain markdown, emojis, and details.
+- **Audio 'ttsMessage'** MUST be in **HINGLISH (Mostly Hindi)** regardless of the visual message language. It should be short (2-3 sentences), simple, and very natural to listen to. **NO EMOJIS, NO MARKDOWN, NO SPECIAL CHARACTERS.**
+- Respond visually in the SAME LANGUAGE the user uses (Hindi or English).
+- **STRICT: Do NOT use Markdown tables.**
+- For WRITE operations (creating listings, joining communities), ALWAYS call the tool with type "confirm".
 - When navigating, briefly explain what the page does.
 - When the user query is ambiguous, ask clarifying questions. For example, if they say "sell wheat" — ask about price, quantity, unit.
 - Keep responses concise and farmer-friendly. Avoid jargon.
@@ -359,18 +360,16 @@ You can perform ANY action a user can do manually in the app:
 - For marketplace listings: ask about item name, price, unit, quantity, and category step by step if user hasn't provided them.
 - You can see images if the user sends one — describe what you see and suggest disease analysis if it's a crop image.
 
-## Available Pages:
-- Home (/) — Main dashboard
-- Disease Detection (/disease) — Upload crop photos for AI disease analysis
-- Market (/market) — Live mandi prices
-- Marketplace (/marketplace-new) — Buy/sell farm products
-- Post Item (/marketplace-new/post-item) — Sell something
-- Post Demand (/marketplace-new/post-demand) — Post a buy request
-- Browse Items (/marketplace-new/browse-items) — Browse things for sale
-- Community (/community) — Farmer communities and chat
-- Advisory (/advisory) — Smart farming advice
-- Crop Recommendation (/crop-recommendation) — AI crop suggestions
-- Profile (/profile) — User account
+## Available Pages and Hindi Names:
+- Home (/) — Main dashboard (मुख्य पन्ना)
+- Disease Detection (/disease) — Crop disease analysis (बीमारी की जांच)
+- Market (/market) — Live mandi prices (मंडी भाव)
+- Marketplace (/marketplace-new) — Buy/sell (खरीद-बेच)
+- Schemes (/schemes) — Government schemes (सरकारी योजनाएं)
+- Community (/community) — Farmer communities (किसान समूह)
+- Advisory (/advisory) — Farming advice (खेती की सलाह)
+- Crop Recommendation (/crop-recommendation) — Crop suggestions (फसल सुझाव)
+- Profile (/profile) — User account (मेरी प्रोफाइल)
 
 Be helpful, warm, and proactive. You are the farmer's best digital companion! 🌾`;
 
@@ -395,6 +394,56 @@ interface AgentAction {
 interface AgentResponse {
     message: string;
     action?: AgentAction;
+    languageHint?: 'hi' | 'en';
+    ttsMessage?: string;
+    ttsLanguageHint?: 'hi' | 'en';
+}
+
+function detectLanguage(text: string): 'hi' | 'en' {
+    // Check for Devanagari range: \u0900-\u097F
+    const hindiRegex = /[\u0900-\u097F]/;
+    return hindiRegex.test(text) ? 'hi' : 'en';
+}
+
+function createTtsMessage(text: string): string {
+    // Remove markdown patterns
+    let clean = text
+        .replace(/[#*`_~|>]/g, '') // Basic markdown
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links [text](url) -> text
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, ''); // Images
+
+    // Remove emojis and special symbols
+    clean = clean.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}]/gu, '');
+    
+    // Trim and normalize whitespace
+    clean = clean.trim().replace(/\s+/g, ' ');
+    
+    // Limit to 3 sentences
+    const sentences = clean.split(/[.!?।]/).filter(s => s.trim().length > 0);
+    if (sentences.length > 3) {
+        return sentences.slice(0, 3).join('. ') + '.';
+    }
+    
+    return clean;
+}
+
+function parseAgentContent(content: string): { message: string, ttsMessage?: string } {
+    try {
+        // Try to see if AI returned JSON
+        const parsed = JSON.parse(content);
+        if (parsed.message) {
+            return {
+                message: parsed.message,
+                ttsMessage: parsed.ttsMessage || createTtsMessage(parsed.message)
+            };
+        }
+    } catch {
+        // Not JSON, use as is
+    }
+    return {
+        message: content,
+        ttsMessage: createTtsMessage(content)
+    };
 }
 
 async function executeTool(
@@ -759,8 +808,13 @@ export async function handleChat(
 
         // If no tool calls, return plain text
         if (!choice.message.tool_calls || choice.message.tool_calls.length === 0) {
+            const content = choice.message.content || 'I could not process that request.';
+            const parsed = parseAgentContent(content);
             return {
-                message: choice.message.content || 'I could not process that request.',
+                message: parsed.message,
+                languageHint: detectLanguage(parsed.message),
+                ttsMessage: parsed.ttsMessage,
+                ttsLanguageHint: detectLanguage(parsed.ttsMessage || parsed.message),
             };
         }
 
@@ -792,11 +846,15 @@ export async function handleChat(
             max_tokens: 1024,
         });
 
-        const finalMessage = followUp.choices[0].message.content || 'Done!';
+        const finalContent = followUp.choices[0].message.content || 'Done!';
+        const parsed = parseAgentContent(finalContent);
 
         return {
-            message: finalMessage,
+            message: parsed.message,
             action,
+            languageHint: detectLanguage(parsed.message),
+            ttsMessage: parsed.ttsMessage,
+            ttsLanguageHint: detectLanguage(parsed.ttsMessage || parsed.message),
         };
     } catch (error: any) {
         console.error('Agent error:', error);

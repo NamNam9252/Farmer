@@ -4,6 +4,9 @@ class ChatMessage {
   final String content;
   final DateTime timestamp;
   final AgentAction? action;
+  final String? languageHint;
+  final String? ttsMessage;
+  final String? ttsLanguageHint;
   final bool isLoading;
   final String? imagePath;
   final bool isLocalImage;
@@ -14,6 +17,9 @@ class ChatMessage {
     required this.content,
     DateTime? timestamp,
     this.action,
+    this.languageHint,
+    this.ttsMessage,
+    this.ttsLanguageHint,
     this.isLoading = false,
     this.imagePath,
     this.isLocalImage = false,
@@ -25,6 +31,9 @@ class ChatMessage {
         'content': content,
         'timestamp': timestamp.toIso8601String(),
         'isLoading': isLoading,
+        'languageHint': languageHint,
+        'ttsMessage': ttsMessage,
+        'ttsLanguageHint': ttsLanguageHint,
       };
 
   Map<String, dynamic> toApiMessage() => {
@@ -68,8 +77,17 @@ class AgentAction {
 class AgentResponse {
   final String message;
   final AgentAction? action;
+  final String? languageHint;
+  final String? ttsMessage;
+  final String? ttsLanguageHint;
 
-  AgentResponse({required this.message, this.action});
+  AgentResponse({
+    required this.message, 
+    this.action, 
+    this.languageHint,
+    this.ttsMessage,
+    this.ttsLanguageHint,
+  });
 
   factory AgentResponse.fromJson(Map<String, dynamic> json) {
     return AgentResponse(
@@ -77,6 +95,9 @@ class AgentResponse {
       action: json['action'] != null
           ? AgentAction.fromJson(json['action'] as Map<String, dynamic>)
           : null,
+      languageHint: json['languageHint'],
+      ttsMessage: json['ttsMessage'],
+      ttsLanguageHint: json['ttsLanguageHint'],
     );
   }
 }
