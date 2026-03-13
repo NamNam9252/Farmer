@@ -6,6 +6,7 @@ import '../../data/models/chat_models.dart';
 import '../../../../core/constants/command_constants.dart';
 import '../../../../router/app_router.dart';
 import '../../../../core/services/location_provider.dart';
+import '../../../../core/services/tts_service.dart';
 
 // ─── State ────────────────────────────────────────────────
 class ChatbotState {
@@ -58,12 +59,14 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
           role: 'assistant',
           content:
               'नमस्ते! 🌾 मैं कृषिमित्र हूँ — आपका AI सहायक।\n\nHello! I\'m KrishiMitra — your AI farming assistant.\n\nI can help you with:\n🌤️ Weather updates\n📊 Market prices\n🛒 Buy/sell on marketplace\n👥 Find communities\n🌱 Crop recommendations\n🔍 Disease detection\n\nBataiye, kya madad chahiye? (How can I help?)',
+          ttsMessage: 'Namaste! Main KrishiMitra hoon, aapka AI sahayak. Hello! I am KrishiMitra, your AI farming assistant. Tell me, how can I help you today?',
+          languageHint: 'hi',
         ),
       ],
     );
   }
 
-  Future<void> sendMessage(String text, {BuildContext? context}) async {
+  Future<void> sendMessage(String text, {BuildContext? context, bool isVoice = false}) async {
     if (text.trim().isEmpty && state.selectedImagePath == null) return;
 
     // Add user message
@@ -117,6 +120,9 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
         role: 'assistant',
         content: response.message,
         action: response.action,
+        languageHint: response.languageHint,
+        ttsMessage: response.ttsMessage,
+        ttsLanguageHint: response.ttsLanguageHint,
       );
 
       // Remove loading message and add real response
@@ -129,6 +135,14 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
         isLoading: false,
         isOffline: false,
       );
+
+      // Trigger TTS if it was a voice input
+      if (isVoice) {
+        _ref.read(ttsServiceProvider).speak(
+          response.ttsMessage ?? response.message, 
+          response.ttsLanguageHint ?? response.languageHint ?? 'hi',
+        );
+      }
 
       // Handle navigation action if context is available
       if (context != null && response.action != null) {

@@ -95,16 +95,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        elevation: 6,
-        onPressed: () => context.push(RouteNames.chatbot),
-        child: const Icon(
-          Icons.smart_toy_rounded,
-          color: Colors.white,
-          size: 26,
-        ),
-      ),
+
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {

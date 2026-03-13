@@ -302,14 +302,14 @@ class AppIcons {
   }
 
   static String navDisease({bool active = false}) {
-    final c = active ? '#2E7D32' : '#9E9E9E';
-    final b = active ? '#E8F5E9' : '#F5F5F5';
+    final c = active ? '#D32F2F' : '#9E9E9E';
+    final b = active ? '#FFEBEE' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <path d="M6 26 Q6 10 22 4 Q25 17 14 24Z" fill="$b" stroke="$c" stroke-width="2"/>
   <path d="M6 26 Q16 19 22 4" fill="none" stroke="$c" stroke-width="1.5"/>
-  <circle cx="13" cy="17" r="2" fill="${active ? '#E53935' : '#BDBDBD'}"/>
-  <circle cx="17" cy="12" r="1.5" fill="${active ? '#E53935' : '#BDBDBD'}"/>
+  <circle cx="13" cy="17" r="2" fill="${active ? '#FF5252' : '#BDBDBD'}"/>
+  <circle cx="17" cy="12" r="1.5" fill="${active ? '#FF5252' : '#BDBDBD'}"/>
   <circle cx="22" cy="20" r="6" fill="none" stroke="$c" stroke-width="2"/>
   <line x1="26.2" y1="24.2" x2="30" y2="28" stroke="$c" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
@@ -330,13 +330,48 @@ class AppIcons {
 ''';
   }
 
+  static String navSchemes({bool active = false}) {
+    final c = active ? '#1976D2' : '#9E9E9E';
+    final b = active ? '#E3F2FD' : '#F5F5F5';
+    return '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect x="6" y="6" width="20" height="22" rx="3" fill="$b" stroke="$c" stroke-width="2"/>
+  <rect x="10" y="12" width="12" height="2" rx="1" fill="$c" opacity="0.6"/>
+  <rect x="10" y="17" width="8" height="2" rx="1" fill="$c" opacity="0.6"/>
+  <rect x="10" y="22" width="10" height="2" rx="1" fill="$c" opacity="0.6"/>
+  <circle cx="24" cy="8" r="5" fill="${active ? '#FFA000' : '#BDBDBD'}" stroke="white" stroke-width="1.5"/>
+</svg>
+''';
+  }
+
   static String navProfile({bool active = false}) {
-    final c = active ? '#2E7D32' : '#9E9E9E';
-    final b = active ? '#E8F5E9' : '#F5F5F5';
+    final c = active ? '#7B1FA2' : '#9E9E9E';
+    final b = active ? '#F3E5F5' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <circle cx="16" cy="11" r="7" fill="$b" stroke="$c" stroke-width="2"/>
   <path d="M4 30 Q4 20 16 20 Q28 20 28 30" fill="$b" stroke="$c" stroke-width="2" stroke-linecap="round"/>
+</svg>
+''';
+  }
+
+  static String navChatbot({bool active = false}) {
+    return '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Robot Head -->
+  <rect x="30" y="48" width="40" height="30" rx="8" fill="white"/>
+  <!-- Eyes -->
+  <circle cx="40" cy="58" r="3" fill="#2E7D32"/>
+  <circle cx="60" cy="58" r="3" fill="#2E7D32"/>
+  <!-- Antenna -->
+  <line x1="50" y1="48" x2="50" y2="38" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="50" cy="38" r="4" fill="white"/>
+  <!-- Smile -->
+  <path d="M42 68 Q50 73 58 68" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"/>
+  <!-- Speech Bubble -->
+  <path d="M55 20 L80 20 L80 40 L67 40 L60 47 L60 40 L55 40 Z" fill="white"/>
+  <rect x="60" y="27" width="12" height="2" rx="1" fill="#2E7D32"/>
+  <rect x="60" y="33" width="8" height="2" rx="1" fill="#2E7D32"/>
 </svg>
 ''';
   }

@@ -130,8 +130,9 @@ GoRouter appRouter(Ref ref) {
           final location = state.uri.path;
           int currentIndex = 0;
           if (location.startsWith(RouteNames.disease)) currentIndex = 1;
-          if (location.startsWith(RouteNames.market)) currentIndex = 2;
-          if (location.startsWith(RouteNames.profile)) currentIndex = 3;
+          if (location.startsWith(RouteNames.chatbot)) currentIndex = 2;
+          if (location.startsWith(RouteNames.schemes)) currentIndex = 3;
+          if (location.startsWith(RouteNames.profile)) currentIndex = 4;
 
           return AppBottomNavBar(currentIndex: currentIndex, child: child);
         },
