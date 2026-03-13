@@ -1,0 +1,308 @@
+{
+  "apple apple scab": {
+    "diseaseNameHindi": "सेब का स्कैब",
+    "description": "Apple scab caused by Venturia inaequalis fungus. It forms dark, olive-green to black velvety spots on leaves and fruit.",
+    "descriptionHindi": "वेंचुरिया इनेक्वलिस कवक के कारण होने वाला सेब का स्कैब। यह पत्तियों और फलों पर गहरे, जैतून-हरे से काले मखमली धब्बे बनाता है।",
+    "treatment": "Apply fungicides like captan or myclobutanil. Prune to improve airflow.",
+    "treatmentHindi": "कैप्टन या माइक्लोबुटानिल जैसे फफूंदनाशक लगाएं। हवा के प्रवाह को सुधारने के लिए छंटाई करें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "apple black rot": {
+    "diseaseNameHindi": "सेब का ब्लैक रोट",
+    "description": "Fungal disease causing frogeye leaf spots, cankers on branches, and black rot on fruit.",
+    "descriptionHindi": "कवक रोग जो पत्तियों पर फ्रॉगआई धब्बे, शाखाओं पर घाव और फलों पर काला सड़न पैदा करता है।",
+    "treatment": "Remove dead wood and mummified fruit. Use fungicides in early spring.",
+    "treatmentHindi": "मरी हुई लकड़ी और सूखे फलों को हटा दें। शुरुआती वसंत में फफूंदनाशकों का प्रयोग करें।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "apple cedar apple rust": {
+    "diseaseNameHindi": "सेब का सिडर रस्ट",
+    "description": "Fungal disease that cycles between junipers and apple trees. Causes yellow-orange spots on leaves.",
+    "descriptionHindi": "कवक रोग जो जुनिपर और सेब के पेड़ों के बीच चक्र करता है। पत्तियों पर पीले-नारंगी धब्बे पैदा करता है।",
+    "treatment": "Apply sulfur or copper fungicides. Remove nearby juniper trees if possible.",
+    "treatmentHindi": "सल्फर या कॉपर फफूंदनाशक लगाएं। यदि संभव हो तो पास के जुनिपर पेड़ों को हटा दें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "apple healthy": {
+    "diseaseNameHindi": "स्वस्थ सेब",
+    "description": "Your apple tree appears healthy and free from major diseases.",
+    "descriptionHindi": "आपका सेब का पेड़ स्वस्थ और प्रमुख रोगों से मुक्त दिखाई देता है।",
+    "treatment": "Maintain regular watering and fertilization. Prune annually.",
+    "treatmentHindi": "नियमित रूप से पानी देना और खाद डालना जारी रखें। प्रतिवर्ष छंटाई करें।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "cherry including sour powdery mildew": {
+    "diseaseNameHindi": "चेरी का पाउडरी मिल्ड्यू",
+    "description": "Fungal disease appearing as a white powdery coating on leaves and fruit.",
+    "descriptionHindi": "पत्तियों और फलों पर सफेद चूर्ण की परत के रूप में दिखाई देने वाला कवक रोग।",
+    "treatment": "Use horticultural oils or sulfur fungicides. Improve sunlight penetration.",
+    "treatmentHindi": "बागवानी तेल या सल्फर फफूंदनाशक का प्रयोग करें। सूरज की रोशनी बढ़ाएँ।",
+    "severity": "low",
+    "isHealthy": false
+  },
+  "cherry including sour healthy": {
+    "diseaseNameHindi": "स्वस्थ चेरी",
+    "description": "The cherry plant is healthy.",
+    "descriptionHindi": "चेरी का पौधा स्वस्थ है।",
+    "treatment": "Standard care and monitor for pests.",
+    "treatmentHindi": "मानक देखभाल करें और कीटों की निगरानी करें।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "corn maize cercospora leaf spot gray leaf spot": {
+    "diseaseNameHindi": "मक्के का ग्रे लीफ स्पॉट",
+    "description": "Gray leaf spot causes rectangular gray lesions that run parallel to leaf veins.",
+    "descriptionHindi": "ग्रे लीफ स्पॉट आयताकार धूसर घाव पैदा करता है जो पत्तियों की नसों के समानांतर चलते हैं।",
+    "treatment": "Crop rotation and planting resistant hybrids. Apply fungicides if severe.",
+    "treatmentHindi": "फसल चक्र और प्रतिरोधी संकर लगाना। गंभीर होने पर फफूंदनाशक लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "corn maize common rust": {
+    "diseaseNameHindi": "मक्के का रस्ट",
+    "description": "Golden-brown pustules on leaves. It thrives in high humidity and cool temps.",
+    "descriptionHindi": "पत्तियों पर सुनहरे-भूरे रंग के दाने। यह उच्च आर्द्रता और ठंडे तापमान में पनपता है।",
+    "treatment": "Resistant varieties are the best control. Fungicides are rarely necessary.",
+    "treatmentHindi": "प्रतिरोधी किस्में सबसे अच्छा नियंत्रण हैं। फफूंदनाशक शायद ही कभी आवश्यक होते हैं।",
+    "severity": "low",
+    "isHealthy": false
+  },
+  "corn maize northern leaf blight": {
+    "diseaseNameHindi": "मक्के का ब्लाइट",
+    "description": "Large, cigar-shaped lesions on leaves. Can cause significant yield loss.",
+    "descriptionHindi": "पत्तियों पर बड़े, सिगार के आकार के घाव। उपज में महत्वपूर्ण नुकसान हो सकता है।",
+    "treatment": "Tillage and crop rotation. Use resistant hybrids.",
+    "treatmentHindi": "जुताई और फसल चक्र। प्रतिरोधी संकर का प्रयोग करें।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "corn maize healthy": {
+    "diseaseNameHindi": "स्वस्थ मक्का",
+    "description": "Corn crop is healthy.",
+    "descriptionHindi": "मक्के की फसल स्वस्थ है।",
+    "treatment": "Monitor soil nitrogen levels.",
+    "treatmentHindi": "मिट्टी के नाइट्रोजन स्तर की निगरानी करें।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "grape black rot": {
+    "diseaseNameHindi": "अंगूर का ब्लैक रोट",
+    "description": "Severe fungal disease causing clusters to shrivel and turn into black mummies.",
+    "descriptionHindi": "गंभीर कवक रोग जिससे गुच्छे सिकुड़ जाते हैं और काली 'ममी' में बदल जाते हैं।",
+    "treatment": "Prune infected fruit. Apply protectant fungicides like maneb.",
+    "treatmentHindi": "संक्रमित फलों की छंटाई करें। मानेब जैसे सुरक्षात्मक फफूंदनाशक लगाएं।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "grape esca black measles": {
+    "diseaseNameHindi": "अंगूर का ब्लैक मीजल्स",
+    "description": "Fungal disease causing skin spotting on fruit and 'tiger-stripe' patterns on leaves.",
+    "descriptionHindi": "फलों पर त्वचा के धब्बे और पत्तियों पर 'टाइगर-स्ट्राइप' पैटर्न पैदा करने वाला कवक रोग।",
+    "treatment": "Improve vine health. Prune out dead wood. Avoid large pruning wounds.",
+    "treatmentHindi": "बेल के स्वास्थ्य में सुधार करें। मरी हुई लकड़ी को हटा दें। बड़े घावों से बचें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "grape leaf blight isariopsis leaf spot": {
+    "diseaseNameHindi": "अंगूर का लीफ ब्लाइट",
+    "description": "Isariopsis fungus causes necrotic spots on leaves, potentially leading to defoliation.",
+    "descriptionHindi": "इसारियोप्सिस कवक पत्तियों पर नेक्रोटिक धब्बे पैदा करता है, जिससे पत्तियां झड़ सकती हैं।",
+    "treatment": "Maintain vineyard sanitation. Apply broad-spectrum fungicides.",
+    "treatmentHindi": "अंगूर के बाग की स्वच्छता बनाए रखें। व्यापक स्पेक्ट्रम फफूंदनाशक लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "grape healthy": {
+    "diseaseNameHindi": "स्वस्थ अंगूर",
+    "description": "Grapevine is healthy.",
+    "descriptionHindi": "अंगूर की बेल स्वस्थ है।",
+    "treatment": "Proper training and pruning.",
+    "treatmentHindi": "उचित प्रशिक्षण और छंटाई।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "peach bacterial spot": {
+    "diseaseNameHindi": "आड़ू का बैक्टीरियल स्पॉट",
+    "description": "Bacterial disease causing 'shot holes' in leaves and cracking on fruit skin.",
+    "descriptionHindi": "बैक्टीरिया जनित रोग जो पत्तियों में 'शॉट होल' और फलों की त्वचा पर दरारें पैदा करता है।",
+    "treatment": "Avoid excessive nitrogen. Use oxytetracycline or copper sprays.",
+    "treatmentHindi": "अत्यधिक नाइट्रोजन से बचें। ऑक्सीटेट्रासाइक्लिन या कॉपर स्प्रे का प्रयोग करें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "peach healthy": {
+    "diseaseNameHindi": "स्वस्थ आड़ू",
+    "description": "Peach tree is healthy.",
+    "descriptionHindi": "आड़ू का पेड़ स्वस्थ है।",
+    "treatment": "Water during dry spells.",
+    "treatmentHindi": "सूखे के दौरान पानी दें।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "pepper bell bacterial spot": {
+    "diseaseNameHindi": "मिर्च का बैक्टीरियल स्पॉट",
+    "description": "Bacterial infection causing small, dark, raised spots on leaves and fruit.",
+    "descriptionHindi": "बैक्टीरिया का संक्रमण पत्तियों और फलों पर छोटे, काले, उभरे हुए धब्बे पैदा करता है।",
+    "treatment": "Rotate with non-solanaceous crops. Use copper-based bactericides.",
+    "treatmentHindi": "गैर-सोलेनेसी फसलों के साथ चक्रानुक्रम करें। कॉपर-आधारित जीवाणुनाशकों का प्रयोग करें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "pepper bell healthy": {
+    "diseaseNameHindi": "स्वस्थ मिर्च",
+    "description": "Pepper plant is healthy.",
+    "descriptionHindi": "मिर्च का पौधा स्वस्थ है।",
+    "treatment": "Consistent fertilization.",
+    "treatmentHindi": "लगातार खाद डालना।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "potato early blight": {
+    "diseaseNameHindi": "आलू का अगेती झुलसा",
+    "description": "Fungal disease causing target-like brown spots on older leaves first.",
+    "descriptionHindi": "कवक रोग जो सबसे पहले पुरानी पत्तियों पर लक्ष्य जैसे भूरे धब्बे पैदा करता है।",
+    "treatment": "Use mancozeb or chlorothalonil. Avoid watering leaves.",
+    "treatmentHindi": "मैंकोजेब या क्लोरोथालोनिल का प्रयोग करें। पत्तियों को पानी देने से बचें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "potato late blight": {
+    "diseaseNameHindi": "आलू का पिछेती झुलसा",
+    "description": "Devastating disease causing large water-soaked spots that turn black.",
+    "descriptionHindi": "विनाशकारी रोग जो पानी से भीगे बड़े धब्बे पैदा करता है जो काले पड़ जाते हैं।",
+    "treatment": "Eliminate cull piles. Apply fungicides frequently during wet periods.",
+    "treatmentHindi": "अपशिष्ट ढेरों को खत्म करें। गीले समय में बार-बार फफूंदनाशक लगाएं।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "potato healthy": {
+    "diseaseNameHindi": "स्वस्थ आलू",
+    "description": "Potato crop is healthy.",
+    "descriptionHindi": "आलू की फसल स्वस्थ है।",
+    "treatment": "Standard cultural practices.",
+    "treatmentHindi": "मानक कृषि पद्धतियां।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "strawberry leaf scorch": {
+    "diseaseNameHindi": "स्ट्रॉबेरी का लीफ स्कोर्च",
+    "description": "Fungal disease causing purplish spots on leaves that later turn brown and dry up.",
+    "descriptionHindi": "कवक रोग जो पत्तियों पर बैंगनी रंग के धब्बे पैदा करता है जो बाद में भूरे होकर सूख जाते हैं।",
+    "treatment": "Remove old leaves after harvest. Use resistant cultivars.",
+    "treatmentHindi": "कटाई के बाद पुरानी पत्तियों को हटा दें। प्रतिरोधी किस्मों का प्रयोग करें।",
+    "severity": "low",
+    "isHealthy": false
+  },
+  "strawberry healthy": {
+    "diseaseNameHindi": "स्वस्थ स्ट्रॉबेरी",
+    "description": "Strawberry plant is healthy.",
+    "descriptionHindi": "स्ट्रॉबेरी का पौधा स्वस्थ है।",
+    "treatment": "Mulching and weed control.",
+    "treatmentHindi": "मल्चिंग और खरपतवार नियंत्रण।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "tomato bacterial spot": {
+    "diseaseNameHindi": "टमाटर का बैक्टीरियल स्पॉट",
+    "description": "Bacterial infection causing small, dark, water-soaked spots on leaves and stem.",
+    "descriptionHindi": "बैक्टीरिया का संक्रमण पत्तियों और तने पर छोटे, काले, पानी से भीगे धब्बे पैदा करता है।",
+    "treatment": "Rotate crops. Use copper sprays. Avoid handling wet plants.",
+    "treatmentHindi": "फसल चक्र अपनाएं। कॉपर स्प्रे का प्रयोग करें। गीले पौधों को हाथ न लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato early blight": {
+    "diseaseNameHindi": "टमाटर का अगेती झुलसा",
+    "description": "Fungal disease causing concentric rings on brown spots. Affects fruit and stems.",
+    "descriptionHindi": "कवक रोग जो भूरे धब्बों पर संकेंद्रित छल्ले बनाता है। फलों और तनों को प्रभावित करता है।",
+    "treatment": "Provide good spacing. Use organic mulches. Apply fungicides.",
+    "treatmentHindi": "अच्छी दूरी रखें। जैविक मल्च का प्रयोग करें। फफूंदनाशक लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato late blight": {
+    "diseaseNameHindi": "टमाटर का पिछेती झुलसा",
+    "description": "Caused by Phytophthora infestans. Rapidly spreads and kills plants in wet weather.",
+    "descriptionHindi": "फाइटोफ्थोरा इन्फेस्टन्स के कारण होता है। गीले मौसम में तेजी से फैलता है और पौधों को मार देता है।",
+    "treatment": "Destroy infected plants. Apply chlorothalonil or copper regularly.",
+    "treatmentHindi": "संक्रमित पौधों को नष्ट कर दें। क्लोरोथालोनिल या कॉपर नियमित रूप से लगाएं।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "tomato leaf mold": {
+    "diseaseNameHindi": "टमाटर का लीफ मोल्ड",
+    "description": "Fungal disease thriving in high humidity. Yellow spots appear on the top of leaves.",
+    "descriptionHindi": "उच्च आर्द्रता में पनपने वाला कवक रोग। पत्तियों के ऊपर पीले धब्बे दिखाई देते हैं।",
+    "treatment": "Minimize leaf wetness. Increase air ventilation. Fungicides can help.",
+    "treatmentHindi": "पत्तियों का गीलापन कम करें। वायु संचार बढ़ाएँ। फफूंदनाशक मदद कर सकते हैं।",
+    "severity": "low",
+    "isHealthy": false
+  },
+  "tomato septoria leaf spot": {
+    "diseaseNameHindi": "टमाटर का सेप्टोरिया स्पॉट",
+    "description": "Fungal disease causing circular spots with dark borders and gray centers.",
+    "descriptionHindi": "कवक रोग जो काले किनारों और धूसर केंद्रों वाले गोलाकार धब्बे बनाता है।",
+    "treatment": "Keep leaves dry. Use drip irrigation. Apply fungicides like Neem oil.",
+    "treatmentHindi": "पत्तियों को सूखा रखें। ड्रिप सिंचाई का प्रयोग करें। नीम के तेल जैसे फफूंदनाशक लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato spider mites two spotted spider mite": {
+    "diseaseNameHindi": "टमाटर का स्पाइडर माइट",
+    "description": "Tiny pests that suck plant sap, causing yellow mottling and webbing on leaves.",
+    "descriptionHindi": "छोटे कीट जो पौधे का रस चूसते हैं, जिससे पत्तियों पर पीले धब्बे और जाले बन जाते हैं।",
+    "treatment": "Increase humidity around plants. Use insecticidal soap or Neem oil.",
+    "treatmentHindi": "पौधों के चारों ओर आर्द्रता बढ़ाएं। कीटनाशक साबुन या नीम के तेल का प्रयोग करें।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato target spot": {
+    "diseaseNameHindi": "टमाटर का टारगेट स्पॉट",
+    "description": "Fungal disease causing brown spots with concentric circles (target look) on leaves.",
+    "descriptionHindi": "पत्तियों पर संकेंद्रित छल्लों (निशाने जैसा) के साथ भूरे धब्बे पैदा करने वाला कवक रोग।",
+    "treatment": "Improve airflow. Prune the bottom branches. Use azoxystrobin fungicides.",
+    "treatmentHindi": "हवा के प्रवाह में सुधार करें। निचली शाखाओं की छंटाई करें। एजोक्सिस्ट्रोबिन फफूंदनाशक लगाएं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato tomato yellow leaf curl virus": {
+    "diseaseNameHindi": "टमाटर का पीला पत्ता मरोड़ वायरस",
+    "description": "Viral disease spread by whiteflies. Leaves cup upwards and turn yellow.",
+    "descriptionHindi": "सफेद मक्खियों द्वारा फैलने वाला विषाणु रोग। पत्तियां ऊपर की ओर मुड़ जाती हैं और पीली हो जाती हैं।",
+    "treatment": "Control whiteflies. Remove and bury infected plants immediately.",
+    "treatmentHindi": "सफेद मक्खियों को नियंत्रित करें। संक्रमित पौधों को तुरंत हटा दें और दफन कर दें।",
+    "severity": "high",
+    "isHealthy": false
+  },
+  "tomato tomato mosaic virus": {
+    "diseaseNameHindi": "टमाटर का मोज़ेक वायरस",
+    "description": "Causes light and dark green mottling (mosaic pattern) on leaves. Can distort growth.",
+    "descriptionHindi": "पत्तियों पर हल्के और गहरे हरे रंग के धब्बे (मोज़ेक पैटर्न) पैदा करता है। विकास को विकृत कर सकता है।",
+    "treatment": "Wash hands after touching tobacco. Use virus-free seeds. No chemical cure.",
+    "treatmentHindi": "तंबाकू छूने के बाद हाथ धोएं। वायरस मुक्त बीजों का प्रयोग करें। कोई रासायनिक इलाज नहीं।",
+    "severity": "medium",
+    "isHealthy": false
+  },
+  "tomato healthy": {
+    "diseaseNameHindi": "स्वस्व टमाटर",
+    "description": "The tomato plant looks healthy with no signs of pests or disease.",
+    "descriptionHindi": "टमाटर का पौधा स्वस्थ लग रहा है, जिसमें कीटों या बीमारी के कोई लक्षण नहीं हैं।",
+    "treatment": "Monitor regularly and ensure deep watering.",
+    "treatmentHindi": "नियमित रूप से निगरानी करें और गहराई तक पानी देना सुनिश्चित करें।",
+    "severity": "none",
+    "isHealthy": true
+  },
+  "not detected": {
+    "diseaseNameHindi": "पहचान नहीं हो सकी",
+    "description": "Could not identify any specific disease.",
+    "descriptionHindi": "किसी विशिष्ट रोग की पहचान नहीं की जा सकी।",
+    "treatment": "Try taking a clearer photo of the affected leaf in good lighting.",
+    "treatmentHindi": "अच्छी रोशनी में प्रभावित पत्ती की स्पष्ट फोटो लेने का प्रयास करें।",
+    "severity": "none",
+    "isHealthy": false
+  }
+}
