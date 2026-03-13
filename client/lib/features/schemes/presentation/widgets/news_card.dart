@@ -4,11 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/news_model.dart';
+import 'localized_card_text.dart';
 
 class NewsCard extends StatelessWidget {
   final NewsModel news;
+  final bool isHindi;
 
-  const NewsCard({super.key, required this.news});
+  const NewsCard({super.key, required this.news, required this.isHindi});
 
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
@@ -41,8 +43,9 @@ class NewsCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          news.title,
+                        child: LocalizedCardText(
+                          text: news.title,
+                          isHindi: isHindi,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -60,7 +63,8 @@ class NewsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    news.source ?? 'Unknown source',
+                    news.source ??
+                        (isHindi ? 'अज्ञात स्रोत' : 'Unknown source'),
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -70,8 +74,9 @@ class NewsCard extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: controller,
-                      child: Text(
-                        news.content,
+                      child: LocalizedCardText(
+                        text: news.content,
+                        isHindi: isHindi,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textPrimary,
@@ -152,7 +157,8 @@ class NewsCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        news.source ?? 'Unknown source',
+                        news.source ??
+                            (isHindi ? 'अज्ञात स्रोत' : 'Unknown source'),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -172,8 +178,9 @@ class NewsCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  news.title,
+                LocalizedCardText(
+                  text: news.title,
+                  isHindi: isHindi,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -181,8 +188,9 @@ class NewsCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  news.content,
+                LocalizedCardText(
+                  text: news.content,
+                  isHindi: isHindi,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -203,9 +211,9 @@ class NewsCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Learn More',
-                          style: TextStyle(color: AppColors.primary),
+                        child: Text(
+                          isHindi ? 'और जानें' : 'Learn More',
+                          style: const TextStyle(color: AppColors.primary),
                         ),
                       ),
                     ),
@@ -220,7 +228,7 @@ class NewsCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Read Source'),
+                        child: Text(isHindi ? 'स्रोत पढ़ें' : 'Read Source'),
                       ),
                     ),
                   ],

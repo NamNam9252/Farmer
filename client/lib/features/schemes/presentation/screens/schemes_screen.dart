@@ -233,7 +233,7 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
           itemBuilder: (context, index) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: SchemeCard(scheme: filtered[index]),
+              child: SchemeCard(scheme: filtered[index], isHindi: isHindi),
             );
           },
         );
@@ -286,7 +286,7 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
           itemBuilder: (context, index) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: NewsCard(news: filtered[index]),
+              child: NewsCard(news: filtered[index], isHindi: isHindi),
             );
           },
         );

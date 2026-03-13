@@ -3,11 +3,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/scheme_model.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'localized_card_text.dart';
 
 class SchemeCard extends StatelessWidget {
   final SchemeModel scheme;
+  final bool isHindi;
 
-  const SchemeCard({super.key, required this.scheme});
+  const SchemeCard({super.key, required this.scheme, required this.isHindi});
 
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
@@ -40,8 +42,9 @@ class SchemeCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          scheme.title,
+                        child: LocalizedCardText(
+                          text: scheme.title,
+                          isHindi: isHindi,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -61,8 +64,9 @@ class SchemeCard extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: controller,
-                      child: Text(
-                        scheme.description,
+                      child: LocalizedCardText(
+                        text: scheme.description,
+                        isHindi: isHindi,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textPrimary,
@@ -115,7 +119,8 @@ class SchemeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        scheme.category?.toUpperCase() ?? 'GENERAL',
+                        scheme.category?.toUpperCase() ??
+                            (isHindi ? 'सामान्य' : 'GENERAL'),
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -138,7 +143,9 @@ class SchemeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        scheme.isNational ? 'NATIONAL' : 'STATE',
+                        scheme.isNational
+                            ? (isHindi ? 'राष्ट्रीय' : 'NATIONAL')
+                            : (isHindi ? 'राज्य' : 'STATE'),
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -154,8 +161,16 @@ class SchemeCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             const TextSpan(
-                              text: 'UP TO ',
+                              text: '',
                               style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.normal,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            TextSpan(
+                              text: isHindi ? 'तक ' : 'UP TO ',
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.normal,
                                 color: AppColors.textSecondary,
@@ -185,8 +200,9 @@ class SchemeCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  scheme.title,
+                LocalizedCardText(
+                  text: scheme.title,
+                  isHindi: isHindi,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -194,8 +210,9 @@ class SchemeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  scheme.description,
+                LocalizedCardText(
+                  text: scheme.description,
+                  isHindi: isHindi,
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -220,8 +237,10 @@ class SchemeCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            'Eligibility: ${scheme.eligibility}',
+                          child: LocalizedCardText(
+                            text:
+                                '${isHindi ? 'पात्रता' : 'Eligibility'}: ${scheme.eligibility}',
+                            isHindi: isHindi,
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
@@ -241,7 +260,7 @@ class SchemeCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Deadline: ${DateFormat('dd MMM yyyy').format(scheme.deadline!)}',
+                          '${isHindi ? 'अंतिम तिथि' : 'Deadline'}: ${DateFormat('dd MMM yyyy').format(scheme.deadline!)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.redAccent,
@@ -268,9 +287,9 @@ class SchemeCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'Apply Now',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          isHindi ? 'अभी आवेदन करें' : 'Apply Now',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -287,9 +306,9 @@ class SchemeCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text(
-                        'Learn More',
-                        style: TextStyle(
+                      child: Text(
+                        isHindi ? 'और जानें' : 'Learn More',
+                        style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
