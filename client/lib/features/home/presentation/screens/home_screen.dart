@@ -25,39 +25,43 @@ class HomeScreen extends ConsumerWidget {
     final isHindi = lang == 'hi';
     final weatherState = ref.watch(weatherProvider);
 
-
     // Trigger notification fetch on first load
     final notificationState = ref.watch(notificationProvider);
-    if (!notificationState.hasLoaded && 
-        !notificationState.isLoading && 
+    if (!notificationState.hasLoaded &&
+        !notificationState.isLoading &&
         notificationState.error == null) {
-      Future.microtask(() => ref.read(notificationProvider.notifier).loadNotifications());
+      Future.microtask(
+        () => ref.read(notificationProvider.notifier).loadNotifications(),
+      );
     }
 
     // Trigger eager location and community fetch
     final locState = ref.watch(locationProvider);
     final communityState = ref.watch(communityListProvider);
 
-    if (locState.position == null && !locState.isLoading && locState.error == null) {
+    if (locState.position == null &&
+        !locState.isLoading &&
+        locState.error == null) {
       Future.microtask(() async {
         await ref.read(locationProvider.notifier).refreshLocation();
         final updatedLoc = ref.read(locationProvider).position;
         if (updatedLoc != null) {
           // 1. Fetch communities
           if (communityState.communities.isEmpty && !communityState.isLoading) {
-            ref.read(communityListProvider.notifier).loadNearby(
-              updatedLoc.latitude, 
-              updatedLoc.longitude,
-            );
+            ref
+                .read(communityListProvider.notifier)
+                .loadNearby(updatedLoc.latitude, updatedLoc.longitude);
           }
           // 2. Fetch weather
           if (weatherState.weather == null && !weatherState.isLoading) {
-            ref.read(weatherProvider.notifier).fetchWeather(
-              latitude: updatedLoc.latitude,
-              longitude: updatedLoc.longitude,
-              district: updatedLoc.district,
-              stateName: updatedLoc.state,
-            );
+            ref
+                .read(weatherProvider.notifier)
+                .fetchWeather(
+                  latitude: updatedLoc.latitude,
+                  longitude: updatedLoc.longitude,
+                  district: updatedLoc.district,
+                  stateName: updatedLoc.state,
+                );
           }
         }
       });
@@ -66,12 +70,16 @@ class HomeScreen extends ConsumerWidget {
         !weatherState.isLoading &&
         weatherState.error == null) {
       // If location is already available but weather isn't, trigger weather
-      Future.microtask(() => ref.read(weatherProvider.notifier).fetchWeather(
-            latitude: locState.position!.latitude,
-            longitude: locState.position!.longitude,
-            district: locState.position!.district,
-            stateName: locState.position!.state,
-          ));
+      Future.microtask(
+        () => ref
+            .read(weatherProvider.notifier)
+            .fetchWeather(
+              latitude: locState.position!.latitude,
+              longitude: locState.position!.longitude,
+              district: locState.position!.district,
+              stateName: locState.position!.state,
+            ),
+      );
     }
 
     String userName = isHindi ? 'किसान' : 'Farmer';
@@ -80,9 +88,11 @@ class HomeScreen extends ConsumerWidget {
     }
 
     // Location from location provider or weather provider or fallback
-    String locationText = isHindi ? 'हापुड़, उत्तर प्रदेश' : 'Hapur, Uttar Pradesh';
+    String locationText =
+        isHindi ? 'हापुड़, उत्तर प्रदेश' : 'Hapur, Uttar Pradesh';
     if (locState.position != null) {
-      locationText = '${locState.position!.district}, ${locState.position!.state}';
+      locationText =
+          '${locState.position!.district}, ${locState.position!.state}';
     } else if (weatherState.district.isNotEmpty) {
       locationText = '${weatherState.district}, ${weatherState.state}';
     }
@@ -93,30 +103,37 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: AppColors.primary,
         elevation: 6,
         onPressed: () => context.push(RouteNames.chatbot),
-        child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 26),
+        child: const Icon(
+          Icons.smart_toy_rounded,
+          color: Colors.white,
+          size: 26,
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           // 1. Force refresh location
-          await ref.read(locationProvider.notifier).refreshLocation(force: true);
+          await ref
+              .read(locationProvider.notifier)
+              .refreshLocation(force: true);
           final updatedLoc = ref.read(locationProvider).position;
-          
+
           if (updatedLoc != null) {
             // 2. Refresh communities
-            await ref.read(communityListProvider.notifier).loadNearby(
-              updatedLoc.latitude,
-              updatedLoc.longitude,
-            );
-            
+            await ref
+                .read(communityListProvider.notifier)
+                .loadNearby(updatedLoc.latitude, updatedLoc.longitude);
+
             // 3. Refresh weather
-            await ref.read(weatherProvider.notifier).fetchWeather(
-              latitude: updatedLoc.latitude,
-              longitude: updatedLoc.longitude,
-              district: updatedLoc.district,
-              stateName: updatedLoc.state,
-            );
+            await ref
+                .read(weatherProvider.notifier)
+                .fetchWeather(
+                  latitude: updatedLoc.latitude,
+                  longitude: updatedLoc.longitude,
+                  district: updatedLoc.district,
+                  stateName: updatedLoc.state,
+                );
           }
-          
+
           // 4. Refresh notifications
           await ref.read(notificationProvider.notifier).loadNotifications();
         },
@@ -182,10 +199,7 @@ class HomeScreen extends ConsumerWidget {
                       color: AppColors.textSecondary,
                     ),
                     const SizedBox(width: 2),
-                    Text(
-                      locationText,
-                      style: AppTextStyles.body2,
-                    ),
+                    Text(locationText, style: AppTextStyles.body2),
                   ],
                 ),
               ],
@@ -198,7 +212,10 @@ class HomeScreen extends ConsumerWidget {
           Consumer(
             builder: (context, ref, child) {
               final notificationState = ref.watch(notificationProvider);
-              final unreadCount = notificationState.notifications.where((n) => !n.isRead).length;
+              final unreadCount =
+                  notificationState.notifications
+                      .where((n) => !n.isRead)
+                      .length;
 
               return GestureDetector(
                 onTap: () => NotificationSheet.show(context, ref, isHindi),
@@ -255,7 +272,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAlertBanner(BuildContext context, WeatherState weatherState, bool isHindi) {
+  Widget _buildAlertBanner(
+    BuildContext context,
+    WeatherState weatherState,
+    bool isHindi,
+  ) {
     final alerts = weatherState.weather?.alerts ?? [];
     if (alerts.isEmpty) return const SizedBox.shrink();
 
@@ -286,7 +307,10 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () => context.push(RouteNames.weatherDetails),
               child: Text(
                 isHindi ? 'देखें' : 'View',
-                style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -307,15 +331,17 @@ class HomeScreen extends ConsumerWidget {
 
     String subtitle;
     if (w == null) {
-      subtitle = weatherState.isLoading
-          ? (isHindi ? 'लोड हो रहा है...' : 'Loading...')
-          : (isHindi
-              ? 'मौसम डेटा उपलब्ध नहीं'
-              : 'Weather data unavailable');
+      subtitle =
+          weatherState.isLoading
+              ? (isHindi ? 'लोड हो रहा है...' : 'Loading...')
+              : (isHindi
+                  ? 'मौसम डेटा उपलब्ध नहीं'
+                  : 'Weather data unavailable');
     } else if (rainProb >= 50) {
-      subtitle = isHindi
-          ? 'बारिश की ${rainProb.round()}% संभावना'
-          : '${rainProb.round()}% chance of rain';
+      subtitle =
+          isHindi
+              ? 'बारिश की ${rainProb.round()}% संभावना'
+              : '${rainProb.round()}% chance of rain';
     } else if (humidityVal > 80) {
       subtitle = isHindi ? 'उच्च नमी' : 'High humidity';
     } else {
@@ -401,11 +427,7 @@ class HomeScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              Icon(
-                weatherIcon,
-                size: 72,
-                color: iconColor,
-              ),
+              Icon(weatherIcon, size: 72, color: iconColor),
             ],
           ),
         ),
@@ -452,8 +474,8 @@ class HomeScreen extends ConsumerWidget {
         onTap: () => context.go(RouteNames.disease),
       ),
       _ServiceItem(
-        labelEn: 'Schemes',
-        labelHi: 'योजनाएं',
+        labelEn: 'News &\nSchemes',
+        labelHi: 'समाचार\nयोजनाएं',
         icon: Icons.account_balance_rounded,
         iconColor: Colors.white,
         iconBgColor: const Color(0xFF1E88E5),
@@ -633,8 +655,8 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               _ServiceItem(
-                labelEn: 'Govt\nSchemes',
-                labelHi: 'सरकारी\nयोजनाएं',
+                labelEn: 'News &\nSchemes',
+                labelHi: 'समाचार\nयोजनाएं',
                 icon: Icons.account_balance_rounded,
                 iconColor: Colors.white,
                 iconBgColor: const Color(0xFF1E88E5),
@@ -767,14 +789,16 @@ class HomeScreen extends ConsumerWidget {
                       itemCount: allFeatures.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.78,
-                      ),
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.78,
+                          ),
                       itemBuilder: (_, index) {
                         return _ServiceCard(
-                            item: allFeatures[index], isHindi: isHindi);
+                          item: allFeatures[index],
+                          isHindi: isHindi,
+                        );
                       },
                     ),
                   ),
