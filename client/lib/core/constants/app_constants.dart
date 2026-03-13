@@ -9,6 +9,8 @@ class AppConstants {
   static const String reportsEndpoint = '/disease/reports';
   static const String marketEndpoint = '/market';
   static const String marketPricesEndpoint = '/market/prices';
+  static const String marketCommoditiesEndpoint = '/market/commodities';
+  static const String marketMarketsEndpoint = '/market/markets';
   static const String advisoryEndpoint = '/advisory/recommendation';
   static const String marketplaceNewEndpoint = '/marketplace';
   static const String weatherEndpoint = '/weather';

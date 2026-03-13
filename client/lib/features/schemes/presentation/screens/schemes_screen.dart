@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/language_provider.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
+import '../providers/news_provider.dart';
 import '../providers/schemes_provider.dart';
+import '../widgets/news_card.dart';
 import '../widgets/scheme_card.dart';
 
 class SchemesScreen extends ConsumerStatefulWidget {
@@ -14,8 +15,11 @@ class SchemesScreen extends ConsumerStatefulWidget {
   ConsumerState<SchemesScreen> createState() => _SchemesScreenState();
 }
 
-class _SchemesScreenState extends ConsumerState<SchemesScreen> {
-  String _searchQuery = '';
+class _SchemesScreenState extends ConsumerState<SchemesScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  String _schemeSearchQuery = '';
+  String _newsSearchQuery = '';
   String _selectedCategory = 'All';
 
   final List<Map<String, String>> _categories = [
@@ -29,166 +33,301 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this)..addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final schemesAsync = ref.watch(schemesControllerProvider);
     final lang = ref.watch(languageProvider);
     final isHindi = lang == 'hi';
+    final isSchemesTab = _tabController.index == 0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              isHindi ? AppStrings.schemesTitleHindi : AppStrings.schemesTitle,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            actions: const [
-              LanguageToggle(color: Colors.white),
-              SizedBox(width: 8),
-            ],
+      body: Column(
+        children: [
+          SharedHeader(
+            title: isHindi ? 'समाचार और योजनाएं' : 'News and Schemes',
           ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      onChanged: (val) => setState(() => _searchQuery = val),
-                      decoration: InputDecoration(
-                        hintText: isHindi ? 'योजनाएं खोजें...' : 'Search schemes...',
-                        hintStyle: const TextStyle(color: AppColors.textHint),
-                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                      ),
-                    ),
+          // Custom Styled TabBar Section
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              dividerColor: Colors.transparent,
+              onTap: (_) => setState(() {}),
+              tabs: [
+                Tab(
+                  height: 44,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.assignment_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Text(isHindi ? 'योजनाएं' : 'Schemes', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ],
                   ),
                 ),
-
-                // Categories
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                Tab(
+                  height: 44,
                   child: Row(
-                    children: _categories.map((cat) {
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.newspaper_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Text(isHindi ? 'समाचार' : 'News', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Search Section
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                onChanged: (val) {
+                  setState(() {
+                    if (isSchemesTab) {
+                      _schemeSearchQuery = val;
+                    } else {
+                      _newsSearchQuery = val;
+                    }
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText:
+                      isSchemesTab
+                          ? (isHindi ? 'योजनाएं खोजें...' : 'Search schemes...')
+                          : (isHindi ? 'समाचार खोजें...' : 'Search news...'),
+                  hintStyle: const TextStyle(color: AppColors.textHint),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.primary,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (isSchemesTab)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children:
+                    _categories.map((cat) {
                       final isSelected = _selectedCategory == cat['value'];
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ChoiceChip(
                           label: Text(isHindi ? cat['hi']! : cat['en']!),
                           selected: isSelected,
-                          onSelected: (val) => setState(() => _selectedCategory = cat['value']!),
+                          onSelected:
+                              (_) => setState(
+                                () => _selectedCategory = cat['value']!,
+                              ),
                           backgroundColor: Colors.white,
                           selectedColor: AppColors.primary,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: BorderSide(
-                              color: isSelected ? AppColors.primary : AppColors.divider,
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.divider,
                             ),
                           ),
                           showCheckmark: false,
                         ),
                       );
                     }).toList(),
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                  child: Text(
-                    isHindi ? 'उपलब्ध योजनाएं' : 'Available Schemes',
-                    style: AppTextStyles.headline3,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          schemesAsync.when(
-            data: (schemes) {
-              final filtered = schemes.where((s) {
-                final titleMatch = s.title.toLowerCase().contains(_searchQuery.toLowerCase());
-                final catMatch = _selectedCategory == 'All' || 
-                                  (s.category?.toUpperCase() == _selectedCategory);
-                return titleMatch && catMatch;
-              }).toList();
-
-              if (filtered.isEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search_off_rounded, size: 64, color: AppColors.textHint.withValues(alpha: 0.5)),
-                        const SizedBox(height: 16),
-                        Text(
-                          isHindi ? 'कोई योजना नहीं मिली' : 'No schemes found',
-                          style: const TextStyle(color: AppColors.textHint, fontSize: 16),
-                        ),
-                      ],
-                    )
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: SchemeCard(scheme: filtered[index]),
-                      );
-                    },
-                    childCount: filtered.length,
-                  ),
-                ),
-              );
-            },
-            loading: () => SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (err, stack) => SliverFillRemaining(
-              child: Center(child: Text('Error: $err')),
+          const SizedBox(height: 10),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [_buildSchemesTab(isHindi), _buildNewsTab(isHindi)],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSchemesTab(bool isHindi) {
+    final schemesAsync = ref.watch(schemesControllerProvider);
+
+    return schemesAsync.when(
+      data: (schemes) {
+        final filtered =
+            schemes.where((s) {
+              final titleMatch = s.title.toLowerCase().contains(
+                _schemeSearchQuery.toLowerCase(),
+              );
+              final catMatch =
+                  _selectedCategory == 'All' ||
+                  (s.category?.toUpperCase() == _selectedCategory);
+              return titleMatch && catMatch;
+            }).toList();
+
+        if (filtered.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 64,
+                  color: AppColors.textHint.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isHindi ? 'कोई योजना नहीं मिली' : 'No schemes found',
+                  style: const TextStyle(
+                    color: AppColors.textHint,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SchemeCard(scheme: filtered[index], isHindi: isHindi),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Error: $err')),
+    );
+  }
+
+  Widget _buildNewsTab(bool isHindi) {
+    final newsAsync = ref.watch(newsProvider);
+
+    return newsAsync.when(
+      data: (newsItems) {
+        final filtered =
+            newsItems.where((n) {
+              final q = _newsSearchQuery.toLowerCase();
+              return n.title.toLowerCase().contains(q) ||
+                  n.content.toLowerCase().contains(q) ||
+                  (n.source ?? '').toLowerCase().contains(q);
+            }).toList();
+
+        if (filtered.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.article_outlined,
+                  size: 64,
+                  color: AppColors.textHint.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isHindi ? 'कोई समाचार नहीं मिला' : 'No news found',
+                  style: const TextStyle(
+                    color: AppColors.textHint,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: NewsCard(news: filtered[index], isHindi: isHindi),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Error: $err')),
     );
   }
 }

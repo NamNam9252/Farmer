@@ -9,6 +9,98 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+type WeatherCard = {
+    temp: number;
+    condition: string;
+    humidity?: number;
+    rainProbability?: number;
+};
+
+type MarketPriceCard = {
+    commodity: string;
+    modalPrice: number | string;
+    market?: string;
+    unit?: string;
+    date?: string;
+};
+
+type MarketplaceItemCard = {
+    name: string;
+    price: number | string;
+    unit?: string;
+    location?: string;
+};
+
+type CommunityCard = {
+    name: string;
+    memberCount: number | string;
+};
+
+type CropRecommendationCard = {
+    name: string;
+    profitEstimate?: string;
+    marketPrice?: string;
+};
+
+type AdvisoryCard = {
+    stage: string;
+    action: string;
+    reason: string;
+    riskLevel: string;
+};
+
+type UserProfileCard = {
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    role?: string | null;
+};
+
+const mapWeatherCard = (data: any): WeatherCard => {
+    const condition = data?.overview || data?.forecast?.[0]?.summary || '';
+    return {
+        temp: data?.temperature ?? 0,
+        condition,
+        humidity: data?.humidity,
+        rainProbability: data?.rain_probability,
+    };
+};
+
+const mapMarketPriceCards = (records: any[]): MarketPriceCard[] => {
+    return (records || []).map((item) => ({
+        commodity: item?.commodity ?? 'Unknown',
+        modalPrice: item?.modal_price ?? item?.modalPrice ?? item?.modalprice ?? '?',
+        market: item?.market,
+        unit: item?.unit,
+        date: item?.arrival_date ?? item?.date,
+    }));
+};
+
+const mapMarketplaceItemCards = (items: any[]): MarketplaceItemCard[] => {
+    return (items || []).map((item) => ({
+        name: item?.itemName ?? item?.title ?? item?.name ?? 'Unknown',
+        price: item?.pricePerUnit ?? item?.price ?? '?',
+        unit: item?.unit,
+        location: item?.location,
+    }));
+};
+
+const mapCommunityCards = (communities: any[]): CommunityCard[] => {
+    return (communities || []).map((item) => ({
+        name: item?.name ?? 'Unknown',
+        memberCount: item?._count?.members ?? item?.memberCount ?? '?',
+    }));
+};
+
+const mapCropRecommendationCards = (report: any): CropRecommendationCard[] => {
+    const list = report?.recommendations || [];
+    return list.map((crop: any) => ({
+        name: crop?.crop ?? crop?.name ?? 'Unknown',
+        profitEstimate: crop?.estimatedProfitPerAcre ?? crop?.profitEstimate,
+        marketPrice: crop?.currentMarketPrice,
+    }));
+};
+
 // ─── NVIDIA OpenAI-Compatible Client ─────────────────────────
 const client = new OpenAI({
     baseURL: 'https://integrate.api.nvidia.com/v1',
@@ -257,7 +349,8 @@ You can perform ANY action a user can do manually in the app:
   - Use **bold** for emphasis or key terms.
   - Use bullet points or numbered lists for steps or lists of items.
   - Use ### Headers to organize long responses.
-  - You can use standard Markdown tables if presenting comparative data.
+- **STRICT: Do NOT use Markdown tables.** Tables do not fit on mobile screens.
+- For comparisons, use short bullet lists or compact key-value lines instead.
 - For WRITE operations (creating listings, joining communities), ALWAYS call the tool with type "confirm" so the user sees a confirmation popup BEFORE the action happens.
 - When navigating, briefly explain what the page does.
 - When the user query is ambiguous, ask clarifying questions. For example, if they say "sell wheat" — ask about price, quantity, unit.
@@ -332,12 +425,13 @@ async function executeTool(
                 }
 
                 const data = await weatherService.getWeather(lat, lng);
+                const cardData = mapWeatherCard(data);
                 return {
                     result: data,
                     action: {
                         type: 'display_data',
                         dataType: 'weather',
-                        data,
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -358,12 +452,14 @@ async function executeTool(
                 const data = await res.json() as any;
                 const records = data.records || [];
 
+                const slice = records.slice(0, 10);
+                const cardData = mapMarketPriceCards(slice);
                 return {
-                    result: records.slice(0, 10),
+                    result: slice,
                     action: {
                         type: 'display_data',
                         dataType: 'market_prices',
-                        data: records.slice(0, 10),
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -377,12 +473,13 @@ async function executeTool(
                 if (args.category) filters.category = args.category;
                 if (args.maxPrice) filters.maxPrice = args.maxPrice;
                 const items = await marketplaceService.getItems(filters);
+                const cardData = mapMarketplaceItemCards(items);
                 return {
                     result: items,
                     action: {
                         type: 'display_data',
                         dataType: 'marketplace_items',
-                        data: items,
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -392,41 +489,43 @@ async function executeTool(
 
         case 'create_marketplace_listing': {
             // Don't execute — return confirmation action
-            return {
-                result: { status: 'awaiting_confirmation', listing: args },
-                action: {
-                    type: 'confirm',
-                    confirmAction: 'create_marketplace_listing',
-                    confirmPayload: {
-                        itemName: args.itemName,
-                        description: args.description,
-                        pricePerUnit: args.pricePerUnit,
-                        quantity: `${args.quantityAvailable} ${args.unit}`,
-                        category: args.category,
-                        location: args.location,
+                return {
+                    result: { status: 'awaiting_confirmation', listing: args },
+                    action: {
+                        type: 'confirm',
+                        confirmAction: 'create_marketplace_listing',
+                        confirmPayload: {
+                            itemName: args.itemName,
+                            description: args.description,
+                            pricePerUnit: args.pricePerUnit,
+                            unit: args.unit,
+                            quantityAvailable: args.quantityAvailable,
+                            category: args.category,
+                            location: args.location,
+                        },
+                        message: `Create listing: ${args.itemName} at ₹${args.pricePerUnit}/${args.unit}?`,
                     },
-                    message: `Create listing: ${args.itemName} at ₹${args.pricePerUnit}/${args.unit}?`,
-                },
-            };
+                };
         }
 
         case 'create_demand_post': {
-            return {
-                result: { status: 'awaiting_confirmation', demand: args },
-                action: {
-                    type: 'confirm',
-                    confirmAction: 'create_demand_post',
-                    confirmPayload: {
-                        itemName: args.itemName,
-                        description: args.description,
-                        expectedPrice: args.expectedPrice || args.budgetPerUnit,
-                        quantityNeeded: args.unit ? `${args.quantityNeeded} ${args.unit}` : String(args.quantityNeeded),
-                        category: args.category,
-                        location: args.location,
+                return {
+                    result: { status: 'awaiting_confirmation', demand: args },
+                    action: {
+                        type: 'confirm',
+                        confirmAction: 'create_demand_post',
+                        confirmPayload: {
+                            itemName: args.itemName,
+                            description: args.description,
+                            expectedPrice: args.expectedPrice || args.budgetPerUnit,
+                            unit: args.unit,
+                            quantityNeeded: args.quantityNeeded,
+                            category: args.category,
+                            location: args.location,
+                        },
+                        message: `Post demand: ${args.itemName}, budget ₹${args.expectedPrice || args.budgetPerUnit}/${args.unit}?`,
                     },
-                    message: `Post demand: ${args.itemName}, budget ₹${args.expectedPrice || args.budgetPerUnit}/${args.unit}?`,
-                },
-            };
+                };
         }
 
         case 'list_communities': {
@@ -443,12 +542,13 @@ async function executeTool(
                     lng,
                     args.radiusKm || 50
                 );
+                const cardData = mapCommunityCards(communities);
                 return {
                     result: communities,
                     action: {
                         type: 'display_data',
                         dataType: 'communities',
-                        data: communities,
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -483,13 +583,13 @@ async function executeTool(
                     soil_type: args.soilType,
                     preferred_crops: args.preferredCrops,
                 });
-
+                const cardData = mapCropRecommendationCards(report);
                 return {
                     result: report,
                     action: {
                         type: 'display_data',
                         dataType: 'crop_recommendation',
-                        data: report,
+                        data: { recommendations: cardData },
                         route: '/crop-recommendation',
                     },
                 };
@@ -500,13 +600,19 @@ async function executeTool(
 
         case 'get_advisory': {
             try {
-                const recs = advisoryService.getRecommendation(args);
+                const recs = await advisoryService.getRecommendation(args as any);
+                const cardData: AdvisoryCard[] = (recs || []).map((r: any) => ({
+                    stage: r.stage,
+                    action: r.action,
+                    reason: r.reason,
+                    riskLevel: r.riskLevel,
+                }));
                 return {
                     result: recs,
                     action: {
                         type: 'display_data',
                         dataType: 'advisory',
-                        data: recs,
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -531,12 +637,18 @@ async function executeTool(
                         farmerProfile: true,
                     },
                 });
+                const cardData: UserProfileCard = {
+                    name: user?.name ?? null,
+                    phone: user?.phone ?? null,
+                    email: user?.email ?? null,
+                    role: user?.role ?? null,
+                };
                 return {
                     result: user,
                     action: {
                         type: 'display_data',
                         dataType: 'user_profile',
-                        data: user,
+                        data: cardData,
                     },
                 };
             } catch (error: any) {
@@ -592,6 +704,9 @@ export async function executeConfirmedAction(
             const mappedPayload = { ...payload };
             if (payload.budgetPerUnit && !payload.expectedPrice) {
                 mappedPayload.expectedPrice = payload.budgetPerUnit;
+            }
+            if (payload.expectedPrice && !payload.budgetPerUnit) {
+                mappedPayload.budgetPerUnit = payload.expectedPrice;
             }
             if (typeof payload.quantityNeeded === 'number') {
                 mappedPayload.quantityNeeded = payload.unit ? `${payload.quantityNeeded} ${payload.unit}` : String(payload.quantityNeeded);

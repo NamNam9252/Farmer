@@ -5,6 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../router/route_names.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
+import '../../../../core/services/language_provider.dart';
 
 class BrowseItemsScreen extends ConsumerStatefulWidget {
   const BrowseItemsScreen({super.key});
@@ -30,6 +32,7 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(marketplaceItemsProvider);
+    final isHindi = ref.watch(languageProvider) == 'hi';
     final categories = [
       'ALL', 'CROPS', 'FRUITS', 'VEGETABLES', 'GRAINS', 'SEEDS', 
       'FERTILIZERS', 'PESTICIDES', 'FARMING_EQUIPMENT', 
@@ -38,19 +41,30 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Browse Items'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list_rounded),
-            onPressed: () {
-              // Show filter bottom sheet - logic placeholder
-            },
-          ),
-        ],
-      ),
       body: Column(
         children: [
+          SharedHeader(
+            title: isHindi ? 'उत्पाद खरीदें' : 'Buy Produce',
+            subtitle: isHindi 
+                ? 'सीधे उच्च गुणवत्ता वाले उत्पाद खरीदें' 
+                : 'Buy quality produce directly',
+            actions: [
+              IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.filter_list_rounded, color: Colors.white, size: 18),
+                ),
+                onPressed: () {
+                  // Show filter bottom sheet - logic placeholder
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           _buildCategoryFilters(categories),
           Expanded(
             child: RefreshIndicator(

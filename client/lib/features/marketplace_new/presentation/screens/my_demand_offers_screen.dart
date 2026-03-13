@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class MyDemandOffersScreen extends ConsumerStatefulWidget {
   const MyDemandOffersScreen({super.key});
@@ -32,40 +33,33 @@ class _MyDemandOffersScreenState extends ConsumerState<MyDemandOffersScreen> wit
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Supply Offers'),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
+      body: Column(
+        children: [
+          SharedHeader(
+            title: 'Supply Offers',
+            subtitle: 'Review and manage offers for produce',
+            bottom: TabBar(
               controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              labelColor: AppColors.primary,
-              unselectedLabelColor: Colors.white,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
               tabs: const [
                 Tab(text: 'Received'),
                 Tab(text: 'My Offers'),
               ],
             ),
           ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOfferList(state.incomingOffers, state.isLoading, true),
-          _buildOfferList(state.sentOffers, state.isLoading, false),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOfferList(state.incomingOffers, state.isLoading, true),
+                _buildOfferList(state.sentOffers, state.isLoading, false),
+              ],
+            ),
+          ),
         ],
       ),
     );

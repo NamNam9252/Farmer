@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../router/route_names.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 
@@ -27,41 +28,54 @@ class ItemDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          if (isOwner) ...[
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: () => context.pushNamed(RouteNames.postItem, extra: latestItem),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteConfirmation(context, ref),
-            ),
-          ] else
-            IconButton(
-              icon: const Icon(Icons.report_problem_outlined, color: Colors.orange),
-              onPressed: () => _showReportDialog(context, ref),
-            ),
-        ],
-      ),
-      extendBodyBehindAppBar: true,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
-            automaticallyImplyLeading: false, // Custom leading if needed
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                color: Colors.grey[100],
-                child: latestItem.imageUrl != null && latestItem.imageUrl!.isNotEmpty
-                  ? Image.network(latestItem.imageUrl!, fit: BoxFit.cover)
-                  : const Icon(Icons.image_outlined, size: 64, color: Colors.grey),
-              ),
-            ),
+          SharedSliverAppBar(
+            title: latestItem.itemName,
+            subtitle: '₹${latestItem.pricePerUnit} • ${latestItem.category}',
+            backgroundImage: latestItem.imageUrl != null && latestItem.imageUrl!.isNotEmpty
+                ? latestItem.imageUrl
+                : null,
+            actions: [
+              if (isOwner) ...[
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                  ),
+                  onPressed: () => context.pushNamed(RouteNames.postItem, extra: latestItem),
+                ),
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.delete, color: Colors.white, size: 18),
+                  ),
+                  onPressed: () => _showDeleteConfirmation(context, ref),
+                ),
+                const SizedBox(width: 8),
+              ] else ...[
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.report_problem_outlined, color: Colors.white, size: 18),
+                  ),
+                  onPressed: () => _showReportDialog(context, ref),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),

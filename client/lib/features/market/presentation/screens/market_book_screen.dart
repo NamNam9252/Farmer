@@ -6,7 +6,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/market_provider.dart';
 import '../../../../router/route_names.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class MarketBookScreen extends ConsumerWidget {
   const MarketBookScreen({super.key});
@@ -75,33 +75,15 @@ class MarketBookScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            floating: true,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            expandedHeight: 120,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                } else {
-                  context.go(RouteNames.home);
-                }
-              },
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                isHindi ? AppStrings.marketTitleHindi : AppStrings.marketTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              background: Container(color: AppColors.primary),
-            ),
-            actions: const [
-              LanguageToggle(color: Colors.white),
-              SizedBox(width: 8),
-            ],
+          SharedSliverAppBar(
+            title: isHindi ? AppStrings.marketTitleHindi : AppStrings.marketTitle,
+            onLeadingPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                context.go(RouteNames.home);
+              }
+            },
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
