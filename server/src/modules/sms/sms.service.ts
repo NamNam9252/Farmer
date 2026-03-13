@@ -12,6 +12,27 @@ import {
 
 const gunzip = promisify(zlib.gunzip);
 const gzip   = promisify(zlib.gzip);
+const RAW_PROMPT_ACTION = "__raw_prompt__";
+const VALID_PACKET_TYPES = new Set<number>([
+  PacketType.REQUEST,
+  PacketType.RESPONSE,
+  PacketType.ACK,
+  PacketType.ERROR,
+]);
+
+const isLikelyLegacyPacket = (packet: {
+  sid: string;
+  seq: number;
+  total: number;
+  type: number;
+}): boolean => {
+  const sidOk = /^[A-Za-z0-9]{2}$/.test(packet.sid);
+  const typeOk = VALID_PACKET_TYPES.has(packet.type);
+  const totalOk = Number.isInteger(packet.total) && packet.total > 0 && packet.total <= 64;
+  const seqOk = Number.isInteger(packet.seq) && packet.seq >= 0 && packet.seq < packet.total;
+
+  return sidOk && typeOk && totalOk && seqOk;
+};
 
 class SMSService {
   private sender!:        SMSSender;
@@ -28,8 +49,8 @@ class SMSService {
     }
 
     const config: SMSConfig = {
-      httpSmsApiKey:    process.env.HTTPSMS_API_KEY!,
-      httpSmsFromPhone: process.env.HTTPSMS_FROM_PHONE!,
+      httpSmsApiKey:    (process.env.HTTPSMS_API_KEY ?? "").trim(),
+      httpSmsFromPhone: (process.env.HTTPSMS_FROM_PHONE ?? "").trim(),
       chunkSize:        110,
       timeoutMs:        60_000,
     };
@@ -44,7 +65,8 @@ class SMSService {
     this.sessions    = new SMSSessionManager(config.timeoutMs);
     this.initialized = true;
 
-    console.log("[SMS] Service initialized ✓");
+    const maskedKey = `${config.httpSmsApiKey.slice(0, 4)}***${config.httpSmsApiKey.slice(-3)}`;
+    console.log(`[SMS] Service initialized ✓ | from=${config.httpSmsFromPhone} | apiKey=${maskedKey} | keyLen=${config.httpSmsApiKey.length}`);
   }
 
   // ─── Register a handler for incoming decoded messages ─────────────────────
@@ -69,6 +91,11 @@ class SMSService {
     await this.sender.send(to, compressed);
   }
 
+  async sendRaw(to: string, rawMessage: string): Promise<void> {
+    this.assertInitialized();
+    await this.sender.sendPlain(to, rawMessage);
+  }
+
   // ─── Called by router on every incoming webhook hit ───────────────────────
 
   async handleIncoming(raw: string, from: string): Promise<void> {
@@ -78,7 +105,15 @@ class SMSService {
     try {
       packet = parsePacket(raw);
     } catch (e) {
-      console.error(`[SMS] Malformed packet from ${from}:`, e);
+      await this.dispatchRawPrompt(raw, from, "packet parse failed");
+      return;
+    }
+
+    if (!isLikelyLegacyPacket(packet)) {
+      console.warn(
+        `[SMS] Parsed bytes but header is not a valid legacy packet (sid=${packet.sid}, seq=${packet.seq}, total=${packet.total}, type=${packet.type}); treating as raw prompt`
+      );
+      await this.dispatchRawPrompt(raw, from, "invalid legacy packet header");
       return;
     }
 
@@ -122,6 +157,20 @@ class SMSService {
   private assertInitialized(): void {
     if (!this.initialized)
       throw new Error("[SMS] Call SMS.init() before using the service");
+  }
+
+  private async dispatchRawPrompt(raw: string, from: string, reason: string): Promise<void> {
+    if (!this.handler) {
+      console.warn(`[SMS] No handler registered for raw message mode (${reason})`);
+      return;
+    }
+
+    console.log(`[SMS] Falling back to raw prompt mode for ${from} (${reason})`);
+    try {
+      await this.handler(RAW_PROMPT_ACTION, raw, from);
+    } catch (rawErr) {
+      console.error(`[SMS] Raw message processing error for ${from}:`, rawErr);
+    }
   }
 }
 

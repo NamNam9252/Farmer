@@ -38,7 +38,15 @@ export class SMSSender {
     }
   }
 
+  async sendPlain(to: string, body: string): Promise<void> {
+    await this.sendSingle(to, body);
+  }
+
   private async sendSingle(to: string, body: string): Promise<void> {
+    const maskedKey = this.apiKey.length > 7
+      ? `${this.apiKey.slice(0, 4)}***${this.apiKey.slice(-3)}`
+      : `(keyLen=${this.apiKey.length})`;
+    console.log(`[SMS][SEND] → httpSMS | to=${to} | from=${this.fromPhone} | apiKey=${maskedKey} | bodyLen=${body.length}`);
     try {
       await axios.post(
         HTTPSMS_SEND_URL,
