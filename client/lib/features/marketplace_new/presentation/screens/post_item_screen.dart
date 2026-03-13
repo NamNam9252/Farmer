@@ -8,6 +8,7 @@ import '../../../../router/route_names.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
 import '../../../../core/services/cloudinary_service.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class PostItemScreen extends ConsumerStatefulWidget {
   final MarketplaceItem? item;
@@ -184,12 +185,18 @@ class _PostItemScreenState extends ConsumerState<PostItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(widget.item != null ? 'Edit Item' : 'Post Item to Sell'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
+      body: Column(
+        children: [
+          SharedHeader(
+            title: widget.item != null ? 'Edit Item' : 'Post Item to Sell',
+            subtitle: widget.item != null 
+                ? 'Update your listing details' 
+                : 'List your produce for buyers',
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -319,8 +326,11 @@ class _PostItemScreenState extends ConsumerState<PostItemScreen> {
                 ),
               ),
             ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

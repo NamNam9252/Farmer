@@ -7,7 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../providers/market_provider.dart';
 import '../../../../router/route_names.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class MarketScreen extends ConsumerWidget {
   const MarketScreen({super.key});
@@ -72,56 +72,12 @@ class MarketScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 110,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-            ),
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: const Text(
-          'बाज़ार भाव',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
-      actions: const [
-        LanguageToggle(color: Colors.white),
-        SizedBox(width: 12),
-      ],
+    final isHindi = ref.watch(languageProvider) == 'hi';
+    return SharedSliverAppBar(
+      title: isHindi ? 'बाज़ार भाव' : 'Market Prices',
+      subtitle: isHindi 
+          ? 'मंडियों से फसलों के वास्तविक समय के भाव' 
+          : 'Real-time commodity prices from mandis',
     );
   }
 

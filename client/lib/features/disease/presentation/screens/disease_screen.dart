@@ -16,7 +16,7 @@ import '../widgets/past_reports_section.dart';
 import '../widgets/image_preview_card.dart';
 import '../widgets/tip_banner.dart';
 import '../widgets/analyzing_overlay.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class DiseaseScreen extends ConsumerStatefulWidget {
   const DiseaseScreen({super.key});
@@ -180,57 +180,11 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
   }
 
   Widget _buildHeader(bool isHindi, String lang) {
-    return SliverAppBar(
-      expandedHeight: 110,
-      pinned: true,
-      elevation: 0,
-      stretch: true,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-            ),
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
-      actions: const [
-        LanguageToggle(color: Colors.white),
-        SizedBox(width: 12),
-      ],
+    return SharedSliverAppBar(
+      title: isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
+      subtitle: isHindi 
+          ? 'तत्काल फसल निदान और उपचार' 
+          : 'Instant crop diagnosis and treatment',
     );
   }
 

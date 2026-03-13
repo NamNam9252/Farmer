@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../providers/news_provider.dart';
 import '../providers/schemes_provider.dart';
 import '../widgets/news_card.dart';
@@ -56,50 +56,85 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          isHindi ? 'समाचार और योजनाएं' : 'News and Schemes',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        actions: const [
-          LanguageToggle(color: Colors.white),
-          SizedBox(width: 8),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
-          tabs: [
-            Tab(text: isHindi ? 'योजनाएं' : 'Schemes'),
-            Tab(text: isHindi ? 'समाचार' : 'News'),
-          ],
-        ),
-      ),
       body: Column(
         children: [
+          SharedHeader(
+            title: isHindi ? 'समाचार और योजनाएं' : 'News and Schemes',
+          ),
+          // Custom Styled TabBar Section
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              dividerColor: Colors.transparent,
+              onTap: (_) => setState(() {}),
+              tabs: [
+                Tab(
+                  height: 44,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.assignment_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Text(isHindi ? 'योजनाएं' : 'Schemes', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+                Tab(
+                  height: 44,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.newspaper_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Text(isHindi ? 'समाचार' : 'News', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Search Section
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),

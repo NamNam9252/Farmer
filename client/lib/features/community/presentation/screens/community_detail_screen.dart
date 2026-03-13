@@ -9,6 +9,7 @@ import '../../../auth/presentation/state/auth_state.dart';
 import '../providers/community_provider.dart';
 import 'community_chat_screen.dart';
 import 'join_requests_screen.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class CommunityDetailScreen extends ConsumerStatefulWidget {
   const CommunityDetailScreen({
@@ -97,52 +98,14 @@ class _CommunityDetailScreenState
   }
 
   Widget _buildHeader(dynamic community, bool isHindi, String? currentUserId) {
-    return SliverAppBar(
-      expandedHeight: 140,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Row(
-                  children: [
-                    _infoBadge(Icons.group_rounded, '${community.memberCount} ${isHindi ? "सदस्य" : "members"}'),
-                    const SizedBox(width: 10),
-                    _infoBadge(community.isPrivate ? Icons.lock_rounded : Icons.public_rounded, community.isPrivate ? (isHindi ? 'निजी' : 'Private') : (isHindi ? 'सार्वजनिक' : 'Public')),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          community.name,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () => Navigator.pop(context),
-      ),
+    final memberText = '${community.memberCount} ${isHindi ? "सदस्य" : "members"}';
+    final privacyText = community.isPrivate
+        ? (isHindi ? 'निजी' : 'Private')
+        : (isHindi ? 'सार्वजनिक' : 'Public');
+
+    return SharedSliverAppBar(
+      title: community.name,
+      subtitle: '$memberText • $privacyText',
       actions: [
         if (currentUserId != null && community.createdBy?.id == currentUserId) ...[
           IconButton(

@@ -14,7 +14,7 @@ import '../../../../router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../weather/presentation/providers/weather_provider.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -163,132 +163,77 @@ class HomeScreen extends ConsumerWidget {
     bool isHindi,
     String locationText,
   ) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+    return SharedHeader(
+      title: isHindi ? 'नमस्ते, $userName 🙏' : 'Namaste, $userName 🙏',
+      subtitle: locationText,
+      showBackButton: false,
+      leading: Container(
+        margin: const EdgeInsets.only(left: 12),
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+        child: const Icon(
+          Icons.person_rounded,
+          size: 30,
+          color: Colors.white,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 2,
-              ),
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              size: 30,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isHindi ? 'नमस्ते, $userName 🙏' : 'Namaste, $userName 🙏',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
+      actions: [
+        Consumer(
+          builder: (context, ref, child) {
+            final notificationState = ref.watch(notificationProvider);
+            final unreadCount =
+                notificationState.notifications.where((n) => !n.isRead).length;
+
+            return GestureDetector(
+              onTap: () => NotificationSheet.show(context, ref, isHindi),
+              child: Container(
+                width: 42,
+                height: 42,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
                     const Icon(
-                      Icons.location_on_rounded,
-                      size: 13,
-                      color: Colors.white70,
+                      Icons.notifications_none_rounded,
+                      color: Colors.white,
+                      size: 22,
                     ),
-                    const SizedBox(width: 3),
-                    Flexible(
-                      child: Text(
-                        locationText,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Language toggle
-          const LanguageToggle(),
-          const SizedBox(width: 8),
-          // Bell icon
-          Consumer(
-            builder: (context, ref, child) {
-              final notificationState = ref.watch(notificationProvider);
-              final unreadCount =
-                  notificationState.notifications
-                      .where((n) => !n.isRead)
-                      .length;
-
-              return GestureDetector(
-                onTap: () => NotificationSheet.show(context, ref, isHindi),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Icon(
-                        Icons.notifications_outlined,
-                        size: 22,
-                        color: Colors.white,
-                      ),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 6,
-                          top: 6,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFF5252),
-                              shape: BoxShape.circle,
-                            ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFF5252),
+                            shape: BoxShape.circle,
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 

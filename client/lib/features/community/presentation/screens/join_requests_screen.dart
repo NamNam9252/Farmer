@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/community_provider.dart';
 import '../../data/repository/community_repository.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class JoinRequestsScreen extends ConsumerStatefulWidget {
   final String communityId;
@@ -78,37 +79,11 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
   }
 
   Widget _buildHeader(bool isHindi) {
-    return SliverAppBar(
-      expandedHeight: 110,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30)),
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          isHindi ? 'शामिल होने के अनुरोध' : 'Join Requests',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () => Navigator.pop(context),
-      ),
+    return SharedSliverAppBar(
+      title: isHindi ? 'शामिल होने के अनुरोध' : 'Join Requests',
+      subtitle: isHindi 
+          ? 'लंबित सदस्यताओं को प्रबंधित करें' 
+          : 'Manage pending memberships',
     );
   }
 

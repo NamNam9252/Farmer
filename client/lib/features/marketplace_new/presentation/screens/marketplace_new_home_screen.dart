@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
@@ -47,25 +48,27 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(isHindi ? 'मार्केटप्लेस' : 'Marketplace'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _loadData();
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeroBanner(isHindi),
-              const SizedBox(height: 16),
-              _buildManagementShortcuts(context, isHindi),
+      body: Column(
+        children: [
+          SharedHeader(
+            title: isHindi ? 'मार्केटप्लेस' : 'Marketplace',
+            subtitle: isHindi
+                ? 'सीधी बिक्री. कोई बिचौलिया नहीं।'
+                : 'Sell Direct. No Middlemen.',
+            onLeadingPressed: () => context.go('/'),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _loadData();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildManagementShortcuts(context, isHindi),
               const SizedBox(height: 24),
               _buildActionGrid(context, isHindi),
               const SizedBox(height: 32),
@@ -82,60 +85,17 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
                 () => context.push(RouteNames.myListings),
               ),
               _MyDemands(userId: userId),
-              const SizedBox(height: 32),
-            ],
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeroBanner(bool isHindi) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isHindi ? 'सीधी बिक्री. कोई बिचौलिया नहीं।' : 'Sell Direct. No Middlemen.',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isHindi 
-              ? 'अपनी उपज बेचें या सर्वोत्तम मूल्य पर मांगें खोजें' 
-              : 'Sell your produce or find demands at the best prices',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildManagementShortcuts(BuildContext context, bool isHindi) {
     return Padding(
