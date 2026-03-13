@@ -19,6 +19,7 @@ class DiseaseReportModel extends DiseaseReport {
     required super.preventionsHindi,
     required super.productLinks,
     required super.createdAt,
+    super.isOffline,
   });
 
   factory DiseaseReportModel.fromJson(Map<String, dynamic> json) {
@@ -49,6 +50,7 @@ class DiseaseReportModel extends DiseaseReport {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
+      isOffline: json['isOffline'] as bool? ?? false,
     );
   }
 
@@ -75,6 +77,7 @@ class DiseaseReportModel extends DiseaseReport {
               'priceRange': p.priceRange,
             }).toList(),
         'createdAt': createdAt.toIso8601String(),
+        'isOffline': isOffline,
       };
 
   String toJsonString() => jsonEncode(toJson());
@@ -97,6 +100,7 @@ class DiseaseReportModel extends DiseaseReport {
     List<String>? preventionsHindi,
     List<ProductLink>? productLinks,
     DateTime? createdAt,
+    bool? isOffline,
   }) {
     return DiseaseReportModel(
       id: id ?? this.id,
@@ -115,6 +119,7 @@ class DiseaseReportModel extends DiseaseReport {
       preventionsHindi: preventionsHindi ?? this.preventionsHindi,
       productLinks: productLinks ?? this.productLinks,
       createdAt: createdAt ?? this.createdAt,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 

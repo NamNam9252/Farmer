@@ -78,7 +78,14 @@ class SharedHeader extends StatelessWidget {
                         child: const Icon(Icons.arrow_back_rounded,
                             color: Colors.white, size: 18),
                       ),
-                      onPressed: onLeadingPressed ?? () => Navigator.of(context).pop(),
+                      onPressed: onLeadingPressed ?? () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          // Fallback to home if no history
+                          Navigator.of(context).pushReplacementNamed('/');
+                        }
+                      },
                     ),
                   const Spacer(),
                   if (actions != null) ...actions!,
