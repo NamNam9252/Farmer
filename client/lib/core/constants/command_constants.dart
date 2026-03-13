@@ -2,15 +2,45 @@ import '../../router/route_names.dart';
 
 class CommandConstants {
   static const Map<String, List<String>> commandMap = {
-    RouteNames.home: ['home', 'main', 'dashboard', 'shuru', 'house'],
-    RouteNames.disease: ['disease', 'sick', 'illness', 'upchar', 'bimari', 'kida', 'plant health'],
-    RouteNames.market: ['market', 'mandi', 'shop', 'bazar', 'price'],
-    RouteNames.profile: ['profile', 'me', 'account', 'khata', 'settings'],
-    RouteNames.advisory: ['advisory', 'help', 'advice', 'salah', 'expert'],
-    RouteNames.cropRecommendation: ['crop', 'recommendation', 'fasal', 'kheti', 'production'],
-    RouteNames.marketplaceNew: ['marketplace', 'buy', 'sell', 'vyapar', 'trade', 'listing'],
-    RouteNames.community: ['community', 'group', 'samuh', 'charcha', 'forum'],
-    RouteNames.chatbot: ['chatbot', 'bot', 'assistant', 'sahayak', 'help me', 'madad'],
+    RouteNames.home: [
+      'home', 'main', 'dashboard', 'shuru', 'house', 'panna', 'mukhya', 'dashboard pe jao', 'ghar', 'शुरू', 'मुख्य', 'होम', 'घर'
+    ],
+    RouteNames.disease: [
+      'disease', 'sick', 'illness', 'upchar', 'bimari', 'kida', 'plant health', 'detect', 'check plant', 'rog', 'ilaj', 'बीमारी', 'रोग', 'कीड़ा', 'इलाज', 'पौधे की जांच'
+    ],
+    RouteNames.market: [
+      'market', 'mandi', 'shop', 'bazar', 'price', 'rate', 'bhaw', 'market price', 'mandi rate', 'बाज़ार', 'मंडी', 'भाव', 'दाम', 'कीमत'
+    ],
+    RouteNames.profile: [
+      'profile', 'me', 'account', 'khata', 'settings', 'user', 'my details', 'meri profile', 'mera khata', 'प्रोफ़ाइल', 'खाता', 'मेरी जानकारी'
+    ],
+    RouteNames.advisory: [
+      'advisory', 'help', 'advice', 'salah', 'expert', 'guide', 'farming tips', 'kheti ki salah', 'expert se pucho', 'सलाह', 'एक्सपर्ट', 'खेती की सलाह'
+    ],
+    RouteNames.cropRecommendation: [
+      'crop', 'recommendation', 'fasal', 'kheti', 'production', 'suggestion', 'what to grow', 'konsi fasal ugaye', 'fasal sujhav', 'फसल', 'खेती', 'सुझाव', 'कौन सी फसल उगाएं'
+    ],
+    RouteNames.marketplaceNew: [
+      'marketplace', 'buy', 'sell', 'vyapar', 'trade', 'listing', 'khareeda', 'bechna', 'saaman', 'item sell', 'market place', 'व्यापार', 'बेचना', 'खरीदना', 'सामान'
+    ],
+    RouteNames.community: [
+      'community', 'group', 'samuh', 'charcha', 'forum', 'farmers group', 'kisan samuh', 'judna', 'समूह', 'समुदाय', 'चर्चा', 'किसान समूह'
+    ],
+    RouteNames.chatbot: [
+      'chatbot', 'bot', 'assistant', 'sahayak', 'help me', 'madad', 'talk', 'aai sahayak', 'बॉट', 'सहायक', 'चैटबॉट', 'मदद'
+    ],
+    RouteNames.schemes: [
+      'schemes', 'yojana', 'government', 'sarkari yojana', 'subsidy', 'help for farmers', 'kisan yojana', 'योजना', 'सरकारी योजना', 'सब्सिडी'
+    ],
+    RouteNames.postItem: [
+      'sell item', 'post item', 'bechna hai', 'saaman bechna', 'सामान बेचना'
+    ],
+    RouteNames.postDemand: [
+      'buy item', 'post demand', 'kharedna hai', 'demand dalna', 'खरीदने के लिए पोस्ट'
+    ],
+    RouteNames.weatherDetails: [
+      'weather', 'mausam', 'barish', 'temperature', 'taapman', 'मौसम', 'बारिश', 'तापमान'
+    ],
   };
 
   static String? getRouteFromCommand(String input) {

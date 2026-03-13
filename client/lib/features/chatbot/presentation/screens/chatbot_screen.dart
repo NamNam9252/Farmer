@@ -11,6 +11,7 @@ import '../../../../router/app_router.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/confirmation_dialog.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
+import '../../../../core/services/tts_service.dart';
 
 class ChatbotScreen extends ConsumerStatefulWidget {
   const ChatbotScreen({super.key});
@@ -62,26 +63,38 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
     final hasImage = ref.read(chatbotProvider).selectedImagePath != null;
     
     if (text.isEmpty && !hasImage) return;
-
+    
     _controller.clear();
-    ref.read(chatbotProvider.notifier).sendMessage(text, context: context);
+    ref.read(chatbotProvider.notifier).sendMessage(text, context: context, isVoice: false);
+    _scrollToBottom();
+  }
+
+  void _sendVoiceMessage(String text) {
+    if (text.trim().isEmpty) return;
+    _controller.clear();
+    ref.read(chatbotProvider.notifier).sendMessage(text, context: context, isVoice: true);
     _scrollToBottom();
   }
 
   Future<void> _startListening() async {
+    // Stop any current TTS when user starts talking
+    ref.read(ttsServiceProvider).stop();
+    
     final voiceService = ref.read(voiceServiceProvider);
     setState(() => _isListening = true);
     _pulseController.repeat(reverse: true);
 
     await voiceService.startListening(
       onResult: (text) {
-        _controller.text = text;
+        _sendVoiceMessage(text);
         setState(() => _isListening = false);
         _pulseController.stop();
         _pulseController.reset();
       },
       onListeningChanged: (listening) {
-        setState(() => _isListening = listening);
+        if (_isListening != listening) {
+          setState(() => _isListening = listening);
+        }
         if (!listening) {
           _pulseController.stop();
           _pulseController.reset();
@@ -295,6 +308,8 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
                     return Transform.scale(
                       scale: _isListening ? 1.0 + (_pulseController.value * 0.15) : 1.0,
                       child: GestureDetector(
+                        onLongPressStart: (_) => _startListening(),
+                        onLongPressEnd: (_) => _stopListening(),
                         onTap: _isListening ? _stopListening : _startListening,
                         child: Container(
                           width: 44,
