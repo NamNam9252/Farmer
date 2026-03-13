@@ -49,12 +49,12 @@ class CommunityCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -62,17 +62,21 @@ class CommunityCard extends StatelessWidget {
           children: [
             // Community avatar
             Container(
-              width: 56,
-              height: 56,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Center(
-                child: Text(_typeEmoji, style: const TextStyle(fontSize: 28)),
+                child: Text(_typeEmoji, style: const TextStyle(fontSize: 32)),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
             // Info
             Expanded(
               child: Column(
@@ -81,48 +85,46 @@ class CommunityCard extends StatelessWidget {
                   Text(
                     community.name,
                     style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
+                      height: 1.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           _typeLabel,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.primary,
                           ),
                         ),
                       ),
                       if (community.isPrivate) ...[
-                        const SizedBox(width: 6),
-                        Icon(Icons.lock_rounded,
-                            size: 13, color: AppColors.textHint),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.lock_rounded, size: 14, color: AppColors.textHint),
                       ],
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.group_rounded,
-                          size: 14, color: AppColors.textHint),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.people_outline_rounded, size: 16, color: AppColors.textHint),
+                      const SizedBox(width: 6),
                       Text(
                         '${community.memberCount} ${isHindi ? "सदस्य" : "members"}',
-                        style: AppTextStyles.caption,
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -130,8 +132,11 @@ class CommunityCard extends StatelessWidget {
               ),
             ),
             // Arrow
-            const Icon(Icons.chevron_right_rounded,
-                color: AppColors.textHint, size: 24),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: Colors.grey[50], shape: BoxShape.circle),
+              child: const Icon(Icons.chevron_right_rounded, color: AppColors.textHint, size: 20),
+            ),
           ],
         ),
       ),
