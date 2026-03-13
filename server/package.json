@@ -7,7 +7,8 @@
     "start": "tsx src/server.ts",
     "dev": "nodemon --exec tsx src/server.ts",
     "test": "vitest run",
-    "test:crawler": "tsx src/test_crawler.ts"
+    "test:crawler": "tsx src/test_crawler.ts",
+    "test:newshit": "tsx src/test_newshit.ts"
   },
   "keywords": [],
   "author": "",

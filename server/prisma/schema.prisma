@@ -666,12 +666,10 @@ model User {
   marketplaceSentOffers       MarketplaceNewDemandOffer[] @relation("SellerOffers")
   marketplaceIncomingOffers   MarketplaceNewDemandOffer[] @relation("BuyerOffers")
 
-  // Warehouse
-  ownedListings    WarehouseListing[]      @relation("OwnedListings")
-  submittedOffers  WarehouseRentalOffer[]  @relation("SubmittedOffers")
-  ownedRentals     WarehouseRental[]       @relation("OwnedRentals")
-  leasedRentals    WarehouseRental[]       @relation("LeasedRentals")
-  ownedInventory   WarehouseInventoryItem[] @relation("OwnedInventory")
+  // Rental
+  ownedAssets                 Asset[]                     @relation("OwnedAssets")
+  placedBids                  Bid[]                       @relation("PlacedBids")
+  activeRentals               Rental[]                    @relation("ActiveRentals")
 
   @@index([role])
   @@index([status])
@@ -752,9 +750,6 @@ model Location {
   orderDeliveries     Order[]              @relation("OrderDeliveryLocation")
   laborProfiles       LaborProfile[]
   communities         Community[]          @relation("CommunityLocation")
-
-  warehouseListings  WarehouseListing[]
-  inventoryItems     WarehouseInventoryItem[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -2772,120 +2767,98 @@ model MarketplaceNewDemandOffer {
   @@map("marketplace_new_demand_offers")
 }
 
-// Add these to your existing schema.prisma
-
-enum WarehouseListingStatus {
-  OPEN
-  RENTED
-  CLOSED
-}
-
-enum WarehouseOfferStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  WITHDRAWN
-}
-
-enum WarehouseRentalStatus {
-  ACTIVE
-  EXPIRED
-  TERMINATED
-}
-
-enum WarehouseSourceType {
-  OWNED
-  LEASED
-}
-
-enum WarehouseItemType {
-  CROP
-  MACHINERY
+enum AssetType {
+  PROPERTY
+  VEHICLE
   EQUIPMENT
-  INPUT
   OTHER
 }
 
-model WarehouseListing {
-  id                  String                 @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId             String                 @db.ObjectId
-  locationId          String                 @db.ObjectId
-  title               String
-  totalAreaSqft       Float
-  askingPricePerMonth Float
-  availableFrom       DateTime
-  availableUntil      DateTime
-  amenities           String[]
-  status              WarehouseListingStatus @default(OPEN)
-  latitude            Float
-  longitude           Float
-  isDeleted           Boolean                @default(false)
-  deletedAt           DateTime?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-
-  owner    User       @relation("OwnedListings", fields: [ownerId], references: [id])
-  location Location   @relation(fields: [locationId], references: [id])
-  offers   WarehouseRentalOffer[]
-  rentals  WarehouseRental[]
+enum AssetStatus {
+  AVAILABLE   // open for bids
+  LOCKED      // bid accepted, rental active or pending start
+  INACTIVE    // owner took it off the market
 }
 
-model WarehouseRentalOffer {
-  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
-  listingId            String               @db.ObjectId
-  offererId            String               @db.ObjectId
-  offeredPricePerMonth Float
-  requestedFrom        DateTime
-  requestedUntil       DateTime
-  message              String?
-  status               WarehouseOfferStatus @default(PENDING)
-  respondedAt          DateTime?
-  createdAt            DateTime             @default(now())
-
-  listing  WarehouseListing @relation(fields: [listingId], references: [id])
-  offerer  User             @relation("SubmittedOffers", fields: [offererId], references: [id])
-  rental   WarehouseRental?
+enum BidStatus {
+  PENDING     // awaiting owner decision
+  ACCEPTED    // owner chose this bidder → tenant
+  REJECTED    // owner rejected, or auto-rejected on another bid acceptance
+  WITHDRAWN   // bidder cancelled their own bid
 }
 
-model WarehouseRental {
-  id          String                @id @default(auto()) @map("_id") @db.ObjectId
-  listingId   String                @db.ObjectId
-  offerId     String                @unique @db.ObjectId
-  ownerId     String                @db.ObjectId
-  tenantId    String                @db.ObjectId
-  monthlyRent Float
+enum RentalStatus {
+  UPCOMING    // deal closed, rental hasn't started yet
+  ACTIVE      // currently rented
+  COMPLETED   // rental period ended
+  CANCELLED   // cancelled after closing (edge case)
+}
+
+model Asset {
+  id          String      @id @default(cuid()) @map("_id")
+  ownerId     String
+  owner       User        @relation("OwnedAssets", fields: [ownerId], references: [id])
+
+  title       String
+  description String
+  type        AssetType
+  status      AssetStatus @default(AVAILABLE)
+
+  // Pricing hint — bidders can bid above/below this
+  basePrice   Float
+
+  bids        Bid[]
+  rental      Rental?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Bid {
+  id          String    @id @default(cuid()) @map("_id")
+  assetId     String
+  asset       Asset     @relation(fields: [assetId], references: [id])
+
+  bidderId    String
+  bidder      User      @relation("PlacedBids", fields: [bidderId], references: [id])
+
+  amount      Float
+  status      BidStatus @default(PENDING)
+
+  // Proposed rental window from the bidder
   startDate   DateTime
   endDate     DateTime
-  status      WarehouseRentalStatus @default(ACTIVE)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
 
-  listing   WarehouseListing       @relation(fields: [listingId], references: [id])
-  offer     WarehouseRentalOffer   @relation(fields: [offerId], references: [id])
-  owner     User                   @relation("OwnedRentals",  fields: [ownerId],  references: [id])
-  tenant    User                   @relation("LeasedRentals", fields: [tenantId], references: [id])
-  inventory WarehouseInventoryItem[]
+  message     String?   // optional note to owner
+
+  rental      Rental?   // populated only if this bid was accepted
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([assetId])
+  @@index([bidderId])
 }
 
-model WarehouseInventoryItem {
-  id         String              @id @default(auto()) @map("_id") @db.ObjectId
-  ownerId    String              @db.ObjectId
-  sourceType WarehouseSourceType
-  rentalId   String?             @db.ObjectId
-  locationId String?             @db.ObjectId
-  itemType   WarehouseItemType
-  name       String
-  quantity   Float
-  unit       String
-  batchLabel String?
-  expiryDate DateTime?
-  storedAt   DateTime            @default(now())
-  isDeleted  Boolean             @default(false)
-  deletedAt  DateTime?
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+model Rental {
+  id          String       @id @default(cuid()) @map("_id")
+  assetId     String       @unique   // one active rental per asset
+  asset       Asset        @relation(fields: [assetId], references: [id])
 
-  owner    User             @relation("OwnedInventory", fields: [ownerId],   references: [id])
-  rental   WarehouseRental? @relation(fields: [rentalId],   references: [id])
-  location Location?        @relation(fields: [locationId], references: [id])
+  bidId       String       @unique   // the winning bid
+  bid         Bid          @relation(fields: [bidId], references: [id])
+
+  tenantId    String
+  tenant      User         @relation("ActiveRentals", fields: [tenantId], references: [id])
+
+  startDate   DateTime
+  endDate     DateTime
+  agreedPrice Float
+
+  status      RentalStatus @default(UPCOMING)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([tenantId])
 }

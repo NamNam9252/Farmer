@@ -12,7 +12,7 @@ import marketplaceNewRoutes from "./modules/marketplace-new/marketplace-new.rout
 import newsRoutes from "./modules/news/news.route.js";
 import schemesRoutes from "./modules/news/schemes.route.js";
 import agentRoutes from "./modules/agent/agent.routes.js";
-import warehouseRoutes from "./modules/warehouse/warehouse.routes.js";
+import rentalRoutes from "./modules/rental/rental.route.js";
 
 const router = Router();
 
@@ -30,6 +30,6 @@ router.use("/marketplace", marketplaceNewRoutes);
 router.use("/news", newsRoutes);
 router.use("/schemes", schemesRoutes);
 router.use("/agent", agentRoutes);
-router.use("/warehouse", warehouseRoutes);
+router.use("/rental", rentalRoutes);
 
 export default router;
