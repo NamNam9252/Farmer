@@ -13,6 +13,7 @@ import newsRoutes from "./modules/news/news.route.js";
 import schemesRoutes from "./modules/news/schemes.route.js";
 import agentRoutes from "./modules/agent/agent.routes.js";
 import rentalRoutes from "./modules/rental/rental.route.js";
+import laborRoutes from "./modules/labor/labor.routes.js";
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use("/news", newsRoutes);
 router.use("/schemes", schemesRoutes);
 router.use("/agent", agentRoutes);
 router.use("/rental", rentalRoutes);
+router.use("/labor", laborRoutes);
 
 export default router;
