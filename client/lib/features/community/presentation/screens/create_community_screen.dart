@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../core/services/location_service.dart';
@@ -47,8 +48,7 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final lang = ref.read(languageProvider);
-    final isHindi = lang == 'hi';
+    final isHindi = ref.read(languageProvider) == 'hi';
 
     try {
       final loc = await LocationService.getCurrentLocation();
@@ -59,26 +59,22 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
             isPrivate: _isPrivate,
             latitude: loc.latitude,
             longitude: loc.longitude,
-            radiusKm: 50, // Default 50km
+            radiusKm: 50,
           );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isHindi
-              ? 'समुदाय सफलतापूर्वक बनाया गया!'
-              : 'Community created successfully!'),
+          content: Text(isHindi ? 'सफलतापूर्वक बनाया गया!' : 'Created successfully!'),
           backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: AppColors.error,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -87,137 +83,181 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = ref.watch(languageProvider);
-    final isHindi = lang == 'hi';
+    final isHindi = ref.watch(languageProvider) == 'hi';
     final typesMap = isHindi ? _typesHi : _typesEn;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(isHindi ? 'नया समुदाय बनाएं' : 'Create Community'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isHindi ? 'समुदाय का नाम' : 'Community Name',
-                      style: AppTextStyles.headline3,
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        hintText: isHindi
-                            ? 'जैसे: जयपुर किसान यूनियन'
-                            : 'e.g. Jaipur Farmers Union',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty) {
-                          return isHindi
-                              ? 'कृपया नाम दर्ज करें'
-                              : 'Please enter a name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      isHindi ? 'विवरण (वैकल्पिक)' : 'Description (Optional)',
-                      style: AppTextStyles.headline3,
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _descController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: isHindi
-                            ? 'इस समुदाय के बारे में बताएं...'
-                            : 'Tell us about this community...',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      isHindi ? 'प्रकार' : 'Type',
-                      style: AppTextStyles.headline3,
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value: _selectedType,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: typesMap.entries.map((entry) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Text(entry.value),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _selectedType = val);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.divider),
-                      ),
-                      child: SwitchListTile(
-                        activeThumbColor: AppColors.primary,
-                        title: Text(
-                          isHindi ? 'निजी समुदाय' : 'Private Community',
-                          style: AppTextStyles.body1,
-                        ),
-                        subtitle: Text(
-                          isHindi
-                              ? 'शामिल होने के लिए स्वीकृति की आवश्यकता होगी'
-                              : 'Will require approval to join',
-                          style: AppTextStyles.caption,
-                        ),
-                        value: _isPrivate,
-                        onChanged: (val) => setState(() => _isPrivate = val),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: _submit,
-                        child: Text(
-                          isHindi ? 'बनाएं' : 'Create',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+      backgroundColor: const Color(0xFFF6F8F6),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildHeader(isHindi),
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverToBoxAdapter(
+              child: _isLoading
+                  ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: AppColors.primary)))
+                  : Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildFieldLabel(isHindi ? 'समुदाय का नाम' : 'Community Name'),
+                          _buildTextField(
+                            controller: _nameController,
+                            hint: isHindi ? 'जैसे: जयपुर किसान यूनियन' : 'e.g. Jaipur Farmers Union',
+                            validator: (val) => (val == null || val.trim().isEmpty) ? (isHindi ? 'नाम दर्ज करें' : 'Enter name') : null,
                           ),
-                        ),
+                          const SizedBox(height: 24),
+                          
+                          _buildFieldLabel(isHindi ? 'विवरण (वैकल्पिक)' : 'Description (Optional)'),
+                          _buildTextField(
+                            controller: _descController,
+                            hint: isHindi ? 'इस समुदाय के बारे में बताएं...' : 'Tell us about this community...',
+                            maxLines: 4,
+                          ),
+                          const SizedBox(height: 24),
+
+                          _buildFieldLabel(isHindi ? 'प्रकार' : 'Type'),
+                          _buildDropdownField(typesMap),
+                          const SizedBox(height: 24),
+
+                          _buildPrivateToggle(isHindi),
+                          const SizedBox(height: 40),
+
+                          _buildSubmitButton(isHindi),
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isHindi) {
+    return SliverAppBar(
+      expandedHeight: 110,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+            ),
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30)),
+          ),
+        ),
+        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        title: Text(
+          isHindi ? 'नया समुदाय बनाएं' : 'Create Community',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+        ),
+        centerTitle: false,
+      ),
+      leading: IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
+          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
+        ),
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, left: 4),
+      child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+    );
+  }
+
+  Widget _buildTextField({required TextEditingController controller, required String hint, String? Function(String?)? validator, int maxLines = 1}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(fontSize: 14, color: AppColors.textHint, fontWeight: FontWeight.w400),
+          contentPadding: const EdgeInsets.all(18),
+          border: InputBorder.none,
+          errorStyle: const TextStyle(height: 0),
+        ),
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildDropdownField(Map<String, String> typesMap) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButtonFormField<String>(
+          value: _selectedType,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+          items: typesMap.entries.map((entry) => DropdownMenuItem(value: entry.key, child: Text(entry.value))).toList(),
+          onChanged: (val) => setState(() => _selectedType = val!),
+          decoration: const InputDecoration(border: InputBorder.none),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivateToggle(bool isHindi) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: SwitchListTile.adaptive(
+        activeColor: AppColors.primary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        title: Text(isHindi ? 'निजी समुदाय' : 'Private Community', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        subtitle: Text(isHindi ? 'स्वीकृति आवश्यक होगी' : 'Approval required', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        value: _isPrivate,
+        onChanged: (val) => setState(() => _isPrivate = val),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(bool isHindi) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))],
+      ),
+      child: ElevatedButton(
+        onPressed: _submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          elevation: 0,
+        ),
+        child: Text(isHindi ? 'बनाएं' : 'Create Community', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+      ),
     );
   }
 }

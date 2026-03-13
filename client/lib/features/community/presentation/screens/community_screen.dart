@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
-import '../../../../core/services/location_service.dart';
 import '../../../../core/services/location_provider.dart';
 import '../providers/community_provider.dart';
 import '../widgets/community_card.dart';
@@ -12,7 +13,6 @@ import 'community_detail_screen.dart';
 import 'create_community_screen.dart';
 import '../../../../shared/widgets/language_toggle.dart';
 
-/// Main community listing screen.
 class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key});
 
@@ -31,7 +31,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     final locState = ref.read(locationProvider);
     final communityState = ref.read(communityListProvider);
 
-    // If we already have communities and location, don't block
     if (communityState.communities.isNotEmpty && locState.position != null) {
       return;
     }
@@ -49,7 +48,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             );
       }
     } catch (_) {
-      // Fallback: use a default location if everything fails
       ref.read(communityListProvider.notifier).loadNearby(26.8347, 75.6510);
     }
   }
@@ -61,7 +59,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     final isHindi = lang == 'hi';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF6F8F6),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -71,13 +69,15 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             ),
           );
         },
+        elevation: 6,
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
           isHindi ? 'समुदाय बनाएं' : 'Create Community',
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
           ),
         ),
       ),
@@ -92,94 +92,10 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverAppBar(
-              expandedHeight: 180,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: AppColors.primary,
-              leading: IconButton(
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  } else {
-                    context.go(RouteNames.home);
-                  }
-                },
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              ),
-              actions: const [
-                LanguageToggle(color: Colors.white),
-                SizedBox(width: 8),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF2E7D32),
-                        Color(0xFF1B5E20),
-                      ],
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 40),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Icon(
-                                  Icons.groups_rounded,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      isHindi ? 'किसान समुदाय' : 'Farmer Communities',
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Text(
-                                      isHindi ? 'अपने आस-पास के किसानों से जुड़ें' : 'Connect with farmers near you',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.white.withOpacity(0.8),
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            _buildHeader(isHindi),
             if (state.isLoading && state.communities.isEmpty)
               const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
               )
             else if (state.error != null)
               SliverFillRemaining(
@@ -191,13 +107,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 80),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final community = state.communities[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: CommunityCard(
                           community: community,
                           isHindi: isHindi,
@@ -225,30 +141,93 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     );
   }
 
+  Widget _buildHeader(bool isHindi) {
+    return SliverAppBar(
+      expandedHeight: 110,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+            ),
+          ),
+        ),
+        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        title: Text(
+          isHindi ? 'किसान समुदाय' : 'Farmer Communities',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: false,
+      ),
+      leading: IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
+        ),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            context.go(RouteNames.home);
+          }
+        },
+      ),
+      actions: const [
+        LanguageToggle(color: Colors.white),
+        SizedBox(width: 12),
+      ],
+    );
+  }
+
   Widget _buildEmptyState(bool isHindi) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.groups_outlined,
-                size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20),
+                ],
+              ),
+              child: SvgPicture.string(AppIcons.community, width: 80, height: 80),
+            ),
+            const SizedBox(height: 24),
             Text(
               isHindi
                   ? 'आपके आस-पास कोई समुदाय नहीं मिला'
                   : 'No communities found nearby',
-              style: AppTextStyles.headline3,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               isHindi
                   ? 'नया समुदाय बनाकर शुरुआत करें!'
                   : 'Start by creating a new community!',
-              style: AppTextStyles.body2,
               textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -263,22 +242,23 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline_rounded,
-                size: 64, color: AppColors.error.withValues(alpha: 0.6)),
-            const SizedBox(height: 16),
+            const Icon(Icons.error_outline_rounded, size: 60, color: AppColors.error),
+            const SizedBox(height: 20),
             Text(
               error,
-              style: AppTextStyles.body2,
               textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _loadCommunities,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
+              icon: const Icon(Icons.refresh_rounded, size: 20),
               label: Text(isHindi ? 'पुनः प्रयास करें' : 'Retry'),
               style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
           ],

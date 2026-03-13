@@ -1,0 +1,8 @@
+﻿  error - The getter 'marketCommoditiesEndpoint' isn't defined for the type 'AppConstants' - lib\features\market\data\api\market_api.dart:16:46 - undefined_getter
+  error - The getter 'marketMarketsEndpoint' isn't defined for the type 'AppConstants' - lib\features\market\data\api\market_api.dart:48:46 - undefined_getter
+  error - The method 'toEntity' isn't defined for the type 'MarketPriceModel' - lib\features\market\data\api\market_api.dart:114:33 - undefined_method
+  error - The getter 'commodities' isn't defined for the type 'MarketState' - lib\features\market\presentation\screens\market_screen.dart:141:32 - undefined_getter
+  error - The method 'selectCommodity' isn't defined for the type 'MarketNotifier' - lib\features\market\presentation\screens\market_screen.dart:143:72 - undefined_method
+  error - The getter 'markets' isn't defined for the type 'MarketState' - lib\features\market\presentation\screens\market_screen.dart:156:32 - undefined_getter
+  error - The method 'selectMarket' isn't defined for the type 'MarketNotifier' - lib\features\market\presentation\screens\market_screen.dart:158:72 - undefined_method
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - lib\features\market\presentation\screens\market_screen.dart:167:30 - argument_type_not_assignable

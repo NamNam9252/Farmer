@@ -1,0 +1,79 @@
+﻿Analyzing client...                                             
+
+warning - Unused import: '../../core/constants/app_constants.dart' - lib\core\services\cloudinary_service.dart:4:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\core\services\cloudinary_service.dart:30:7 - avoid_print
+warning - Unused import: 'package:go_router/go_router.dart' - lib\core\services\command_service.dart:3:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\core\services\socket_service.dart:46:33 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\services\socket_service.dart:52:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\services\socket_service.dart:62:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\services\socket_service.dart:67:36 - avoid_print
+warning - Unused import: 'package:flutter_svg/flutter_svg.dart' - lib\features\advisory\presentation\widgets\advisory_form.dart:3:8 - unused_import
+warning - Unused import: '../../../../core/constants/app_icons.dart' - lib\features\advisory\presentation\widgets\advisory_form.dart:6:8 - unused_import
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\advisory\presentation\widgets\advisory_form.dart:307:13 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:33:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:53:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:59:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\auth\presentation\providers\auth_provider.dart:64:7 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\features\chatbot\presentation\providers\chatbot_provider.dart:135:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\chatbot\presentation\providers\chatbot_provider.dart:139:57 - use_build_context_synchronously
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\community\presentation\screens\community_chat_screen.dart:3:8 - unused_import
+   info - The prefix 'IO' isn't a lower_case_with_underscores identifier - lib\features\community\presentation\screens\community_chat_screen.dart:4:60 - library_prefixes
+warning - Unused import: '../../../../router/route_names.dart' - lib\features\community\presentation\screens\community_chat_screen.dart:7:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\community\presentation\screens\community_detail_screen.dart:182:31 - unnecessary_underscores
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\community\presentation\screens\community_detail_screen.dart:329:28 - use_build_context_synchronously
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\community\presentation\screens\create_community_screen.dart:3:8 - unused_import
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\community\presentation\screens\create_community_screen.dart:215:11 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\community\presentation\screens\create_community_screen.dart:234:9 - deprecated_member_use
+warning - Unnecessary cast - lib\features\crop_recommendation\presentation\screens\crop_recommendation_screen.dart:130:27 - unnecessary_cast
+   info - Unnecessary use of multiple underscores - lib\features\crop_recommendation\presentation\screens\crop_recommendation_screen.dart:194:39 - unnecessary_underscores
+warning - Unused import: '../../../../core/services/language_provider.dart' - lib\features\disease\presentation\providers\disease_provider.dart:3:8 - unused_import
+warning - Unused import: '../providers/disease_provider.dart' - lib\features\disease\presentation\widgets\image_preview_card.dart:7:8 - unused_import
+warning - Unused import: '../providers/disease_provider.dart' - lib\features\disease\presentation\widgets\tip_banner.dart:6:8 - unused_import
+  error - The getter 'marketCommoditiesEndpoint' isn't defined for the type 'AppConstants' - lib\features\market\data\api\market_api.dart:16:46 - undefined_getter
+  error - The getter 'marketMarketsEndpoint' isn't defined for the type 'AppConstants' - lib\features\market\data\api\market_api.dart:48:46 - undefined_getter
+  error - The method 'toEntity' isn't defined for the type 'MarketPriceModel' - lib\features\market\data\api\market_api.dart:114:33 - undefined_method
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\market\presentation\screens\market_book_screen.dart:167:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\market\presentation\screens\market_book_screen.dart:246:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\market\presentation\screens\market_book_screen.dart:249:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\market\presentation\screens\market_book_screen.dart:263:44 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed - lib\features\market\presentation\screens\market_screen.dart:136:51 - dead_null_aware_expression
+  error - The getter 'commodities' isn't defined for the type 'MarketState' - lib\features\market\presentation\screens\market_screen.dart:141:32 - undefined_getter
+  error - The method 'selectCommodity' isn't defined for the type 'MarketNotifier' - lib\features\market\presentation\screens\market_screen.dart:143:72 - undefined_method
+warning - The left operand can't be null, so the right operand is never executed - lib\features\market\presentation\screens\market_screen.dart:151:48 - dead_null_aware_expression
+  error - The getter 'markets' isn't defined for the type 'MarketState' - lib\features\market\presentation\screens\market_screen.dart:156:32 - undefined_getter
+  error - The method 'selectMarket' isn't defined for the type 'MarketNotifier' - lib\features\market\presentation\screens\market_screen.dart:158:72 - undefined_method
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - lib\features\market\presentation\screens\market_screen.dart:167:30 - argument_type_not_assignable
+warning - Unused import: '../../data/models/marketplace_new_models.dart' - lib\features\marketplace_new\presentation\screens\browse_demands_screen.dart:6:8 - unused_import
+warning - Unused import: '../../../auth/presentation/providers/auth_provider.dart' - lib\features\marketplace_new\presentation\screens\browse_demands_screen.dart:8:8 - unused_import
+warning - Unused import: '../../../auth/presentation/state/auth_state.dart' - lib\features\marketplace_new\presentation\screens\browse_demands_screen.dart:9:8 - unused_import
+warning - Unused import: '../../data/models/marketplace_new_models.dart' - lib\features\marketplace_new\presentation\screens\browse_items_screen.dart:6:8 - unused_import
+warning - Unused import: '../../../../core/theme/app_theme.dart' - lib\features\marketplace_new\presentation\screens\demand_detail_screen.dart:4:8 - unused_import
+   info - The 'child' argument should be last in widget constructor invocations - lib\features\marketplace_new\presentation\screens\demand_detail_screen.dart:103:43 - sort_child_properties_last
+warning - The value of the local variable 'launchUri' isn't used - lib\features\marketplace_new\presentation\screens\my_demand_offers_screen.dart:284:15 - unused_local_variable
+warning - The value of the local variable 'launchUri' isn't used - lib\features\marketplace_new\presentation\screens\my_purchase_requests_screen.dart:286:15 - unused_local_variable
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\marketplace_new\presentation\screens\post_demand_screen.dart:113:17 - deprecated_member_use
+warning - Unused import: '../../../../router/route_names.dart' - lib\features\marketplace_new\presentation\screens\post_item_screen.dart:7:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\marketplace_new\presentation\screens\post_item_screen.dart:94:28 - use_build_context_synchronously
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\marketplace_new\presentation\screens\post_item_screen.dart:251:17 - deprecated_member_use
+warning - Unused import: '../../../../core/theme/app_theme.dart' - lib\features\notifications\presentation\widgets\notification_sheet.dart:4:8 - unused_import
+warning - Unused import: '../../../../core/constants/app_constants.dart' - lib\features\schemes\data\api\schemes_api.dart:3:8 - unused_import
+warning - Unused import: '../../../../router/route_names.dart' - lib\features\schemes\presentation\screens\schemes_screen.dart:9:8 - unused_import
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\schemes\presentation\screens\schemes_screen.dart:10:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:119:27 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:123:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:161:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:163:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:232:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:284:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:286:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\weather\presentation\screens\weather_details_screen.dart:323:33 - deprecated_member_use
+   info - Angle brackets will be interpreted as HTML - lib\shared\widgets\crop_picker_sheet.dart:71:62 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\shared\widgets\crop_picker_sheet.dart:77:18 - unintended_html_in_doc_comment
+   info - Unnecessary use of multiple underscores - lib\shared\widgets\crop_picker_sheet.dart:337:43 - unnecessary_underscores
+warning - Unused import: 'dart:convert' - test_api.dart:1:8 - unused_import
+warning - The value of the local variable 'dio' isn't used - test_api.dart:5:9 - unused_local_variable
+   info - Don't invoke 'print' in production code - test_api.dart:11:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api.dart:13:5 - avoid_print
+
