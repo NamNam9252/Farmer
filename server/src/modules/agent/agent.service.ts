@@ -600,8 +600,8 @@ async function executeTool(
 
         case 'get_advisory': {
             try {
-                const recs = advisoryService.getRecommendation(args);
-                const cardData: AdvisoryCard[] = (recs || []).map((r) => ({
+                const recs = await advisoryService.getRecommendation(args as any);
+                const cardData: AdvisoryCard[] = (recs || []).map((r: any) => ({
                     stage: r.stage,
                     action: r.action,
                     reason: r.reason,
