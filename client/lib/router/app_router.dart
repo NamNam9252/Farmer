@@ -35,6 +35,7 @@ import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 import '../features/schemes/presentation/screens/schemes_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
 import '../features/weather/presentation/screens/weather_details_screen.dart';
+import '../shared/widgets/shared_app_bar.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -129,8 +130,9 @@ GoRouter appRouter(Ref ref) {
           final location = state.uri.path;
           int currentIndex = 0;
           if (location.startsWith(RouteNames.disease)) currentIndex = 1;
-          if (location.startsWith(RouteNames.market)) currentIndex = 2;
-          if (location.startsWith(RouteNames.profile)) currentIndex = 3;
+          if (location.startsWith(RouteNames.chatbot)) currentIndex = 2;
+          if (location.startsWith(RouteNames.schemes)) currentIndex = 3;
+          if (location.startsWith(RouteNames.profile)) currentIndex = 4;
 
           return AppBottomNavBar(currentIndex: currentIndex, child: child);
         },
@@ -263,6 +265,8 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.schemes,
             builder: (context, state) => const SchemesScreen(),
+          ),
+          GoRoute(
             path: RouteNames.chatbot,
             builder: (context, state) => const ChatbotScreen(),
           ),
@@ -291,24 +295,29 @@ class _PlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(
-              subtitle,
-              style: AppTextStyles.body2,
-              textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          SharedHeader(
+            title: title,
+            subtitle: subtitle,
+          ),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
+                  const SizedBox(height: 16),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.body2,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

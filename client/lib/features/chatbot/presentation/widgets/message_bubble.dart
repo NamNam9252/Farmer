@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/tts_service.dart';
 import '../../data/models/chat_models.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends ConsumerWidget {
   final ChatMessage message;
   final VoidCallback? onConfirmAction;
   final VoidCallback? onNavigateAction;
@@ -18,8 +20,31 @@ class MessageBubble extends StatelessWidget {
 
   bool get isUser => message.role == 'user';
 
+  String _normalizeMarkdown(String input) {
+    if (!input.contains('|')) return input;
+    final lines = input.split('\n');
+    final hasTable = lines.any((line) => line.contains('|')) &&
+        lines.any((line) => line.contains('|') && line.contains('---'));
+
+    if (!hasTable) return input;
+
+    final List<String> normalized = [];
+    for (final line in lines) {
+      if (line.trim().startsWith('|') && line.contains('|')) {
+        final cells = line.split('|').map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+        if (cells.isEmpty) continue;
+        if (cells.every((c) => c.replaceAll('-', '').isEmpty)) continue;
+        normalized.add('- ' + cells.join(' | '));
+      } else {
+        normalized.add(line);
+      }
+    }
+
+    return normalized.join('\n');
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (message.isLoading) {
       return _buildTypingIndicator();
     }
@@ -99,7 +124,7 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ],
                       MarkdownBody(
-                        data: message.content,
+                        data: _normalizeMarkdown(message.content),
                         selectable: true,
                         styleSheet: MarkdownStyleSheet(
                           p: TextStyle(
@@ -120,6 +145,68 @@ class MessageBubble extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // TTS Control for Assistant
+                if (!isUser && !message.isLoading) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // Prioritize ttsLanguageHint from backend for custom voice summary
+                          final String lang = message.ttsLanguageHint ?? 
+                              message.languageHint ?? 
+                              (message.content.contains(RegExp(r'[\u0900-\u097F]')) ? 'hi' : 'en');
+                          
+                          // Use ttsMessage if available, otherwise fallback to main content
+                          final String textToSpeak = message.ttsMessage ?? message.content;
+
+                          ref.read(ttsServiceProvider).speak(
+                                textToSpeak,
+                                lang,
+                              );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.volume_up_rounded, size: 14, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                isUser ? '' : 'Listen',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Stop button (optional, but helpful)
+                      GestureDetector(
+                        onTap: () => ref.read(ttsServiceProvider).stop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          ),
+                          child: const Icon(Icons.stop_rounded, size: 14, color: Colors.grey),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
 
                 // Action buttons
                 if (message.action != null) ...[
@@ -245,6 +332,12 @@ class MessageBubble extends StatelessWidget {
     if (dataType == 'crop_recommendation' && action.data != null) {
       return _buildCropRecommendation(action.data);
     }
+    if (dataType == 'advisory' && action.data is List) {
+      return _buildAdvisoryList(action.data as List);
+    }
+    if (dataType == 'user_profile' && action.data != null) {
+      return _buildUserProfileCard(action.data);
+    }
     if (dataType == 'crop_disease_analysis' && action.data != null) {
       return _buildDiseaseAnalysisCard(action.data);
     }
@@ -323,7 +416,7 @@ class MessageBubble extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           ...data.take(3).map((item) {
-            final name = item['title'] ?? item['name'] ?? 'Unknown';
+            final name = item['name'] ?? 'Unknown';
             final price = item['price'] ?? '?';
             final unit = item['unit'] ?? '';
             return Padding(
@@ -413,15 +506,82 @@ class MessageBubble extends StatelessWidget {
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        'Estimated Profit: ₹${crop['profitEstimate']}/acre',
+                        'Estimated Profit: ₹${crop['profitEstimate'] ?? '—'}/acre',
                         style: TextStyle(fontSize: 11, color: AppColors.textHint),
                       ),
+                      if (crop['marketPrice'] != null)
+                        Text(
+                          'Market Price: ${crop['marketPrice']}',
+                          style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                        ),
                     ],
                   ),
                 ),
               ],
             ),
           )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdvisoryList(List data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8E9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.eco_rounded, size: 16, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text('Advisory', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...data.take(3).map((item) {
+            final action = item['action'] ?? '—';
+            final reason = item['reason'] ?? '';
+            final risk = item['riskLevel'] ?? '';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('• $action (${risk}) — $reason', style: const TextStyle(fontSize: 12)),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserProfileCard(dynamic data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.person_rounded, size: 16, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text('Your Profile', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (data['name'] != null) Text('Name: ${data['name']}', style: const TextStyle(fontSize: 12)),
+          if (data['phone'] != null) Text('Phone: ${data['phone']}', style: const TextStyle(fontSize: 12)),
+          if (data['email'] != null) Text('Email: ${data['email']}', style: const TextStyle(fontSize: 12)),
+          if (data['role'] != null) Text('Role: ${data['role']}', style: const TextStyle(fontSize: 12)),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'command_service.dart';
 
 final voiceServiceProvider = Provider((ref) => VoiceService(ref));
+final listeningStateProvider = StateProvider<bool>((ref) => false);
 
 class VoiceService {
   final Ref _ref;
@@ -25,10 +26,13 @@ class VoiceService {
     if (!initialized) return;
 
     onListeningChanged(true);
+    _ref.read(listeningStateProvider.notifier).state = true;
+    
     await _speech.listen(
       onResult: (result) {
         if (result.finalResult) {
           onListeningChanged(false);
+          _ref.read(listeningStateProvider.notifier).state = false;
           onResult(result.recognizedWords);
           _ref.read(commandServiceProvider).processCommand(result.recognizedWords);
         }
@@ -38,6 +42,7 @@ class VoiceService {
 
   Future<void> stopListening() async {
     await _speech.stop();
+    _ref.read(listeningStateProvider.notifier).state = false;
   }
 
   bool get isListening => _speech.isListening;

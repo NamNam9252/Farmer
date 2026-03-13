@@ -11,6 +11,8 @@
 .svn/
 .swiftpm/
 
+.vscode
+
 # IntelliJ related
 *.iml
 *.ipr

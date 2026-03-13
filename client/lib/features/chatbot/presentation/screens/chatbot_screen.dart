@@ -10,6 +10,8 @@ import '../../data/models/chat_models.dart';
 import '../../../../router/app_router.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/confirmation_dialog.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
+import '../../../../core/services/tts_service.dart';
 
 class ChatbotScreen extends ConsumerStatefulWidget {
   const ChatbotScreen({super.key});
@@ -61,26 +63,38 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
     final hasImage = ref.read(chatbotProvider).selectedImagePath != null;
     
     if (text.isEmpty && !hasImage) return;
-
+    
     _controller.clear();
-    ref.read(chatbotProvider.notifier).sendMessage(text, context: context);
+    ref.read(chatbotProvider.notifier).sendMessage(text, context: context, isVoice: false);
+    _scrollToBottom();
+  }
+
+  void _sendVoiceMessage(String text) {
+    if (text.trim().isEmpty) return;
+    _controller.clear();
+    ref.read(chatbotProvider.notifier).sendMessage(text, context: context, isVoice: true);
     _scrollToBottom();
   }
 
   Future<void> _startListening() async {
+    // Stop any current TTS when user starts talking
+    ref.read(ttsServiceProvider).stop();
+    
     final voiceService = ref.read(voiceServiceProvider);
     setState(() => _isListening = true);
     _pulseController.repeat(reverse: true);
 
     await voiceService.startListening(
       onResult: (text) {
-        _controller.text = text;
+        _sendVoiceMessage(text);
         setState(() => _isListening = false);
         _pulseController.stop();
         _pulseController.reset();
       },
       onListeningChanged: (listening) {
-        setState(() => _isListening = listening);
+        if (_isListening != listening) {
+          setState(() => _isListening = listening);
+        }
         if (!listening) {
           _pulseController.stop();
           _pulseController.reset();
@@ -131,9 +145,55 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F0),
-      appBar: _buildAppBar(chatState, isHindi),
       body: Column(
         children: [
+          SharedHeader(
+            title: isHindi ? 'कृषिमित्र' : 'KrishiMitra',
+            subtitle: chatState.isOffline
+                ? (isHindi ? 'ऑफलाइन' : 'Offline')
+                : (isHindi ? 'ऑनलाइन' : 'Online'),
+            leading: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              PopupMenuButton<String>(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 18),
+                ),
+                onSelected: (value) {
+                  if (value == 'clear') {
+                    ref.read(chatbotProvider.notifier).clearChat();
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 20, color: AppColors.textPrimary),
+                        const SizedBox(width: 8),
+                        Text(isHindi ? 'चैट साफ करें' : 'Clear chat'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           // Offline banner
           if (chatState.isOffline)
             Container(
@@ -184,86 +244,6 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(ChatbotState state, bool isHindi) {
-    return AppBar(
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      title: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: Text('🌾', style: TextStyle(fontSize: 20)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isHindi ? 'कृषिमित्र' : 'KrishiMitra',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: state.isOffline ? AppColors.warning : const Color(0xFF66BB6A),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    state.isOffline
-                        ? (isHindi ? 'ऑफलाइन' : 'Offline')
-                        : (isHindi ? 'ऑनलाइन' : 'Online'),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-      actions: [
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.white),
-          onSelected: (value) {
-            if (value == 'clear') {
-              ref.read(chatbotProvider.notifier).clearChat();
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'clear',
-              child: Row(
-                children: [
-                  const Icon(Icons.delete_outline, size: 20, color: AppColors.textPrimary),
-                  const SizedBox(width: 8),
-                  Text(isHindi ? 'चैट साफ करें' : 'Clear chat'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   Widget _buildInputArea(ChatbotState state) {
     return Container(
@@ -328,6 +308,8 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
                     return Transform.scale(
                       scale: _isListening ? 1.0 + (_pulseController.value * 0.15) : 1.0,
                       child: GestureDetector(
+                        onLongPressStart: (_) => _startListening(),
+                        onLongPressEnd: (_) => _stopListening(),
                         onTap: _isListening ? _stopListening : _startListening,
                         child: Container(
                           width: 44,

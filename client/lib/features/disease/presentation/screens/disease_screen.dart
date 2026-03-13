@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/services/language_provider.dart';
 import '../providers/disease_provider.dart';
 import '../../../../router/route_names.dart';
@@ -14,7 +16,7 @@ import '../widgets/past_reports_section.dart';
 import '../widgets/image_preview_card.dart';
 import '../widgets/tip_banner.dart';
 import '../widgets/analyzing_overlay.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class DiseaseScreen extends ConsumerStatefulWidget {
   const DiseaseScreen({super.key});
@@ -105,7 +107,6 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
       );
     }
 
-    // Refresh past reports
     ref.invalidate(pastReportsProvider);
   }
 
@@ -116,64 +117,60 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
     final isHindi = lang == 'hi';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF6F8F6),
       body: Stack(
         children: [
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildSliverAppBar(isHindi, lang, ref),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 20),
-                          _buildHeroSection(isHindi),
-                          const SizedBox(height: 20),
-                          if (state.selectedImage == null) ...[
-                            _buildActionButtons(isHindi),
-                          ] else ...[
-                            ImagePreviewCard(
-                              image: state.selectedImage!,
-                              onRetake: () {
-                                ref
-                                    .read(diseaseAnalysisProvider.notifier)
-                                    .clearAll();
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            _buildCropSelector(isHindi, state.selectedCrop),
-                            const SizedBox(height: 16),
-                            if (state.result == null)
-                              _buildAnalyzeButton(isHindi, state.isLoading),
-                          ],
-                          const SizedBox(height: 20),
-                          if (state.result != null)
-                            DiseaseResultCard(
-                              report: state.result!,
-                              isHindi: isHindi,
-                              onRetake: () {
-                                ref
-                                    .read(diseaseAnalysisProvider.notifier)
-                                    .clearAll();
-                              },
-                            )
-                          else ...[
-                            const SizedBox(height: 8),
-                            PastReportsSection(isHindi: isHindi),
-                            const SizedBox(height: 32),
-                          ],
-                        ],
-                      ),
-                    ),
+          FadeTransition(
+            opacity: _fadeAnim,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildHeader(isHindi, lang),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 24),
+                      if (state.selectedImage == null) ...[
+                        _buildHeroVisual(isHindi),
+                        const SizedBox(height: 32),
+                        _buildActionGrid(isHindi),
+                      ] else ...[
+                        ImagePreviewCard(
+                          image: state.selectedImage!,
+                          onRetake: () {
+                            ref
+                                .read(diseaseAnalysisProvider.notifier)
+                                .clearAll();
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildCropSelector(isHindi, state.selectedCrop),
+                        const SizedBox(height: 20),
+                        if (state.result == null)
+                          _buildAnalyzeButton(isHindi, state.isLoading),
+                      ],
+                      const SizedBox(height: 24),
+                      if (state.result != null)
+                        DiseaseResultCard(
+                          report: state.result!,
+                          isHindi: isHindi,
+                          onRetake: () {
+                            ref
+                                .read(diseaseAnalysisProvider.notifier)
+                                .clearAll();
+                          },
+                        )
+                      else ...[
+                        const TipBanner(),
+                        const SizedBox(height: 24),
+                        PastReportsSection(isHindi: isHindi),
+                        const SizedBox(height: 32),
+                      ],
+                    ]),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           if (state.isLoading) AnalyzingOverlay(isHindi: isHindi),
@@ -182,116 +179,88 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
     );
   }
 
-  SliverAppBar _buildSliverAppBar(bool isHindi, String lang, WidgetRef ref) {
-    return SliverAppBar(
-      floating: true,
-      snap: true,
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
-      title: Text(
-        isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-      actions: const [
-        LanguageToggle(color: Colors.white),
-        SizedBox(width: 8),
-      ],
+  Widget _buildHeader(bool isHindi, String lang) {
+    return SharedSliverAppBar(
+      title: isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
+      subtitle: isHindi 
+          ? 'तत्काल फसल निदान और उपचार' 
+          : 'Instant crop diagnosis and treatment',
     );
   }
 
-  Widget _buildHeroSection(bool isHindi) {
+  Widget _buildHeroVisual(bool isHindi) {
     return Column(
       children: [
         Container(
-          width: 120,
-          height: 120,
+          width: 140,
+          height: 140,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: Colors.white,
             shape: BoxShape.circle,
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Icon(Icons.eco_rounded, size: 64, color: AppColors.primary),
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryDark,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.search_rounded,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
+          child: Center(
+            child: SvgPicture.string(
+              AppIcons.disease,
+              width: 90,
+              height: 90,
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Text(
           isHindi
               ? AppStrings.diseaseSubtitleHindi
               : AppStrings.diseaseSubtitle,
-          style: AppTextStyles.headline2,
           textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+            height: 1.2,
+          ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Text(
           isHindi ? AppStrings.diseaseTapHintHindi : AppStrings.diseaseTapHint,
-          style: AppTextStyles.body2,
           textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w400,
+          ),
         ),
-        const SizedBox(height: 12),
-        const TipBanner(),
       ],
     );
   }
 
-  Widget _buildActionButtons(bool isHindi) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildActionGrid(bool isHindi) {
+    return Row(
       children: [
-        _ActionButton(
-          icon: Icons.camera_alt_rounded,
-          label: isHindi ? AppStrings.takePhotoHindi : AppStrings.takePhoto,
-          sublabel: isHindi ? AppStrings.takePhoto : AppStrings.takePhotoHindi,
-          color: AppColors.primary,
-          onTap: () => _pickImage(ImageSource.camera),
+        Expanded(
+          child: _FeatureActionCard(
+            svgData: AppIcons.cameraAction,
+            label: isHindi ? AppStrings.takePhotoHindi : AppStrings.takePhoto,
+            bgColor: const Color(0xFFE3F2FD),
+            onTap: () => _pickImage(ImageSource.camera),
+          ),
         ),
-        const SizedBox(height: 12),
-        _ActionButton(
-          icon: Icons.photo_library_rounded,
-          label:
-              isHindi
-                  ? AppStrings.uploadGalleryHindi
-                  : AppStrings.uploadGallery,
-          sublabel:
-              isHindi
-                  ? AppStrings.uploadGallery
-                  : AppStrings.uploadGalleryHindi,
-          color: AppColors.primaryDark,
-          onTap: () => _pickImage(ImageSource.gallery),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _FeatureActionCard(
+            svgData: AppIcons.galleryAction,
+            label: isHindi
+                ? AppStrings.uploadGalleryHindi
+                : AppStrings.uploadGallery,
+            bgColor: const Color(0xFFFCE4EC),
+            onTap: () => _pickImage(ImageSource.gallery),
+          ),
         ),
       ],
     );
@@ -301,54 +270,68 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
     return GestureDetector(
       onTap: _showCropSelector,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selectedCrop.isEmpty ? AppColors.divider : AppColors.primary,
             width: selectedCrop.isEmpty ? 1 : 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.grass_rounded,
-              color:
-                  selectedCrop.isEmpty ? AppColors.textHint : AppColors.primary,
-              size: 22,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: selectedCrop.isEmpty
+                    ? Colors.grey[100]
+                    : AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.grass_rounded,
+                color: selectedCrop.isEmpty ? Colors.grey : AppColors.primary,
+                size: 20,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     isHindi ? AppStrings.cropTypeHindi : AppStrings.cropType,
-                    style: AppTextStyles.caption,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     selectedCrop.isEmpty
                         ? (isHindi ? 'फसल चुनें' : 'Select Crop')
                         : selectedCrop,
-                    style: AppTextStyles.body1.copyWith(
-                      color:
-                          selectedCrop.isEmpty
-                              ? AppColors.textHint
-                              : AppColors.textPrimary,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: selectedCrop.isEmpty
+                          ? AppColors.textHint
+                          : AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textHint),
+            const Icon(Icons.expand_more_rounded, color: AppColors.textHint),
           ],
         ),
       ),
@@ -356,94 +339,101 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
   }
 
   Widget _buildAnalyzeButton(bool isHindi, bool isLoading) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton.icon(
         onPressed: isLoading ? null : _analyze,
-        icon: const Icon(Icons.biotech_rounded, size: 22),
+        icon: const Icon(Icons.psychology_rounded, size: 22, color: Colors.white),
         label: Text(
           isHindi ? AppStrings.analyzeHindi : AppStrings.analyze,
-          style: AppTextStyles.button,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(18),
           ),
+          elevation: 0,
         ),
       ),
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.icon,
+class _FeatureActionCard extends StatelessWidget {
+  const _FeatureActionCard({
+    required this.svgData,
     required this.label,
-    required this.sublabel,
-    required this.color,
+    required this.bgColor,
     required this.onTap,
   });
 
-  final IconData icon;
+  final String svgData;
   final String label;
-  final String sublabel;
-  final Color color;
+  final Color bgColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 3,
-      shadowColor: color.withValues(alpha: 0.3),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: SvgPicture.string(
+                  svgData,
+                  width: 44,
+                  height: 44,
                 ),
-                child: Icon(icon, color: Colors.white, size: 26),
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    sublabel,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.75),
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
               ),
-              const Spacer(),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Colors.white70,
-                size: 16,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

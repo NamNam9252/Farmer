@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../router/route_names.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 
@@ -26,86 +27,89 @@ class DemandDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Demand Details'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          if (isOwner) ...[
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: () => context.pushNamed(RouteNames.postDemand, extra: latestDemand),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteConfirmation(context, ref),
-            ),
-          ] else
-            IconButton(
-              icon: const Icon(Icons.report_problem_outlined, color: Colors.orange),
-              onPressed: () => _showReportDialog(context, ref),
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+      body: CustomScrollView(
+        slivers: [
+          SharedSliverAppBar(
+            title: latestDemand.itemName,
+            subtitle: '₹${latestDemand.expectedPrice} • ${latestDemand.category}',
+            actions: [
+              if (isOwner) ...[
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
                   ),
-                  child: Text(
-                    demand.category, 
-                    style: const TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
+                  onPressed: () => context.pushNamed(RouteNames.postDemand, extra: latestDemand),
                 ),
-                const Spacer(),
-                const Text('Expected: ', style: TextStyle(color: Colors.grey)),
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.delete, color: Colors.white, size: 18),
+                  ),
+                  onPressed: () => _showDeleteConfirmation(context, ref),
+                ),
+                const SizedBox(width: 8),
+              ] else ...[
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.report_problem_outlined, color: Colors.white, size: 18),
+                  ),
+                  onPressed: () => _showReportDialog(context, ref),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 18, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(demand.location, style: const TextStyle(color: Colors.grey, fontSize: 15)),
+                    const SizedBox(width: 24),
+                    const Icon(Icons.shopping_cart_rounded, size: 18, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text('Need: ${latestDemand.quantityNeeded}', style: const TextStyle(color: Colors.grey, fontSize: 15)),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                const Text('Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
                 Text(
-                  '₹${latestDemand.expectedPrice}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                  demand.description ?? 'No extra details provided.',
+                  style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
                 ),
-              ],
+                const SizedBox(height: 40),
+                const Text('Buyer Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(child: Icon(Icons.person_outline), backgroundColor: Color(0xFFFFF3E0)),
+                  title: Text(demand.buyer?['name'] ?? 'Buyer'),
+                  subtitle: const Text('Verified Member'),
+                ),
+                const SizedBox(height: 100),
+              ]),
             ),
-            const SizedBox(height: 20),
-            Text(latestDemand.itemName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.location_on_rounded, size: 18, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(demand.location, style: const TextStyle(color: Colors.grey, fontSize: 15)),
-                const SizedBox(width: 24),
-                const Icon(Icons.shopping_cart_rounded, size: 18, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text('Need: ${latestDemand.quantityNeeded}', style: const TextStyle(color: Colors.grey, fontSize: 15)),
-              ],
-            ),
-            const SizedBox(height: 32),
-            const Text('Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text(
-              demand.description ?? 'No extra details provided.',
-              style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
-            ),
-            const SizedBox(height: 40),
-            const Text('Buyer Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-             const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const CircleAvatar(child: Icon(Icons.person_outline), backgroundColor: Color(0xFFFFF3E0)),
-              title: Text(demand.buyer?['name'] ?? 'Buyer'),
-              subtitle: const Text('Verified Member'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: isOwner ? null : SafeArea(
         child: Padding(

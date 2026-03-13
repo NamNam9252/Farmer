@@ -8,13 +8,21 @@ export class NewsRepository {
   static async get_recent_articles() {
     return prisma.newsArticle.findMany({
       where: {
-        publishedAt: {
-          gte: new Date(Date.now() - 48 * 60 * 60 * 1000),
-        },
+        isDeleted: false,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
       select: {
+        id: true,
         title: true,
+        content: true,
+        source: true,
         sourceUrl: true,
+        imageUrl: true,
+        publishedAt: true,
+        createdAt: true,
+        isNational: true,
       },
     });
   }

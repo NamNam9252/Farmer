@@ -23,6 +23,8 @@ class MarketPriceModel extends MarketPrice {
     );
   }
 
+  MarketPrice toEntity() => this;
+
   Map<String, dynamic> toJson() => {
         'commodity': commodity,
         'market': market,

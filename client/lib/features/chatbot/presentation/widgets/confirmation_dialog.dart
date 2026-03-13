@@ -33,9 +33,10 @@ class ConfirmationDialog extends StatelessWidget {
           details = [
             _detailRow('Item', payload['itemName'] ?? '—'),
             _detailRow('Price', '₹${payload['pricePerUnit'] ?? '—'}/${payload['unit'] ?? ''}'),
-            _detailRow('Quantity', '${payload['quantityAvailable'] ?? '—'}'),
+            _detailRow('Quantity', '${payload['quantityAvailable'] ?? payload['quantity'] ?? '—'}'),
             _detailRow('Category', '${payload['category'] ?? '—'}'),
             if (payload['description'] != null) _detailRow('Description', payload['description']),
+            if (payload['location'] != null) _detailRow('Location', payload['location']),
           ];
         }
         break;
@@ -44,11 +45,14 @@ class ConfirmationDialog extends StatelessWidget {
         icon = Icons.shopping_cart_rounded;
         iconColor = const Color(0xFF1565C0);
         if (payload is Map) {
+          final budget = payload['expectedPrice'] ?? payload['budgetPerUnit'];
           details = [
             _detailRow('Item', payload['itemName'] ?? '—'),
-            _detailRow('Budget', '₹${payload['budgetPerUnit'] ?? '—'}/${payload['unit'] ?? ''}'),
+            _detailRow('Budget', '₹${budget ?? '—'}/${payload['unit'] ?? ''}'),
             _detailRow('Quantity', '${payload['quantityNeeded'] ?? '—'}'),
             _detailRow('Category', '${payload['category'] ?? '—'}'),
+            if (payload['description'] != null) _detailRow('Description', payload['description']),
+            if (payload['location'] != null) _detailRow('Location', payload['location']),
           ];
         }
         break;

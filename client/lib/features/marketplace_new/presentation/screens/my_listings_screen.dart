@@ -6,6 +6,8 @@ import '../../../../router/route_names.dart';
 import '../providers/marketplace_new_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
+import '../../../../core/services/language_provider.dart';
 
 class MyListingsScreen extends ConsumerStatefulWidget {
   const MyListingsScreen({super.key});
@@ -34,26 +36,41 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> with Single
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
+    final isHindi = ref.watch(languageProvider) == 'hi';
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Listings'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'My Items'),
-            Tab(text: 'My Demands'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          const _MyItemsList(),
-          const _MyDemandsList(),
+          SharedHeader(
+            title: isHindi ? 'मेरी लिस्टिंग' : 'My Listings',
+            subtitle: isHindi 
+                ? 'अपनी सक्रिय वस्तुओं और मांगों का प्रबंधन करें' 
+                : 'Manage your active items and demands',
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              tabs: const [
+                Tab(text: 'My Items'),
+                Tab(text: 'My Demands'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                const _MyItemsList(),
+                const _MyDemandsList(),
+              ],
+            ),
+          ),
         ],
       ),
     );

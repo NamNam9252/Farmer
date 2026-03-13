@@ -5,6 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../router/route_names.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
+import '../../../../core/services/language_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 
@@ -32,6 +34,7 @@ class _BrowseDemandsScreenState extends ConsumerState<BrowseDemandsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(marketplaceDemandsProvider);
+    final isHindi = ref.watch(languageProvider) == 'hi';
     final categories = [
       'ALL', 'CROPS', 'FRUITS', 'VEGETABLES', 'GRAINS', 'SEEDS', 
       'FERTILIZERS', 'PESTICIDES', 'FARMING_EQUIPMENT', 
@@ -40,11 +43,14 @@ class _BrowseDemandsScreenState extends ConsumerState<BrowseDemandsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Buyer Demands'),
-      ),
       body: Column(
         children: [
+          SharedHeader(
+            title: isHindi ? 'खरीददार की मांग' : 'Buyer Demands',
+            subtitle: isHindi 
+                ? 'स्थानीय उत्पादों की आवश्यकताओं को पूरा करें' 
+                : 'Fulfill local produce requirements',
+          ),
           _buildCategoryFilters(categories),
           Expanded(
             child: RefreshIndicator(
