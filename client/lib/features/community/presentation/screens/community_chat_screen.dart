@@ -9,6 +9,7 @@ import '../../../../core/services/secure_storage_service.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../../data/api/community_api.dart';
 
 class CommunityChatScreen extends ConsumerStatefulWidget {
@@ -213,84 +214,46 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F4F1),
-      appBar: _buildAppBar(isHindi),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : _error != null
-              ? _buildErrorPlaceholder()
-              : Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        reverse: true,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final sender = msg['sender'] as Map<String, dynamic>? ?? {};
-                          final isMe = msg['senderId'] == currentUserId;
-                          
-                          return _buildMessageBubble(msg, sender, isMe);
-                        },
-                      ),
-                    ),
-                    _buildInputArea(isHindi),
-                  ],
-                ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(bool isHindi) {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          Text(widget.communityName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: _connectionStatus == 'connected' ? Colors.greenAccent : Colors.orangeAccent,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                _connectionStatus == 'connected' 
-                    ? (isHindi ? 'ऑनलाइन' : 'Online')
-                    : (isHindi ? 'कनेक्ट हो रहा है...' : 'Connecting...'),
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.white70),
-              ),
-            ],
+          SharedHeader(
+            title: widget.communityName,
+            subtitle: _connectionStatus == 'connected'
+                ? (isHindi ? 'ऑनलाइन' : 'Online')
+                : (isHindi ? 'कनेक्ट हो रहा है...' : 'Connecting...'),
+            paddingBottom: 16,
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : _error != null
+                    ? _buildErrorPlaceholder()
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              reverse: true,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                              itemCount: _messages.length,
+                              itemBuilder: (context, index) {
+                                final msg = _messages[index];
+                                final sender = msg['sender'] as Map<String, dynamic>? ?? {};
+                                final isMe = msg['senderId'] == currentUserId;
+                                
+                                return _buildMessageBubble(msg, sender, isMe);
+                              },
+                            ),
+                          ),
+                          _buildInputArea(isHindi),
+                        ],
+                      ),
           ),
         ],
       ),
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-          ),
-        ),
-      ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded),
-        onPressed: () => Navigator.pop(context),
-      ),
-      actions: [
-        if (_connectionStatus != 'connected')
-          IconButton(icon: const Icon(Icons.refresh_rounded, size: 20), onPressed: _retryConnection),
-        const SizedBox(width: 8),
-      ],
     );
   }
+
 
   Widget _buildMessageBubble(Map<String, dynamic> msg, Map<String, dynamic> sender, bool isMe) {
     return Align(

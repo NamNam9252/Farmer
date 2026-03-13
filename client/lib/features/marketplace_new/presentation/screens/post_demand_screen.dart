@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/models/marketplace_new_models.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class PostDemandScreen extends ConsumerStatefulWidget {
   final MarketplaceDemand? demand;
@@ -90,12 +91,18 @@ class _PostDemandScreenState extends ConsumerState<PostDemandScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(widget.demand != null ? 'Edit Demand' : 'Post Demand'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
+      body: Column(
+        children: [
+          SharedHeader(
+            title: widget.demand != null ? 'Edit Demand' : 'Post Demand',
+            subtitle: widget.demand != null 
+                ? 'Update your requirement' 
+                : 'Looking for produce? List it here.',
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -175,8 +182,11 @@ class _PostDemandScreenState extends ConsumerState<PostDemandScreen> {
                 child: Text(widget.demand != null ? 'SAVE CHANGES' : 'POST DEMAND', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/weather_provider.dart';
 import '../../data/models/weather_model.dart';
 import '../../../../core/services/language_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class WeatherDetailsScreen extends ConsumerWidget {
   const WeatherDetailsScreen({super.key});
@@ -31,7 +32,11 @@ class WeatherDetailsScreen extends ConsumerWidget {
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildAppBar(context, isHindi, weatherState),
+              // SharedSliverAppBar instead of _buildAppBar
+              SharedSliverAppBar(
+                title: isHindi ? 'मौसम की रिपोर्ट' : 'Weather Report',
+                subtitle: '${weatherState.district}, ${weatherState.state}',
+              ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -82,32 +87,6 @@ class WeatherDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, bool isHindi, WeatherState state) {
-    return SliverAppBar(
-      expandedHeight: 0,
-      floating: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-        onPressed: () => context.pop(),
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isHindi ? 'मौसम की रिपोर्ट' : 'Weather Report',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            '${state.district}, ${state.state}',
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-        ],
-      ),
-      centerTitle: false,
-    );
-  }
 
   Widget _buildAlertBanner(List<WeatherAlert> alerts, bool isHindi) {
     if (alerts.isEmpty) return const SizedBox.shrink();

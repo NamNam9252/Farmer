@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../state/crop_recommendation_state.dart';
 import '../providers/crop_recommendation_provider.dart';
 import '../../domain/entities/crop_recommendation.dart';
 import '../../../../router/route_names.dart';
 import '../../../../shared/widgets/crop_picker_sheet.dart';
-import '../../../../shared/widgets/language_toggle.dart';
 
 class CropRecommendationScreen extends ConsumerWidget {
   const CropRecommendationScreen({super.key});
@@ -55,74 +55,11 @@ class CropRecommendationScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isHindi) {
-    return SliverAppBar(
-      expandedHeight: 120,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Text(
-                  isHindi
-                      ? 'मिट्टी और मौसम के आधार पर सर्वोत्तम फसल चुनें'
-                      : 'Best crop based on your soil & weather',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          isHindi ? 'AI फसल सलाहकार' : 'AI Crop Advisor',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
-      actions: const [
-        LanguageToggle(color: Colors.white),
-        SizedBox(width: 12),
-      ],
+    return SharedSliverAppBar(
+      title: isHindi ? 'AI फसल सलाहकार' : 'AI Crop Advisor',
+      subtitle: isHindi
+          ? 'आपकी मिट्टी के लिए AI-संचालित फसल सुझाव'
+          : 'AI-powered crop suggestions for your soil',
     );
   }
 

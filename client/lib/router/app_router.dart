@@ -35,6 +35,7 @@ import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 import '../features/schemes/presentation/screens/schemes_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
 import '../features/weather/presentation/screens/weather_details_screen.dart';
+import '../shared/widgets/shared_app_bar.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -293,24 +294,29 @@ class _PlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(
-              subtitle,
-              style: AppTextStyles.body2,
-              textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          SharedHeader(
+            title: title,
+            subtitle: subtitle,
+          ),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
+                  const SizedBox(height: 16),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.body2,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

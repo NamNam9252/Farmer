@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/marketplace_new_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class MyPurchaseRequestsScreen extends ConsumerStatefulWidget {
   const MyPurchaseRequestsScreen({super.key});
@@ -33,40 +34,33 @@ class _MyPurchaseRequestsScreenState extends ConsumerState<MyPurchaseRequestsScr
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Orders & Requests'),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
+      body: Column(
+        children: [
+          SharedHeader(
+            title: 'Orders & Requests',
+            subtitle: 'Track your incoming and outgoing purchase requests',
+            bottom: TabBar(
               controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              labelColor: AppColors.primary,
-              unselectedLabelColor: Colors.white,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
               tabs: const [
                 Tab(text: 'Incoming'),
                 Tab(text: 'My Requests'),
               ],
             ),
           ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildRequestList(state.incomingRequests, state.isLoading, true),
-          _buildRequestList(state.sentRequests, state.isLoading, false),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildRequestList(state.incomingRequests, state.isLoading, true),
+                _buildRequestList(state.sentRequests, state.isLoading, false),
+              ],
+            ),
+          ),
         ],
       ),
     );

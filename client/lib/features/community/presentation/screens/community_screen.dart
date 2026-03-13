@@ -11,7 +11,7 @@ import '../providers/community_provider.dart';
 import '../widgets/community_card.dart';
 import 'community_detail_screen.dart';
 import 'create_community_screen.dart';
-import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key});
@@ -142,56 +142,11 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   }
 
   Widget _buildHeader(bool isHindi) {
-    return SliverAppBar(
-      expandedHeight: 110,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-            ),
-          ),
-        ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          isHindi ? 'किसान समुदाय' : 'Farmer Communities',
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
-      actions: const [
-        LanguageToggle(color: Colors.white),
-        SizedBox(width: 12),
-      ],
+    return SharedSliverAppBar(
+      title: isHindi ? 'किसान समुदाय' : 'Farmer Communities',
+      subtitle: isHindi 
+          ? 'अपने क्षेत्र के किसानों से जुड़ें' 
+          : 'Connect with farmers in your region',
     );
   }
 

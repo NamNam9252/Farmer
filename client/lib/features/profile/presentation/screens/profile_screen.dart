@@ -7,6 +7,8 @@ import '../../../../router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../auth/domain/entities/user.dart';
+import '../../../auth/domain/entities/user.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 import '../../../../shared/widgets/language_toggle.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -41,7 +43,7 @@ class ProfileScreen extends ConsumerWidget {
                   icon: Icons.language_rounded,
                   title: isHindi ? 'भाषा' : 'Language',
                   subtitle: isHindi ? 'हिंदी / English' : 'English / हिंदी',
-                  trailing: const LanguageToggle(color: AppColors.primary),
+                  trailing: LanguageToggle(color: AppColors.primary),
                   onTap: () {
                     ref.read(languageProvider.notifier).state = lang == 'hi' ? 'en' : 'hi';
                   },
@@ -75,86 +77,40 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String name, String role, bool isHindi) {
-    return SliverAppBar(
-      expandedHeight: 180,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-            ),
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
-                  ),
-                  child: const Center(child: Icon(Icons.person_rounded, size: 40, color: AppColors.primary)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, height: 1.2),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-                        child: Text(
-                          role,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildHeader(
+    BuildContext context,
+    String name,
+    String role,
+    bool isHindi,
+  ) {
+    return SharedSliverAppBar(
+      title: isHindi ? 'प्रोफ़ाइल' : 'My Profile',
+      subtitle: '$name • $role',
+      leading: Container(
+        margin: const EdgeInsets.only(left: 12),
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.5),
+            width: 2,
           ),
         ),
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        title: Text(
-          isHindi ? 'प्रोफ़ाइल' : 'My Profile',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+        child: const Icon(
+          Icons.person_rounded,
+          size: 28,
+          color: Colors.white,
         ),
-        centerTitle: false,
       ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-        ),
-        onPressed: () {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
-          } else {
-            context.go(RouteNames.home);
-          }
-        },
-      ),
+      onLeadingPressed: () {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          context.go(RouteNames.home);
+        }
+      },
     );
   }
 
