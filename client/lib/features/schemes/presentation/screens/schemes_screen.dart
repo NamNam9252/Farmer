@@ -8,7 +8,11 @@ import '../../../../core/services/language_provider.dart';
 import '../../../../shared/widgets/language_toggle.dart';
 import '../../../../router/route_names.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/services/language_provider.dart';
+import '../../../../shared/widgets/language_toggle.dart';
+import '../providers/news_provider.dart';
 import '../providers/schemes_provider.dart';
+import '../widgets/news_card.dart';
 import '../widgets/scheme_card.dart';
 
 class SchemesScreen extends ConsumerStatefulWidget {
@@ -18,8 +22,11 @@ class SchemesScreen extends ConsumerStatefulWidget {
   ConsumerState<SchemesScreen> createState() => _SchemesScreenState();
 }
 
-class _SchemesScreenState extends ConsumerState<SchemesScreen> {
-  String _searchQuery = '';
+class _SchemesScreenState extends ConsumerState<SchemesScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  String _schemeSearchQuery = '';
+  String _newsSearchQuery = '';
   String _selectedCategory = 'All';
 
   final List<Map<String, String>> _categories = [
@@ -33,10 +40,26 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this)..addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final schemesAsync = ref.watch(schemesControllerProvider);
     final lang = ref.watch(languageProvider);
     final isHindi = lang == 'hi';
+    final isSchemesTab = _tabController.index == 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),

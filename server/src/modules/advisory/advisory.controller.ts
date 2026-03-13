@@ -21,10 +21,14 @@ export const getRecommendation = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const startTime = Date.now();
   try {
+    console.log('[AdvisoryController] Incoming recommendation request');
+
     const parsed = advisorySchema.safeParse(req.body);
     console.log(parsed);
     if (!parsed.success) {
+      console.warn('[AdvisoryController] Request validation failed');
       res.status(400).json({
         success: false,
         message: 'Invalid input',
@@ -34,24 +38,41 @@ export const getRecommendation = async (
     }
 
     const input = parsed.data;
+    console.log(
+      `[AdvisoryController] Input accepted | crop=${input.crop} | days=${input.days_since_sowing} | lat=${input.latitude} | lon=${input.longitude}`
+    );
 
-    // Fetch weather from Open-Meteo if any weather field is missing
-    let temperature = input.temperature;
-    let humidity = input.humidity;
-    let rain_probability = input.rain_probability;
+    // Always prefer live weather from the wrapper service so advisory stays current.
+    let liveWeather: Awaited<ReturnType<WeatherService['getWeather']>> | null = null;
+    try {
+      console.log('[AdvisoryController] Fetching live weather from WeatherService');
+      liveWeather = await getWeatherService().getWeather(
+        input.latitude,
+        input.longitude
+      );
+      console.log(
+        `[AdvisoryController] Live weather resolved | temp=${liveWeather.temperature}C | humidity=${liveWeather.humidity}% | rainProb=${liveWeather.rain_probability}%`
+      );
+    } catch {
+      console.warn('[AdvisoryController] Live weather fetch failed, falling back to request payload weather');
+      liveWeather = null;
+    }
+
+    const temperature = liveWeather?.temperature ?? input.temperature;
+    const humidity = liveWeather?.humidity ?? input.humidity;
+    const rain_probability = liveWeather?.rain_probability ?? input.rain_probability;
 
     if (
       temperature === undefined ||
       humidity === undefined ||
       rain_probability === undefined
     ) {
-      const weather = await getWeatherService().getWeather(
-        input.latitude,
-        input.longitude
-      );
-      temperature = temperature ?? weather.temperature;
-      humidity = humidity ?? weather.humidity;
-      rain_probability = rain_probability ?? weather.rain_probability;
+      console.error('[AdvisoryController] Weather context unresolved; returning 502');
+      res.status(502).json({
+        success: false,
+        message: 'Unable to resolve required weather context for advisory',
+      });
+      return;
     }
 
     const resolved: ResolvedAdvisoryInput = {
@@ -61,14 +82,27 @@ export const getRecommendation = async (
       rain_probability,
     };
 
-    const result = getAdvisoryService().getRecommendation(resolved);
+    const result = await getAdvisoryService().getRecommendation(resolved);
+    const durationMs = Date.now() - startTime;
+    console.log(
+      `[AdvisoryController] Recommendation success | count=${result.length} | weatherSource=${liveWeather ? 'live_openweather' : 'request_payload'} | durationMs=${durationMs}`
+    );
 
     res.status(200).json({
       success: true,
       message: 'Recommendation generated',
+      weatherSource: liveWeather ? 'live_openweather' : 'request_payload',
+      weatherUsed: {
+        temperature,
+        humidity,
+        rain_probability,
+      },
       data: result,
     });
   } catch (error) {
+    const durationMs = Date.now() - startTime;
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[AdvisoryController] Recommendation failed | durationMs=${durationMs} | error=${message}`);
     next(error);
   }
 };

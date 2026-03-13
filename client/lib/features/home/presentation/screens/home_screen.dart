@@ -54,12 +54,14 @@ class HomeScreen extends ConsumerWidget {
             );
           }
           if (weatherState.weather == null && !weatherState.isLoading) {
-            ref.read(weatherProvider.notifier).fetchWeather(
-              latitude: updatedLoc.latitude,
-              longitude: updatedLoc.longitude,
-              district: updatedLoc.district,
-              stateName: updatedLoc.state,
-            );
+            ref
+                .read(weatherProvider.notifier)
+                .fetchWeather(
+                  latitude: updatedLoc.latitude,
+                  longitude: updatedLoc.longitude,
+                  district: updatedLoc.district,
+                  stateName: updatedLoc.state,
+                );
           }
         }
       });
@@ -97,7 +99,11 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: AppColors.primary,
         elevation: 6,
         onPressed: () => context.push(RouteNames.chatbot),
-        child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 26),
+        child: const Icon(
+          Icons.smart_toy_rounded,
+          color: Colors.white,
+          size: 26,
+        ),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
@@ -374,9 +380,10 @@ class HomeScreen extends ConsumerWidget {
           ? (isHindi ? 'लोड हो रहा है...' : 'Loading...')
           : (isHindi ? 'मौसम डेटा उपलब्ध नहीं' : 'Weather data unavailable');
     } else if (rainProb >= 50) {
-      subtitle = isHindi
-          ? 'बारिश की ${rainProb.round()}% संभावना'
-          : '${rainProb.round()}% chance of rain';
+      subtitle =
+          isHindi
+              ? 'बारिश की ${rainProb.round()}% संभावना'
+              : '${rainProb.round()}% chance of rain';
     } else if (humidityVal > 80) {
       subtitle = isHindi ? 'उच्च नमी' : 'High humidity';
     } else {

@@ -18,6 +18,29 @@ class MessageBubble extends StatelessWidget {
 
   bool get isUser => message.role == 'user';
 
+  String _normalizeMarkdown(String input) {
+    if (!input.contains('|')) return input;
+    final lines = input.split('\n');
+    final hasTable = lines.any((line) => line.contains('|')) &&
+        lines.any((line) => line.contains('|') && line.contains('---'));
+
+    if (!hasTable) return input;
+
+    final List<String> normalized = [];
+    for (final line in lines) {
+      if (line.trim().startsWith('|') && line.contains('|')) {
+        final cells = line.split('|').map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+        if (cells.isEmpty) continue;
+        if (cells.every((c) => c.replaceAll('-', '').isEmpty)) continue;
+        normalized.add('- ' + cells.join(' | '));
+      } else {
+        normalized.add(line);
+      }
+    }
+
+    return normalized.join('\n');
+  }
+
   @override
   Widget build(BuildContext context) {
     if (message.isLoading) {
@@ -99,7 +122,7 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ],
                       MarkdownBody(
-                        data: message.content,
+                        data: _normalizeMarkdown(message.content),
                         selectable: true,
                         styleSheet: MarkdownStyleSheet(
                           p: TextStyle(
@@ -245,6 +268,12 @@ class MessageBubble extends StatelessWidget {
     if (dataType == 'crop_recommendation' && action.data != null) {
       return _buildCropRecommendation(action.data);
     }
+    if (dataType == 'advisory' && action.data is List) {
+      return _buildAdvisoryList(action.data as List);
+    }
+    if (dataType == 'user_profile' && action.data != null) {
+      return _buildUserProfileCard(action.data);
+    }
     if (dataType == 'crop_disease_analysis' && action.data != null) {
       return _buildDiseaseAnalysisCard(action.data);
     }
@@ -323,7 +352,7 @@ class MessageBubble extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           ...data.take(3).map((item) {
-            final name = item['title'] ?? item['name'] ?? 'Unknown';
+            final name = item['name'] ?? 'Unknown';
             final price = item['price'] ?? '?';
             final unit = item['unit'] ?? '';
             return Padding(
@@ -413,15 +442,82 @@ class MessageBubble extends StatelessWidget {
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        'Estimated Profit: ₹${crop['profitEstimate']}/acre',
+                        'Estimated Profit: ₹${crop['profitEstimate'] ?? '—'}/acre',
                         style: TextStyle(fontSize: 11, color: AppColors.textHint),
                       ),
+                      if (crop['marketPrice'] != null)
+                        Text(
+                          'Market Price: ${crop['marketPrice']}',
+                          style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                        ),
                     ],
                   ),
                 ),
               ],
             ),
           )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdvisoryList(List data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8E9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.eco_rounded, size: 16, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text('Advisory', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...data.take(3).map((item) {
+            final action = item['action'] ?? '—';
+            final reason = item['reason'] ?? '';
+            final risk = item['riskLevel'] ?? '';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('• $action (${risk}) — $reason', style: const TextStyle(fontSize: 12)),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserProfileCard(dynamic data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.person_rounded, size: 16, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text('Your Profile', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (data['name'] != null) Text('Name: ${data['name']}', style: const TextStyle(fontSize: 12)),
+          if (data['phone'] != null) Text('Phone: ${data['phone']}', style: const TextStyle(fontSize: 12)),
+          if (data['email'] != null) Text('Email: ${data['email']}', style: const TextStyle(fontSize: 12)),
+          if (data['role'] != null) Text('Role: ${data['role']}', style: const TextStyle(fontSize: 12)),
         ],
       ),
     );
