@@ -20,9 +20,10 @@ export class SMSSender {
     const sid    = randomSID();
     const chunks = this.chunkBuffer(data);
 
-    console.log(`[SMS] Sending ${chunks.length} chunk(s) to ${to} [SID: ${sid}]`);
+    console.log(`[SMS] Sending ${chunks.length} chunk(s) to ${to} [SID: ${sid}] totalBytes=${data.length}`);
 
     for (let i = 0; i < chunks.length; i++) {
+      console.log(`[SMS] preparing outbound packet [SID: ${sid}] chunk=${i + 1}/${chunks.length} chunkBytes=${chunks[i].length}`);
       const encoded = buildPacket(
         sid,
         i,
@@ -32,15 +33,18 @@ export class SMSSender {
       );
 
       await this.sendSingle(to, encoded);
+      console.log(`[SMS] outbound packet delivered [SID: ${sid}] chunk=${i + 1}/${chunks.length}`);
 
       // small delay between chunks so carrier doesn't reorder/drop
       if (i < chunks.length - 1) await sleep(500);
     }
+
+    console.log(`[SMS] completed outbound send to ${to} [SID: ${sid}]`);
   }
 
   private async sendSingle(to: string, body: string): Promise<void> {
     try {
-      await axios.post(
+      const response = await axios.post(
         HTTPSMS_SEND_URL,
         {
           content: body,
@@ -54,6 +58,7 @@ export class SMSSender {
           },
         }
       );
+      console.log(`[SMS] httpSMS API accepted message to ${to} | status=${response.status}`);
     } catch (err: any) {
       const detail = err?.response?.data ?? err?.message ?? "Unknown error";
       console.error(`[SMS] httpSMS send failed to ${to}:`, detail);
