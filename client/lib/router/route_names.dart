@@ -30,6 +30,8 @@ class RouteNames {
   static const String schemes = '/schemes';
   static const String chatbot = '/chatbot';
   static const String weatherDetails = '/weather-details';
+  static const String laborHome = '/labor-home';
+  static const String laborEditProfile = '/labor-home/edit-profile';
   
   // Rental
   static const String rentalHome = '/marketplace-new/rental';
