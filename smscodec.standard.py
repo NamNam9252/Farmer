@@ -162,8 +162,9 @@ if __name__ == '__main__':
     print("||", encode("when should i use pesticide?"), "||", sep='')
     assert decode(enc) == msg, "Round-trip failed!"
     print("Round-trip OK")
-    print(decode("2k(i]G:COvigInNUTX@ebtFz&co$CvH/@pGj@$Yz%#~Lx[%5i<~Ic/0Q2x*bdQHeq:#xj+$&s?Fi(%vz6_zmT3gm]X!)M1XW"))
+    print(decode("VowW$Al_x:a}p5}Er}!lIEy`L>A"))
     print(decode("@Q/2:WF|6U6t>aRn\"ieZS[SIFT+@R@&ktogZh>6e#F]4.,kLTG<h>iRd8yF2mBMmpo)=:Wxv2$8t7Pqm*U^IO>uC&$a.KF"))
     print(decode("<v^v$mutB"))
     print(decode("eZ=Z;$+E"))
     print(decode("GOJ>b,&Y$yIw^Q,R9ZU=f,!YbU#(|alL\"i01@[BB"))
+    print(decode("Y0YAAQIfiwgAAAAAAAAKq1bKz1aySkvMKU7VUUotKlKyUsrMS84vKkpNLlHISE1MSS1SSM5ITc5WqgUA1o6flCsAAAA="))

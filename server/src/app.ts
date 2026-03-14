@@ -5,12 +5,12 @@ import { errorMiddleware } from './middleware/error.middleware.js';
 import { loggerMiddleware } from './middleware/logger.middleware.js';
 import v1Routes from './routes.js';
 import { SMS, smsRouter } from './modules/sms/index.js'; // 👈 ADD THIS
-import { decode, encode } from './modules/sms/sms.codec.js';
 
-const SMS_SINGLE_MESSAGE_BUDGET = 100;
+const SMS_SINGLE_MESSAGE_BUDGET = 160;
 const SMS_REPLY_MAX_CHARS = 280;
 const SMS_MODEL_NAME = 'openai/gpt-oss-120b';
 const SMS_LOG_PREVIEW = 180;
+const SMS_CHUNK_SEND_DELAY_MS = 1200;
 
 const nvidiaClient = new OpenAI({
     baseURL: 'https://integrate.api.nvidia.com/v1',
@@ -26,6 +26,9 @@ const fitToCharLimit = (value: string, limit: number): string => {
     }
     return trimmed;
 };
+
+const sleep = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
 const splitForSingleSms = (text: string, budget: number): string[] => {
     const compact = text.trim().replace(/\s+/g, ' ');
@@ -43,9 +46,9 @@ const splitForSingleSms = (text: string, budget: number): string[] => {
 
     for (const word of compact.split(' ')) {
         const candidate = current ? `${current} ${word}` : word;
-        const encodedLength = Buffer.byteLength(encode(candidate), 'utf-8');
+        const smsBytes = Buffer.byteLength(candidate, 'utf-8');
 
-        if (encodedLength <= budget) {
+        if (smsBytes <= budget) {
             current = candidate;
             continue;
         }
@@ -63,7 +66,7 @@ const splitForSingleSms = (text: string, budget: number): string[] => {
             while (low <= high) {
                 const mid = Math.floor((low + high) / 2);
                 const slice = token.slice(0, mid);
-                const ok = Buffer.byteLength(encode(slice), 'utf-8') <= budget;
+                const ok = Buffer.byteLength(slice, 'utf-8') <= budget;
                 if (ok) {
                     best = mid;
                     low = mid + 1;
@@ -83,6 +86,38 @@ const splitForSingleSms = (text: string, budget: number): string[] => {
 
     pushCurrent();
     return parts;
+};
+
+const trimToByteBudget = (text: string, budget: number): string => {
+    if (Buffer.byteLength(text, 'utf-8') <= budget) return text;
+
+    let low = 0;
+    let high = text.length;
+    let best = '';
+
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const candidate = text.slice(0, mid).trimEnd();
+        if (Buffer.byteLength(candidate, 'utf-8') <= budget) {
+            best = candidate;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return best;
+};
+
+const withSequencePrefix = (chunks: string[], budget: number): string[] => {
+    if (chunks.length <= 1) return chunks;
+
+    return chunks.map((chunk, index) => {
+        const prefix = `${index + 1}/${chunks.length} `;
+        const allowedBodyBytes = budget - Buffer.byteLength(prefix, 'utf-8');
+        const body = allowedBodyBytes > 0 ? trimToByteBudget(chunk, allowedBodyBytes) : '';
+        return `${prefix}${body}`.trimEnd();
+    });
 };
 
 const createSmsReply = async (decodedPrompt: string, action?: string): Promise<string> => {
@@ -112,7 +147,6 @@ const createSmsReply = async (decodedPrompt: string, action?: string): Promise<s
     });
 
     const raw = response.choices[0]?.message?.content?.trim() || 'Unable to process your request right now.';
-    console.log(response)
     console.log(`[SMS] model responded | chars=${raw.length} preview="${raw.slice(0, SMS_LOG_PREVIEW)}"`);
     return fitToCharLimit(raw.replace(/\s+/g, ' '), SMS_REPLY_MAX_CHARS);
 };
@@ -141,69 +175,66 @@ SMS.onMessage(async (action, payload, from) => {
     );
 
     if (typeof payload !== 'string') {
-        console.warn(`[SMS] ignoring message from ${from}: payload is not encoded string`);
+        console.warn(`[SMS] ignoring message from ${from}: payload is not text`);
         return { skipDefaultResponse: true, data: { ignored: true, reason: 'non-string payload' } };
     }
 
-    const trimmedPayload = payload.trim();
-    console.log(`[SMS] received encoded payload from ${from} | chars=${trimmedPayload.length}`);
+    const promptText = payload.trim();
+    console.log(`[SMS] received plain payload from ${from} | chars=${promptText.length}`);
 
-    let decodedPrompt = '';
-    try {
-        decodedPrompt = decode(trimmedPayload);
-    } catch (error: any) {
-        console.warn(
-            `[SMS] ignoring undecodable payload from ${from} | error=${error?.message ?? 'unknown'}`
-        );
-        return { skipDefaultResponse: true, data: { ignored: true, reason: 'decode-failed' } };
-    }
-
-    if (!decodedPrompt.trim()) {
-        console.warn(`[SMS] ignoring empty decoded prompt from ${from}`);
-        return { skipDefaultResponse: true, data: { ignored: true, reason: 'empty-decoded-prompt' } };
+    if (!promptText) {
+        console.warn(`[SMS] ignoring empty prompt from ${from}`);
+        return { skipDefaultResponse: true, data: { ignored: true, reason: 'empty-prompt' } };
     }
 
     console.log(
-        `[SMS] decoded prompt from ${from} | chars=${decodedPrompt.length} preview="${decodedPrompt.slice(0, SMS_LOG_PREVIEW)}"`
+        `[SMS] prompt from ${from} | chars=${promptText.length} preview="${promptText.slice(0, SMS_LOG_PREVIEW)}"`
     );
 
     try {
-        const modelReply = await createSmsReply(decodedPrompt, action);
-        const encoded = encode(modelReply);
-        const encodedLength = Buffer.byteLength(encoded, 'utf-8');
+        const modelReply = await createSmsReply(promptText, action);
+        const replyBytes = Buffer.byteLength(modelReply, 'utf-8');
 
         console.log(
-            `[SMS] encoded model reply for ${from} | replyChars=${modelReply.length} encodedBytes=${encodedLength}`
+            `[SMS] model reply ready for ${from} | replyChars=${modelReply.length} smsBytes=${replyBytes}`
         );
 
-        if (encodedLength <= SMS_SINGLE_MESSAGE_BUDGET) {
-            console.log(`[SMS] sending single encoded SMS to ${from}`);
-            await SMS.sendText(from, encoded);
-            console.log(`[SMS] single encoded SMS sent to ${from}`);
+        if (replyBytes <= SMS_SINGLE_MESSAGE_BUDGET) {
+            console.log(`[SMS] sending single SMS to ${from}`);
+            await SMS.sendText(from, modelReply);
+            console.log(`[SMS] single SMS sent to ${from}`);
         } else {
-            const chunks = splitForSingleSms(modelReply, SMS_SINGLE_MESSAGE_BUDGET);
-            console.warn(`[SMS] reply overflow: ${encodedLength}B; sending ${chunks.length} encoded SMS message(s)`);
+            const chunks = withSequencePrefix(
+                splitForSingleSms(modelReply, SMS_SINGLE_MESSAGE_BUDGET),
+                SMS_SINGLE_MESSAGE_BUDGET
+            );
+            console.warn(
+                `[SMS] reply overflow: ${replyBytes}B; sending ${chunks.length} paced SMS message(s)`
+            );
 
             for (let i = 0; i < chunks.length; i += 1) {
-                const encodedChunk = encode(chunks[i]);
                 console.log(
-                    `[SMS] sending chunk ${i + 1}/${chunks.length} to ${from} | chunkChars=${chunks[i].length} encodedBytes=${Buffer.byteLength(encodedChunk, 'utf-8')}`
+                    `[SMS] sending chunk ${i + 1}/${chunks.length} to ${from} | chunkChars=${chunks[i].length} smsBytes=${Buffer.byteLength(chunks[i], 'utf-8')}`
                 );
-                await SMS.sendText(from, encodedChunk);
+                await SMS.sendText(from, chunks[i]);
+
+                if (i < chunks.length - 1) {
+                    console.log(`[SMS] pausing ${SMS_CHUNK_SEND_DELAY_MS}ms before next chunk`);
+                    await sleep(SMS_CHUNK_SEND_DELAY_MS);
+                }
             }
 
-            console.log(`[SMS] all ${chunks.length} encoded chunk(s) sent to ${from}`);
+            console.log(`[SMS] all ${chunks.length} SMS chunk(s) sent to ${from}`);
         }
     } catch (error: any) {
         const detail = error?.message ?? 'unknown error';
         console.error(`[SMS] model/send failure for ${from}: ${detail}`);
 
-        // Best-effort encoded fallback so the user still receives a reply.
+        // Best-effort plain-text fallback so the user still receives a reply.
         try {
             const fallback = 'Unable to process right now. Please retry in a minute.';
-            const encodedFallback = encode(fallback);
-            await SMS.sendText(from, encodedFallback);
-            console.log(`[SMS] fallback encoded SMS sent to ${from}`);
+            await SMS.sendText(from, fallback);
+            console.log(`[SMS] fallback SMS sent to ${from}`);
         } catch (fallbackError: any) {
             console.error(
                 `[SMS] fallback send also failed for ${from}: ${fallbackError?.message ?? 'unknown'}`
