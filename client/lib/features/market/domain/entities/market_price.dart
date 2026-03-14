@@ -6,6 +6,10 @@ class MarketPrice {
   final double lowestPrice;
   final double highestPrice;
   final String unit;
+  final String state;
+  final String district;
+  final String variety;
+  final String grade;
 
   const MarketPrice({
     required this.commodity,
@@ -15,5 +19,9 @@ class MarketPrice {
     required this.lowestPrice,
     required this.highestPrice,
     this.unit = 'quintal',
+    this.state = '',
+    this.district = '',
+    this.variety = '',
+    this.grade = '',
   });
 }

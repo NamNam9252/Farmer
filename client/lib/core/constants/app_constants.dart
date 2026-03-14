@@ -11,6 +11,9 @@ class AppConstants {
   static const String marketPricesEndpoint = '/market/prices';
   static const String marketCommoditiesEndpoint = '/market/commodities';
   static const String marketMarketsEndpoint = '/market/markets';
+  static const String mandiPricesEndpoint = '/market/mandi-prices';
+  static const String marketStatesEndpoint = '/market/states';
+  static const String marketDistrictsEndpoint = '/market/districts';
   static const String advisoryEndpoint = '/advisory/recommendation';
   static const String marketplaceNewEndpoint = '/marketplace';
   static const String weatherEndpoint = '/weather';

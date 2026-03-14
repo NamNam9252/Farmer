@@ -11,6 +11,11 @@ class CloudinaryService {
 
   Future<String?> uploadImage(File file) async {
     try {
+      if (cloudName.isEmpty || uploadPreset.isEmpty) {
+        print('Cloudinary config missing: CLOUDINARY_CLOUD_NAME or CLOUDINARY_UPLOAD_PRESET');
+        return null;
+      }
+
       String fileName = file.path.split('/').last;
       FormData formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(file.path, filename: fileName),
@@ -25,6 +30,7 @@ class CloudinaryService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.data['secure_url'] as String;
       }
+      print('Cloudinary Upload Failed: status=${response.statusCode} body=${response.data}');
       return null;
     } catch (e) {
       print('Cloudinary Upload Error: $e');

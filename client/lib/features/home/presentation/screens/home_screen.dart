@@ -519,15 +519,15 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return [
       _ServiceItem(
-        labelEn: 'Market\n(Mandi)',
-        labelHi: 'बाज़ार\n(मंडी)',
+        labelEn: 'Crop\nPrice',
+        labelHi: 'मंडी\nभाव',
         svgData: AppIcons.market,
         bgColor: const Color(0xFFFFF8E1),
         onTap: () => context.go(RouteNames.market),
       ),
       _ServiceItem(
-        labelEn: 'Marketplace\n(New)',
-        labelHi: 'मार्केटप्लेस\n(नया)',
+        labelEn: 'Bazar',
+        labelHi: 'बाज़ार',
         svgData: AppIcons.marketplace,
         bgColor: const Color(0xFFE8F5E9),
         onTap: () => context.push(RouteNames.marketplaceNew),
@@ -591,7 +591,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                isHindi ? 'लाइव मंडी भाव' : 'Live Mandi Prices',
+                isHindi ? 'लाइव मंडी भाव' : 'Live Crop Prices',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -654,8 +654,8 @@ class HomeScreen extends ConsumerWidget {
           builder: (_, scrollController) {
             final allFeatures = [
               _ServiceItem(
-                labelEn: 'Market\n(Mandi)',
-                labelHi: 'बाज़ार\n(मंडी)',
+                labelEn: 'Crop\nPrice',
+                labelHi: 'मंडी\nभाव',
                 svgData: AppIcons.market,
                 bgColor: const Color(0xFFFFF8E1),
                 onTap: () {

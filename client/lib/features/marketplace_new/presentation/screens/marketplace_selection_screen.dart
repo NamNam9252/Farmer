@@ -20,7 +20,7 @@ class MarketplaceSelectionScreen extends ConsumerWidget {
       body: Column(
         children: [
           SharedHeader(
-            title: isHindi ? 'मार्केटप्लेस' : 'Marketplace',
+            title: isHindi ? 'बाज़ार' : 'Bazar',
             subtitle: isHindi
                 ? 'अपनी जरूरत चुनें: खरीदें/बेचें या किराए पर लें'
                 : 'Choose your need: Buy/Sell or Rentals',

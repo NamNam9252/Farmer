@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/services/language_provider.dart';
 import '../providers/market_provider.dart';
 import '../../../../router/route_names.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
@@ -15,22 +16,24 @@ class MarketScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(marketProvider);
+    final lang = ref.watch(languageProvider);
+    final isHindi = lang == 'hi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildHeader(context),
+          _buildHeader(isHindi),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildFiltersArea(context, ref, state),
+                _buildFiltersArea(context, ref, state, isHindi),
                 const SizedBox(height: 24),
-                _buildSearchButton(context, ref, state),
+                _buildSearchButton(context, ref, state, isHindi),
                 const SizedBox(height: 24),
-                _buildResultsHeader(state),
+                _buildResultsHeader(state, isHindi),
                 const SizedBox(height: 12),
                 if (state.isLoading)
                   const Padding(
@@ -47,7 +50,7 @@ class MarketScreen extends ConsumerWidget {
           if (state.prices.isEmpty && !state.isLoading)
             SliverFillRemaining(
               hasScrollBody: false,
-              child: _buildEmptyState(),
+              child: _buildEmptyState(isHindi),
             )
           else
             SliverPadding(
@@ -55,13 +58,13 @@ class MarketScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final item = state.prices[index];
+                    final item = state.filteredPrices[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _PriceCard(item: item),
                     );
                   },
-                  childCount: state.prices.length,
+                  childCount: state.filteredPrices.length,
                 ),
               ),
             ),
@@ -71,47 +74,50 @@ class MarketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    final isHindi = ref.watch(languageProvider) == 'hi';
+  Widget _buildHeader(bool isHindi) {
     return SharedSliverAppBar(
-      title: isHindi ? 'बाज़ार भाव' : 'Market Prices',
-      subtitle: isHindi 
-          ? 'मंडियों से फसलों के वास्तविक समय के भाव' 
-          : 'Real-time commodity prices from mandis',
+      title: isHindi ? 'मंडी भाव' : 'Crop Prices',
+      subtitle: isHindi
+          ? 'मंडियों से फसलों के वास्तविक समय के भाव'
+          : 'Real-time crop prices from mandis',
     );
   }
 
-  Widget _buildFiltersArea(BuildContext context, WidgetRef ref, MarketState state) {
+  Widget _buildFiltersArea(BuildContext context, WidgetRef ref, MarketState state, bool isHindi) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _IllustratedSelector(
-                label: 'फ़सल चुनें',
-                value: state.selectedCommodity,
-                svgData: AppIcons.market, // Using market stall for crop
+                label: isHindi ? 'फ़सल चुनें' : 'Select Crop',
+                value: state.selectedCommodity.isEmpty
+                    ? (isHindi ? 'सभी' : 'All')
+                    : state.selectedCommodity,
+                svgData: AppIcons.market,
                 onTap: () => _showDropdownPicker(
                   context,
-                  title: 'फ़सल चुनें',
+                  title: isHindi ? 'फ़सल चुनें' : 'Select Crop',
                   items: state.availableCommodities,
                   selected: state.selectedCommodity,
-                  onSelect: (val) => ref.read(marketProvider.notifier).updateFilters(commodity: val),
+                  onSelect: (val) => ref.read(marketProvider.notifier).updateCommodity(val),
                 ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _IllustratedSelector(
-                label: 'मंडी / राज्य',
-                value: state.selectedMarket,
+                label: isHindi ? 'राज्य' : 'State',
+                value: state.selectedState.isEmpty
+                    ? (isHindi ? 'चुनें' : 'Select')
+                    : state.selectedState,
                 svgData: AppIcons.locationAction,
                 onTap: () => _showDropdownPicker(
                   context,
-                  title: 'मंडी / राज्य चुनें',
-                  items: state.availableMarkets,
-                  selected: state.selectedMarket,
-                  onSelect: (val) => ref.read(marketProvider.notifier).updateFilters(market: val),
+                  title: isHindi ? 'राज्य चुनें' : 'Select State',
+                  items: state.availableStates,
+                  selected: state.selectedState,
+                  onSelect: (val) => ref.read(marketProvider.notifier).updateState(val),
                 ),
               ),
             ),
@@ -119,38 +125,25 @@ class MarketScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _IllustratedSelector(
-          label: 'तारीख चुनें',
-          value: _formatDate(state.selectedDate),
+          label: isHindi ? 'जिला चुनें' : 'Select District',
+          value: state.selectedDistrict.isEmpty
+              ? (isHindi ? 'सभी जिले' : 'All Districts')
+              : state.selectedDistrict,
           svgData: AppIcons.calendarAction,
           isFullWidth: true,
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.tryParse(state.selectedDate) ?? DateTime.now(),
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: const ColorScheme.light(
-                      primary: AppColors.primary,
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (picked != null) {
-              final formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-              ref.read(marketProvider.notifier).updateFilters(date: formattedDate);
-            }
-          },
+          onTap: () => _showDropdownPicker(
+            context,
+            title: isHindi ? 'जिला चुनें' : 'Select District',
+            items: state.availableDistricts,
+            selected: state.selectedDistrict,
+            onSelect: (val) => ref.read(marketProvider.notifier).updateDistrict(val),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchButton(BuildContext context, WidgetRef ref, MarketState state) {
+  Widget _buildSearchButton(BuildContext context, WidgetRef ref, MarketState state, bool isHindi) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -181,9 +174,9 @@ class MarketScreen extends ConsumerWidget {
                 }
               },
         icon: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
-        label: const Text(
-          'दाम देखें',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+        label: Text(
+          isHindi ? 'दाम देखें' : 'Search Prices',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -195,7 +188,7 @@ class MarketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildResultsHeader(MarketState state) {
+  Widget _buildResultsHeader(MarketState state, bool isHindi) {
     if (state.prices.isEmpty) return const SizedBox.shrink();
     return Row(
       children: [
@@ -209,7 +202,7 @@ class MarketScreen extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'ताज़ा भाव (${state.prices.length})',
+          isHindi ? 'ताज़ा भाव (${state.filteredPrices.length})' : 'Latest Prices (${state.filteredPrices.length})',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -220,7 +213,7 @@ class MarketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isHindi) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -239,15 +232,17 @@ class MarketScreen extends ConsumerWidget {
               child: SvgPicture.string(AppIcons.market, width: 80, height: 80),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'जानकारी उपलब्ध नहीं है',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            Text(
+              isHindi ? 'जानकारी उपलब्ध नहीं है' : 'No data available',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'उपलब्ध डेटा देखने के लिए ऊपर से फ़सल, मंडी और तारीख चुनें।',
+            Text(
+              isHindi
+                  ? 'उपलब्ध डेटा देखने के लिए ऊपर से फ़सल और राज्य चुनें।'
+                  : 'Select a crop and state above to see available prices.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -304,11 +299,6 @@ class MarketScreen extends ConsumerWidget {
         );
       },
     );
-  }
-
-  String _formatDate(String dateStr) {
-    final date = DateTime.tryParse(dateStr) ?? DateTime.now();
-    return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
   }
 }
 
@@ -427,7 +417,7 @@ class _PriceCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'तारीख: ${item.date}',
+            '${item.district}, ${item.state}',
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),

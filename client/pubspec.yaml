@@ -61,6 +61,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/images/marketplace/
     - assets/onboarding/
     - assets/models/
     - assets/data/

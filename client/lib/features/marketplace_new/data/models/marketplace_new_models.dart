@@ -30,6 +30,18 @@ class MarketplaceItem {
   });
 
   factory MarketplaceItem.fromJson(Map<String, dynamic> json) {
+    String? parseImageUrl(Map<String, dynamic> data) {
+      final direct = data['imageUrl'] ?? data['image_url'] ?? data['image'];
+      if (direct is String && direct.isNotEmpty) return direct;
+
+      final images = data['images'];
+      if (images is List && images.isNotEmpty && images.first is String) {
+        final first = images.first as String;
+        if (first.isNotEmpty) return first;
+      }
+      return null;
+    }
+
     return MarketplaceItem(
       id: json['id']?.toString() ?? '',
       sellerId: json['sellerId']?.toString() ?? '',

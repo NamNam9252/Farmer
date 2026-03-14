@@ -53,6 +53,18 @@ class RentalAsset {
   });
 
   factory RentalAsset.fromJson(Map<String, dynamic> json) {
+    String? parseImageUrl(Map<String, dynamic> data) {
+      final direct = data['imageUrl'] ?? data['image_url'] ?? data['image'];
+      if (direct is String && direct.isNotEmpty) return direct;
+
+      final images = data['images'];
+      if (images is List && images.isNotEmpty && images.first is String) {
+        final first = images.first as String;
+        if (first.isNotEmpty) return first;
+      }
+      return null;
+    }
+
     return RentalAsset(
       id: json['id'] ?? '',
       ownerId: json['ownerId'] ?? '',
@@ -63,7 +75,7 @@ class RentalAsset {
       basePrice: (json['basePrice'] as num?)?.toDouble() ?? 0.0,
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      imageUrl: json['imageUrl'],
+      imageUrl: parseImageUrl(json),
       owner: json['owner'],
     );
   }
