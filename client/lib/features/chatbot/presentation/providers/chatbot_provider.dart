@@ -58,7 +58,7 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
         ChatMessage(
           role: 'assistant',
           content:
-              'नमस्ते! 🌾 मैं कृषिमित्र हूँ — आपका AI सहायक।\n\nHello! I\'m KrishiMitra — your AI farming assistant.\n\nI can help you with:\n🌤️ Weather updates\n📊 Market prices\n🛒 Buy/sell on marketplace\n👥 Find communities\n🌱 Crop recommendations\n🔍 Disease detection\n\nBataiye, kya madad chahiye? (How can I help?)',
+              'नमस्ते! 🌾 मैं कृषिमित्र हूँ — आपका AI सहायक।\n\nHello! I\'m KrishiMitra — your AI farming assistant.\n\nI can help you with:\n🌤️ Weather updates\n📊 Market prices\n🛒 Buy/sell on marketplace\n👥 Find communities\n🌱 Crop recommendations\n🔍 Disease detection\n👷 Find & book farm helpers\n\nBataiye, kya madad chahiye? (How can I help?)',
           ttsMessage: 'Namaste! Main KrishiMitra hoon, aapka AI sahayak. Hello! I am KrishiMitra, your AI farming assistant. Tell me, how can I help you today?',
           languageHint: 'hi',
         ),

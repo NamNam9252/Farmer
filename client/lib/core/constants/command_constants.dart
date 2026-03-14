@@ -41,6 +41,11 @@ class CommandConstants {
     RouteNames.weatherDetails: [
       'weather', 'mausam', 'barish', 'temperature', 'taapman', 'मौसम', 'बारिश', 'तापमान'
     ],
+    RouteNames.laborListing: [
+      'helper', 'labor', 'labour', 'mazdoor', 'madadgar', 'get helper', 'find helper',
+      'kisan sahayak', 'helper chahiye', 'mazdoor dhundo', 'madadgar khojo', 'worker',
+      'मददगार', 'मजदूर', 'हेल्पर', 'सहायक खोजें', 'मददगार खोजें'
+    ],
   };
 
   static String? getRouteFromCommand(String input) {

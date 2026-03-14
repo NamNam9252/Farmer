@@ -48,6 +48,7 @@ class _BrowseDemandsScreenState extends ConsumerState<BrowseDemandsScreen> {
         slivers: [
           SharedStickyHeader(
             title: isHindi ? 'खरीददार की मांग' : 'Buyer Demands',
+            backgroundImage: 'assets/images/service_icons/marketplace.png',
             subtitle: isHindi 
                 ? 'स्थानीय उत्पादों की आवश्यकताओं को पूरा करें' 
                 : 'Fulfill local produce requirements',

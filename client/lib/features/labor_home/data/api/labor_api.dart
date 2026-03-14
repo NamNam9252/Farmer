@@ -17,4 +17,45 @@ class LaborApi {
   Future<Response> createProfile(Map<String, dynamic> data) async {
     return await _apiClient.dio.post('/labor/profile', data: data);
   }
+
+  Future<Response> listAvailable(String? districtId) async {
+    return await _apiClient.dio.get('/labor/available', queryParameters: {
+      if (districtId != null) 'districtId': districtId,
+    });
+  }
+
+  Future<Response> hireLabor(String laborId, Map<String, dynamic> data) async {
+    return await _apiClient.dio.post('/labor/$laborId/hire', data: data);
+  }
+
+  Future<Response> requestBooking(String laborId, Map<String, dynamic> data) async {
+    return await _apiClient.dio.post('/labor/$laborId/bookings', data: data);
+  }
+
+  Future<Response> getBookingRequests() async {
+    return await _apiClient.dio.get('/labor/bookings/requests');
+  }
+
+  Future<Response> respondToBookingRequest(
+    String bookingId,
+    String action, {
+    String? cancelReason,
+  }) async {
+    return await _apiClient.dio.post(
+      '/labor/bookings/$bookingId/respond',
+      data: {
+        'action': action,
+        if (cancelReason != null && cancelReason.trim().isNotEmpty)
+          'cancelReason': cancelReason,
+      },
+    );
+  }
+
+  Future<Response> getMyEmployments() async {
+    return await _apiClient.dio.get('/labor/my-employments');
+  }
+
+  Future<Response> getFarmerLabor() async {
+    return await _apiClient.dio.get('/labor/farmer/labor');
+  }
 }

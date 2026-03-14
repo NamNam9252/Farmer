@@ -10,6 +10,7 @@ import '../../../auth/domain/entities/user.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
 import '../../../../shared/widgets/language_toggle.dart';
+import '../providers/booked_labor_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -49,7 +50,10 @@ class ProfileScreen extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
+                _buildBookedLaborSection(ref, isHindi),
+                const SizedBox(height: 24),
+
                 _buildSectionTitle(isHindi ? 'खाता' : 'Account'),
                 _buildSettingsCard(
                   icon: Icons.logout_rounded,
@@ -214,6 +218,125 @@ class ProfileScreen extends ConsumerWidget {
     }
   }
 
+  Widget _buildBookedLaborSection(WidgetRef ref, bool isHindi) {
+    final bookedLaborAsync = ref.watch(bookedLaborProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(isHindi ? 'मेरे बुक किए गए मददगार' : 'My Booked Helpers'),
+        bookedLaborAsync.when(
+          data: (bookings) {
+            if (bookings.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Text(
+                    isHindi ? 'कोई मददगार बुक नहीं किया गया' : 'No helpers booked yet',
+                    style: TextStyle(color: Colors.grey[500]),
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              children: bookings.map((booking) {
+                final labor = booking['labor'];
+                final user = labor['user'];
+                final rate = booking['agreedRate'] ?? booking['wageAmount'] ?? 0;
+                final status = (booking['status']?.toString() ?? 'REQUESTED').toUpperCase();
+                final period = _bookingPeriod(
+                  booking['startDate']?.toString(),
+                  booking['endDate']?.toString(),
+                );
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                        child: Text(user['name'][0].toUpperCase()),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user['name'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              '${isHindi ? "मज़दूरी" : "Wage"}: ₹$rate',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              '${isHindi ? "फोन" : "Phone"}: ${user['phone'] ?? '-'}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              '${isHindi ? "अवधि" : "Period"}: $period',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _bookingStatusLabel(status, isHindi),
+                          style: const TextStyle(
+                            color: Color(0xFF2E7D32),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Text('Error: $err'),
+        ),
+      ],
+    );
+  }
+
   String _mapRoleToLabel(UserRole role, bool isHindi) {
     switch (role) {
       case UserRole.farmer: return isHindi ? 'किसान' : 'Farmer';
@@ -221,6 +344,31 @@ class ProfileScreen extends ConsumerWidget {
       case UserRole.labor: return isHindi ? 'मज़दूर' : 'Labor';
       case UserRole.expert: return isHindi ? 'विशेषज्ञ' : 'Expert';
       case UserRole.admin: return isHindi ? 'एडमिन' : 'Admin';
+    }
+  }
+
+  String _bookingPeriod(String? startIso, String? endIso) {
+    final startDate = DateTime.tryParse(startIso ?? '');
+    final endDate = DateTime.tryParse(endIso ?? '');
+    if (startDate == null) return '-';
+
+    String fmt(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    if (endDate == null) return fmt(startDate);
+    return '${fmt(startDate)} - ${fmt(endDate)}';
+  }
+
+  String _bookingStatusLabel(String status, bool isHindi) {
+    switch (status) {
+      case 'REQUESTED':
+        return isHindi ? 'अनुरोधित' : 'Requested';
+      case 'ACCEPTED':
+        return isHindi ? 'स्वीकृत' : 'Accepted';
+      case 'ONGOING':
+        return isHindi ? 'चालू' : 'Ongoing';
+      case 'COMPLETED':
+        return isHindi ? 'पूर्ण' : 'Completed';
+      default:
+        return isHindi ? 'स्थिति' : 'Status';
     }
   }
 }

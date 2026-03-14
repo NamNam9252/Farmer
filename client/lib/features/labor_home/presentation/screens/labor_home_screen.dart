@@ -10,6 +10,8 @@ import '../../../auth/presentation/state/auth_state.dart';
 import '../../../../shared/widgets/language_toggle.dart';
 import '../../data/constants/labor_skills.dart';
 import '../providers/labor_profile_provider.dart';
+import '../providers/my_employments_provider.dart';
+import '../providers/booking_requests_provider.dart';
 
 class LaborHomeScreen extends ConsumerWidget {
   const LaborHomeScreen({super.key});
@@ -41,20 +43,29 @@ class LaborHomeScreen extends ConsumerWidget {
     String displayRole = isHindi ? '👷 मज़दूर' : '👷 Labor';
 
     profileAsync.whenData((profile) {
-      if (profile != null && profile['skills'] != null) {
-        final List<dynamic> rawSkills = profile['skills'];
-        if (rawSkills.isNotEmpty) {
-          final translatedSkills = rawSkills.take(3).map((skillKey) {
-            final skill = predefinedSkills.where((s) => s.key == skillKey).firstOrNull;
-            if (skill != null) {
-              return isHindi ? skill.hi : skill.en;
-            }
-            return skillKey.toString();
-          }).join(', ');
-          
-          displayRole = rawSkills.length > 3 
-              ? '$translatedSkills...' 
-              : translatedSkills;
+      if (profile != null) {
+        // Redirection logic for missing location
+        if (profile['latitude'] == null || profile['longitude'] == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.go(RouteNames.laborOnboarding);
+          });
+        }
+
+        if (profile['skills'] != null) {
+          final List<dynamic> rawSkills = profile['skills'];
+          if (rawSkills.isNotEmpty) {
+            final translatedSkills = rawSkills.take(3).map((skillKey) {
+              final skill = predefinedSkills.where((s) => s.key == skillKey).firstOrNull;
+              if (skill != null) {
+                return isHindi ? skill.hi : skill.en;
+              }
+              return skillKey.toString();
+            }).join(', ');
+            
+            displayRole = rawSkills.length > 3 
+                ? '$translatedSkills...' 
+                : translatedSkills;
+          }
         }
       }
     });
@@ -229,6 +240,12 @@ class LaborHomeScreen extends ConsumerWidget {
                 ),
               ),
 
+              const SizedBox(height: 24),
+              _buildEmploymentsSection(ref, isHindi),
+
+              const SizedBox(height: 14),
+              _buildPendingRequestsBanner(context, ref, isHindi),
+
               const SizedBox(height: 20),
 
               // ── ACTION BUTTONS ──
@@ -250,16 +267,16 @@ class LaborHomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     _ActionButton(
-                      icon: Icons.location_on_rounded,
+                      icon: Icons.inbox_rounded,
                       iconColor: Colors.white,
                       gradient: const LinearGradient(
                         colors: [Color(0xFFF57C00), Color(0xFFFF9800)],
                       ),
-                      title: isHindi ? 'वर्तमान कार्य स्थान' : 'Current Work Location',
+                      title: isHindi ? 'बुकिंग अनुरोध' : 'Booking Requests',
                       subtitle: isHindi
-                          ? 'देखें आपको कहाँ काम करना है'
-                          : 'See where you\'re assigned to work',
-                      onTap: () => _showComingSoon(context, isHindi),
+                          ? 'किसानों के नए अनुरोध देखें'
+                          : 'Review new farmer booking requests',
+                      onTap: () => context.push(RouteNames.laborRequests),
                     ),
                     const SizedBox(height: 14),
                     _ActionButton(
@@ -268,11 +285,11 @@ class LaborHomeScreen extends ConsumerWidget {
                       gradient: const LinearGradient(
                         colors: [Color(0xFF5C6BC0), Color(0xFF7986CB)],
                       ),
-                      title: isHindi ? 'कार्य इतिहास' : 'Work History',
+                      title: isHindi ? 'कार्य स्थान बदलें' : 'Change Work Location',
                       subtitle: isHindi
-                          ? 'पिछले काम देखें'
-                          : 'View your past assignments',
-                      onTap: () => _showComingSoon(context, isHindi),
+                          ? 'GPS से नई लोकेशन सेट करें'
+                          : 'Set or update location with GPS',
+                      onTap: () => context.push(RouteNames.laborOnboarding),
                     ),
                     const SizedBox(height: 14),
                     _ActionButton(
@@ -295,6 +312,203 @@ class LaborHomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPendingRequestsBanner(BuildContext context, WidgetRef ref, bool isHindi) {
+    final requestsAsync = ref.watch(bookingRequestsProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: requestsAsync.when(
+        data: (requests) {
+          if (requests.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFFFCC80)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.notifications_active_rounded, color: Color(0xFFE65100)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    isHindi
+                        ? 'आपके पास ${requests.length} नए बुकिंग अनुरोध हैं'
+                        : 'You have ${requests.length} new booking requests',
+                    style: const TextStyle(
+                      color: Color(0xFFBF360C),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push(RouteNames.laborRequests),
+                  child: Text(isHindi ? 'देखें' : 'View'),
+                ),
+              ],
+            ),
+          );
+        },
+        loading: () => const SizedBox.shrink(),
+        error: (_, __) => const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildEmploymentsSection(WidgetRef ref, bool isHindi) {
+    final employmentsAsync = ref.watch(myEmploymentsProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isHindi ? 'वर्तमान कार्य असाइनमेंट' : 'Current Work Assignments',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          employmentsAsync.when(
+            data: (employments) {
+              if (employments.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(
+                    child: Text(
+                      isHindi ? 'कोई सक्रिय असाइनमेंट नहीं' : 'No active assignments',
+                      style: TextStyle(color: Colors.grey[500]),
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: employments.map((emp) {
+                  final farmer = emp['farmer'];
+                  final user = farmer['user'];
+                  final rate = emp['agreedRate'] ?? emp['wageAmount'] ?? 0;
+                  final startDate = _formatDate(emp['startDate']?.toString());
+                  final endDate = _formatDate(emp['endDate']?.toString());
+                  final status = (emp['status']?.toString() ?? 'ACCEPTED').toUpperCase();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE3F2FD),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_pin_rounded, color: Color(0xFF1976D2)),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user['name'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                '${isHindi ? "मज़दूरी" : "Wage"}: ₹$rate',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                '${isHindi ? "फोन" : "Phone"}: ${user['phone'] ?? '-'}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                '${isHindi ? "अवधि" : "Period"}: $startDate - $endDate',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF3E0),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _statusText(status, isHindi),
+                            style: const TextStyle(
+                              color: Color(0xFFE65100),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Text('Error: $err'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String? isoDate) {
+    if (isoDate == null || isoDate.isEmpty) return '-';
+    final parsed = DateTime.tryParse(isoDate);
+    if (parsed == null) return isoDate;
+    final d = parsed.day.toString().padLeft(2, '0');
+    final m = parsed.month.toString().padLeft(2, '0');
+    final y = parsed.year.toString();
+    return '$d/$m/$y';
+  }
+
+  String _statusText(String status, bool isHindi) {
+    if (status == 'ONGOING') return isHindi ? 'चालू' : 'Ongoing';
+    if (status == 'COMPLETED') return isHindi ? 'पूर्ण' : 'Completed';
+    return isHindi ? 'स्वीकृत' : 'Accepted';
   }
 
   void _showComingSoon(BuildContext context, bool isHindi) {

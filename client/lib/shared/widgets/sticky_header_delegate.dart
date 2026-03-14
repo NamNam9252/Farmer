@@ -246,17 +246,19 @@ class _AnimatedBackground extends StatelessWidget {
               ),
         image: backgroundImage != null
             ? DecorationImage(
-                image: NetworkImage(backgroundImage!),
+                image: backgroundImage!.startsWith('assets/')
+                    ? AssetImage(backgroundImage!) as ImageProvider
+                    : NetworkImage(backgroundImage!),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  Colors.black.withValues(alpha: 0.4 * expandRatio),
+                  Colors.black.withValues(alpha: 0.3 * expandRatio),
                   BlendMode.darken,
                 ),
               )
             : null,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(lerpDouble(0, 28, expandRatio)!),
-          bottomRight: Radius.circular(lerpDouble(0, 28, expandRatio)!),
+          bottomLeft: Radius.circular(lerpDouble(0, 32, expandRatio)!),
+          bottomRight: Radius.circular(lerpDouble(0, 32, expandRatio)!),
         ),
       ),
       child: backgroundImage != null
