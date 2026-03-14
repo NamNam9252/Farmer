@@ -21,6 +21,39 @@ export class LaborRepository {
     return prisma.laborProfile.create({ data });
   }
 
+  upsertProfile(userId: string, data: {
+    skills?: string[];
+    experienceYears?: number;
+    dailyRate?: number;
+    districtId?: string;
+    latitude?: number;
+    longitude?: number;
+    serviceRadiusKm?: number;
+  }) {
+    return prisma.laborProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        skills: data.skills ?? [],
+        experienceYears: data.experienceYears,
+        dailyRate: data.dailyRate,
+        districtId: data.districtId,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        serviceRadiusKm: data.serviceRadiusKm,
+      },
+      update: {
+        ...(data.skills !== undefined && { skills: data.skills }),
+        ...(data.experienceYears !== undefined && { experienceYears: data.experienceYears }),
+        ...(data.dailyRate !== undefined && { dailyRate: data.dailyRate }),
+        ...(data.districtId !== undefined && { districtId: data.districtId }),
+        ...(data.latitude !== undefined && { latitude: data.latitude }),
+        ...(data.longitude !== undefined && { longitude: data.longitude }),
+        ...(data.serviceRadiusKm !== undefined && { serviceRadiusKm: data.serviceRadiusKm }),
+      },
+    });
+  }
+
   findAvailable(districtId?: string) {
     return prisma.laborProfile.findMany({
       where: {

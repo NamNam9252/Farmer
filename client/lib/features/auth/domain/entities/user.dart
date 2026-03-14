@@ -1,4 +1,13 @@
-enum UserRole { farmer, buyer, labor, expert, admin }
+enum UserRole {
+  farmer('FARMER'),
+  buyer('BUYER'),
+  labor('LABOR'),
+  expert('EXPERT'),
+  admin('ADMIN');
+
+  final String value;
+  const UserRole(this.value);
+}
 
 class User {
   final String id;

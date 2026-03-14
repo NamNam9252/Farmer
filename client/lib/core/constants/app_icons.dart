@@ -285,6 +285,55 @@ class AppIcons {
 ''';
 
   // ─────────────────────────────────────────────
+  //  LABOR ROLE ICONS
+  // ─────────────────────────────────────────────
+
+  /// Find Work — briefcase with magnifying glass, amber tones
+  static const String findWork = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Briefcase body -->
+  <rect x="15" y="38" width="55" height="38" rx="8" fill="#FFF8E1"/>
+  <rect x="15" y="38" width="55" height="38" rx="8" fill="none" stroke="#F9A825" stroke-width="3"/>
+  <!-- Handle -->
+  <path d="M32 38 L32 28 Q32 22 38 22 L47 22 Q53 22 53 28 L53 38" fill="none" stroke="#F57F17" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Center clasp -->
+  <rect x="38" y="50" width="10" height="10" rx="3" fill="#F9A825"/>
+  <circle cx="43" cy="55" r="2" fill="#F57F17"/>
+  <!-- Briefcase stripe -->
+  <rect x="15" y="46" width="55" height="7" fill="#FFD54F" opacity="0.6"/>
+  <!-- Magnifying glass overlay -->
+  <circle cx="72" cy="65" r="16" fill="white" stroke="#FF8F00" stroke-width="3.5"/>
+  <circle cx="72" cy="65" r="10" fill="#FFF8E1" opacity="0.8"/>
+  <line x1="83" y1="76" x2="92" y2="85" stroke="#E65100" stroke-width="5" stroke-linecap="round"/>
+  <!-- Search sparkle -->
+  <circle cx="68" cy="61" r="2.5" fill="#F9A825" opacity="0.8"/>
+</svg>
+''';
+
+  /// My Jobs — clipboard with checkmark, teal tones
+  static const String myJobs = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Clipboard body -->
+  <rect x="20" y="22" width="50" height="62" rx="7" fill="#E0F2F1"/>
+  <rect x="20" y="22" width="50" height="62" rx="7" fill="none" stroke="#00897B" stroke-width="3"/>
+  <!-- Clipboard clip -->
+  <rect x="33" y="14" width="24" height="14" rx="4" fill="#00897B"/>
+  <rect x="37" y="18" width="16" height="6" rx="3" fill="#B2DFDB"/>
+  <!-- Check items -->
+  <rect x="28" y="38" width="34" height="4" rx="2" fill="#80CBC4"/>
+  <rect x="28" y="50" width="28" height="4" rx="2" fill="#80CBC4"/>
+  <rect x="28" y="62" width="30" height="4" rx="2" fill="#80CBC4"/>
+  <!-- Checkmark badge -->
+  <circle cx="72" cy="70" r="16" fill="#00897B"/>
+  <path d="M64 70 L69 75 L80 64" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Progress dots -->
+  <circle cx="62" cy="40" r="3" fill="#00695C"/>
+  <circle cx="62" cy="52" r="3" fill="#4DB6AC"/>
+  <circle cx="62" cy="64" r="3" fill="#B2DFDB"/>
+</svg>
+''';
+
+  // ─────────────────────────────────────────────
   //  BOTTOM NAVIGATION ICONS  (active / inactive)
   // ─────────────────────────────────────────────
 

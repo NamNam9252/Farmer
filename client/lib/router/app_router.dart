@@ -15,6 +15,9 @@ import '../features/auth/presentation/state/auth_state.dart';
 import '../shared/widgets/bottom_nav_bar.dart';
 import '../core/theme/app_theme.dart';
 import '../features/home/presentation/screens/home_screen.dart';
+import '../features/labor_home/presentation/screens/labor_home_screen.dart';
+import '../features/labor_home/presentation/screens/labor_edit_profile_screen.dart';
+import '../features/auth/domain/entities/user.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/advisory/presentation/screens/advisory_screen.dart';
 import '../features/crop_recommendation/presentation/screens/crop_recommendation_screen.dart';
@@ -89,6 +92,10 @@ GoRouter appRouter(Ref ref) {
               isGoingToLogin ||
               isGoingToSignup ||
               isGoingToOnboarding)) {
+        final authenticated = authState;
+        if (authenticated.user.role == UserRole.labor) {
+          return RouteNames.laborHome;
+        }
         return RouteNames.home;
       }
 
@@ -97,12 +104,13 @@ GoRouter appRouter(Ref ref) {
     routes: [
       GoRoute(
         path: RouteNames.splash,
-        builder: (context, state) => const Scaffold(
-          backgroundColor: AppColors.primary,
-          body: Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          ),
-        ),
+        builder:
+            (context, state) => const Scaffold(
+              backgroundColor: AppColors.primary,
+              body: Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
       ),
       GoRoute(
         path: RouteNames.onboarding,
@@ -130,6 +138,14 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RouteNames.roleSetup,
         builder: (context, state) => const RoleOnboardingScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.laborHome,
+        builder: (context, state) => const LaborHomeScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.laborEditProfile,
+        builder: (context, state) => const LaborEditProfileScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
@@ -161,11 +177,12 @@ GoRouter appRouter(Ref ref) {
           ),
           GoRoute(
             path: RouteNames.help,
-            builder: (context, state) => const _PlaceholderScreen(
-              title: 'मदद',
-              subtitle: 'Help & Support - Coming Soon',
-              icon: Icons.support_agent_rounded,
-            ),
+            builder:
+                (context, state) => const _PlaceholderScreen(
+                  title: 'मदद',
+                  subtitle: 'Help & Support - Coming Soon',
+                  icon: Icons.support_agent_rounded,
+                ),
           ),
           GoRoute(
             path: RouteNames.advisory,
@@ -340,16 +357,17 @@ class _PlaceholderScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          SharedHeader(
-            title: title,
-            subtitle: subtitle,
-          ),
+          SharedHeader(title: title, subtitle: subtitle),
           Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 72, color: AppColors.primary.withValues(alpha: 0.3)),
+                  Icon(
+                    icon,
+                    size: 72,
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     subtitle,
@@ -365,3 +383,5 @@ class _PlaceholderScreen extends StatelessWidget {
     );
   }
 }
+
+
