@@ -17,20 +17,24 @@ class MarketplaceSelectionScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
-            title: isHindi ? 'बाज़ार' : 'Bazar',
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
+            title: isHindi ? 'मार्केटप्लेस' : 'Marketplace',
             subtitle: isHindi
                 ? 'अपनी जरूरत चुनें: खरीदें/बेचें या किराए पर लें'
                 : 'Choose your need: Buy/Sell or Rentals',
-            onLeadingPressed: () => context.go('/'),
+            onBack: () => context.go('/'),
           ),
-          MarketplaceRentalToggle(
-            isHindi: isHindi,
-            marketplaceSelected: true,
+          SliverToBoxAdapter(
+            child: MarketplaceRentalToggle(
+              isHindi: isHindi,
+              marketplaceSelected: true,
+            ),
           ),
-          Expanded(
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(

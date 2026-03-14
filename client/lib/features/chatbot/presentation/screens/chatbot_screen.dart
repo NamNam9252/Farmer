@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/voice_service.dart';
 import '../../../../core/services/language_provider.dart';
@@ -145,24 +146,14 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F0),
-      body: Column(
-        children: [
-          SharedHeader(
-            title: isHindi ? 'कृषिमित्र' : 'KrishiMitra',
-            subtitle: chatState.isOffline
-                ? (isHindi ? 'ऑफलाइन' : 'Offline')
-                : (isHindi ? 'ऑनलाइन' : 'Online'),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 18),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
+            title: isHindi ? 'खेती मित्र' : 'Agri Friend',
+            subtitle: isHindi ? 'आपका AI सहायक' : 'Your AI Assistant',
+            showBackButton: true,
+            onBack: () => context.pop(),
+            backgroundImage: 'assets/images/service_icons/community_fund.png',
             actions: [
               PopupMenuButton<String>(
                 icon: Container(
@@ -194,52 +185,56 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen>
               const SizedBox(width: 8),
             ],
           ),
-          // Offline banner
-          if (chatState.isOffline)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-              color: AppColors.warning.withValues(alpha: 0.15),
-              child: Row(
-                children: [
-                   const Icon(Icons.wifi_off_rounded, size: 16, color: AppColors.warning),
-                  const SizedBox(width: 8),
-                  Text(
-                    isHindi ? 'ऑफलाइन मोड — बेसिक कमांड्स उपलब्ध' : 'Offline mode — Basic commands available',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.warning,
+        ],
+        body: Column(
+          children: [
+            // Offline banner
+            if (chatState.isOffline)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                color: AppColors.warning.withValues(alpha: 0.15),
+                child: Row(
+                  children: [
+                     const Icon(Icons.wifi_off_rounded, size: 16, color: AppColors.warning),
+                    const SizedBox(width: 8),
+                    Text(
+                      isHindi ? 'ऑफलाइन मोड — बेसिक कमांड्स उपलब्ध' : 'Offline mode — Basic commands available',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.warning,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+            
+            // Messages
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                itemCount: chatState.messages.length,
+                itemBuilder: (context, index) {
+                  final msg = chatState.messages[index];
+                  return MessageBubble(
+                    message: msg,
+                    onConfirmAction: msg.action?.type == 'confirm'
+                        ? () => _handleConfirmAction(msg.action!)
+                        : null,
+                    onNavigateAction: msg.action?.route != null
+                        ? () => _handleNavigation(msg.action!.route!)
+                        : null,
+                  );
+                },
               ),
             ),
-
-          // Messages
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-              itemCount: chatState.messages.length,
-              itemBuilder: (context, index) {
-                final msg = chatState.messages[index];
-                return MessageBubble(
-                  message: msg,
-                  onConfirmAction: msg.action?.type == 'confirm'
-                      ? () => _handleConfirmAction(msg.action!)
-                      : null,
-                  onNavigateAction: msg.action?.route != null
-                      ? () => _handleNavigation(msg.action!.route!)
-                      : null,
-                );
-              },
-            ),
-          ),
-
-          // Input area
-          _buildInputArea(chatState),
-        ],
+            
+            // Input area
+            _buildInputArea(chatState),
+          ],
+        ),
       ),
     );
   }

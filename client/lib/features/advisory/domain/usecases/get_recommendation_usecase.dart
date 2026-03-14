@@ -18,6 +18,7 @@ class GetRecommendationUseCase {
     required String soilK,
     required String soilMoisture,
     required bool pestReported,
+    required String lang,
   }) {
     return _repository.getRecommendation(
       crop: crop,
@@ -29,6 +30,7 @@ class GetRecommendationUseCase {
       soilK: soilK,
       soilMoisture: soilMoisture,
       pestReported: pestReported,
+      lang: lang,
     );
   }
 }

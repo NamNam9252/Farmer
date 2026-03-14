@@ -139,7 +139,7 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
   }
 
   Widget _buildHeader(bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'नया समुदाय बनाएं' : 'Create New Community',
       subtitle: isHindi 
           ? 'समान रुचियों वाले किसानों का समूह शुरू करें' 

@@ -41,9 +41,10 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: isHindi ? 'उत्पाद खरीदें' : 'Buy Produce',
             subtitle: isHindi 
                 ? 'सीधे उच्च गुणवत्ता वाले उत्पाद खरीदें' 
@@ -65,29 +66,37 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
               const SizedBox(width: 8),
             ],
           ),
-          _buildCategoryFilters(categories),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async => ref.read(marketplaceItemsProvider.notifier).loadItems(category: _selectedCategory),
-              child: state.isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : state.error != null
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : state.items.isEmpty
-                    ? const _EmptyState(message: 'No items found matching your criteria')
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                        itemCount: state.items.length,
-                        itemBuilder: (context, index) {
-                          final item = state.items[index];
-                          return _ItemCard(
-                            item: item,
-                            onTap: () => context.push(RouteNames.itemDetail, extra: item),
-                          );
-                        },
-                      ),
-            ),
+          SliverToBoxAdapter(
+            child: _buildCategoryFilters(categories),
           ),
+          if (state.isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (state.error != null)
+            SliverFillRemaining(
+              child: Center(child: Text('Error: ${state.error}')),
+            )
+          else if (state.items.isEmpty)
+            const SliverFillRemaining(
+              child: _EmptyState(message: 'No items found matching your criteria'),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final item = state.items[index];
+                    return _ItemCard(
+                      item: item,
+                      onTap: () => context.push(RouteNames.itemDetail, extra: item),
+                    );
+                  },
+                  childCount: state.items.length,
+                ),
+              ),
+            ),
         ],
       ),
     );

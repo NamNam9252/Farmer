@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,7 +29,6 @@ class AppBottomNavBar extends ConsumerWidget {
     void startListening() {
       ref.read(voiceServiceProvider).startListening(
         onResult: (text) {
-          // Navigate to chatbot if not already there and send message
           context.go(RouteNames.chatbot);
           ref.read(chatbotProvider.notifier).sendMessage(text, context: context, isVoice: true);
         },
@@ -82,125 +82,222 @@ class AppBottomNavBar extends ConsumerWidget {
     ];
 
     return Scaffold(
-      extendBody: false,
+      extendBody: true,
       body: child,
       bottomNavigationBar: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
-          Container(
-            height: 90,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
+          // Frosted glass background
+          ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                height: 90,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  border: Border(
+                    top: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      width: 1,
+                    ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: CustomPaint(
-              painter: _BNBCustomPainter(),
-              child: SafeArea(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: tabs.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final tab = entry.value;
-                    final isSelected = idx == currentIndex;
-                    final label = isHindi ? tab.labelHi : tab.labelEn;
+                child: CustomPaint(
+                  painter: _BNBCustomPainter(),
+                  child: SafeArea(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: tabs.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final tab = entry.value;
+                        final isSelected = idx == currentIndex;
+                        final label = isHindi ? tab.labelHi : tab.labelEn;
 
-                    if (tab.isCenter) {
-                      return const SizedBox(width: 80);
-                    }
+                        if (tab.isCenter) {
+                          return const SizedBox(width: 80);
+                        }
 
-                    return Expanded(
-                      child: InkWell(
-                        onTap: () => context.go(tab.path),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.string(
-                              isSelected ? tab.activeSvg : tab.inactiveSvg,
-                              width: 26,
-                              height: 26,
-                              colorFilter: isSelected
-                                  ? null
-                                  : ColorFilter.mode(
-                                      Colors.blueGrey[300]!,
-                                      BlendMode.srcIn,
-                                    ),
+                        return Expanded(
+                          child: InkWell(
+                            onTap: () => context.go(tab.path),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.primary.withValues(alpha: 0.08)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: SvgPicture.string(
+                                    isSelected ? tab.activeSvg : tab.inactiveSvg,
+                                    width: 24,
+                                    height: 24,
+                                    colorFilter: isSelected
+                                        ? null
+                                        : ColorFilter.mode(
+                                            Colors.blueGrey[300]!,
+                                            BlendMode.srcIn,
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  label,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : Colors.blueGrey[400],
+                                  ),
+                                ),
+                                // Active indicator dot
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.only(top: 3),
+                                  width: isSelected ? 5 : 0,
+                                  height: isSelected ? 5 : 0,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.blueGrey[400],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
+          // Floating center button with bounce
           Positioned(
             top: -30,
-            child: GestureDetector(
+            child: _BouncingCenterButton(
+              isListening: isListening,
+              onTap: () => context.go(RouteNames.chatbot),
               onLongPressStart: (_) => startListening(),
               onLongPressEnd: (_) => stopListening(),
-              onTap: () => context.go(RouteNames.chatbot),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isListening
-                        ? [Colors.red[700]!, Colors.red[400]!]
-                        : [const Color(0xFF2E7D32), const Color(0xFF43A047)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isListening ? Colors.red : AppColors.primary)
-                          .withValues(alpha: 0.4),
-                      blurRadius: isListening ? 20 : 15,
-                      spreadRadius: isListening ? 4 : 0,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: isListening ? Colors.white70 : Colors.white,
-                    width: 4,
-                  ),
-                ),
-                child: Center(
-                  child: SvgPicture.string(
-                    AppIcons.navChatbot(active: true),
-                    width: 40,
-                    height: 40,
-                    colorFilter: isListening
-                        ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
-                        : null,
-                  ),
-                ),
-              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Center floating button with spring bounce animation on tap
+class _BouncingCenterButton extends StatefulWidget {
+  final bool isListening;
+  final VoidCallback onTap;
+  final GestureLongPressStartCallback onLongPressStart;
+  final GestureLongPressEndCallback onLongPressEnd;
+
+  const _BouncingCenterButton({
+    required this.isListening,
+    required this.onTap,
+    required this.onLongPressStart,
+    required this.onLongPressEnd,
+  });
+
+  @override
+  State<_BouncingCenterButton> createState() => _BouncingCenterButtonState();
+}
+
+class _BouncingCenterButtonState extends State<_BouncingCenterButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 120),
+      vsync: this,
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.88).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onLongPressStart: widget.onLongPressStart,
+      onLongPressEnd: widget.onLongPressEnd,
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) {
+          return Transform.scale(scale: _scaleAnim.value, child: child);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.isListening
+                  ? [Colors.red[700]!, Colors.red[400]!]
+                  : [const Color(0xFF1B5E20), const Color(0xFF2E7D32), const Color(0xFF43A047)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: (widget.isListening ? Colors.red : AppColors.primary)
+                    .withValues(alpha: 0.45),
+                blurRadius: widget.isListening ? 22 : 16,
+                spreadRadius: widget.isListening ? 4 : 1,
+                offset: const Offset(0, 8),
+              ),
+            ],
+            border: Border.all(
+              color: widget.isListening ? Colors.white70 : Colors.white,
+              width: 4,
+            ),
+          ),
+          child: Center(
+            child: SvgPicture.string(
+              AppIcons.navChatbot(active: true),
+              width: 40,
+              height: 40,
+              colorFilter: widget.isListening
+                  ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
+                  : null,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -210,9 +307,9 @@ class _BNBCustomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = const Color(0xFF2E7D32)
+      ..color = const Color(0xFF2E7D32).withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
+      ..strokeWidth = 2;
 
     Path path = Path();
     path.moveTo(0, 0);
@@ -267,4 +364,3 @@ class _NavTab {
   final String inactiveSvg;
   final bool isCenter;
 }
-
