@@ -75,7 +75,7 @@ class SMSService {
 
     const payload = Buffer.from(text, "utf-8");
     console.log(`[SMS] → ${to} | text payload: ${payload.length}B`);
-    await this.sender.send(to, payload);
+    await this.sender.sendPlainText(to, text);
   }
 
   // ─── Called by router on every incoming webhook hit ───────────────────────

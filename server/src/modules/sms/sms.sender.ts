@@ -42,6 +42,12 @@ export class SMSSender {
     console.log(`[SMS] completed outbound send to ${to} [SID: ${sid}]`);
   }
 
+  async sendPlainText(to: string, content: string): Promise<void> {
+    console.log(`[SMS] sending plain text SMS to ${to} | chars=${content.length}`);
+    await this.sendSingle(to, content);
+    console.log(`[SMS] completed plain text SMS send to ${to}`);
+  }
+
   private async sendSingle(to: string, body: string): Promise<void> {
     try {
       const response = await axios.post(
