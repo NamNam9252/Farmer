@@ -1,22 +1,14 @@
-import { SMSSessionManager } from "./sms.session";
 import { SMSSender } from "./sms.sender";
-import { parsePacket } from "./sms.parser";
-import { decodeBinary, encodeBinary } from "./sms.codec";
 import {
-  PacketType,
   SMSConfig,
-  SMSHandlerResult,
   SMSMessageHandler,
   SMSRequestEnvelope,
 } from "./sms.types";
 
 class SMSService {
   private sender!:        SMSSender;
-  private sessions!:      SMSSessionManager;
   private handler:        SMSMessageHandler | null = null;
   private initialized =   false;
-
-  // ─── Call once in app.ts ──────────────────────────────────────────────────
 
   init(): void {
     if (this.initialized) {
@@ -40,20 +32,15 @@ class SMSService {
     }
 
     this.sender      = new SMSSender(config);
-    this.sessions    = new SMSSessionManager(config.timeoutMs);
     this.initialized = true;
 
     console.log("[SMS] Service initialized ✓");
   }
 
-  // ─── Register a handler for incoming decoded messages ─────────────────────
-
   onMessage(handler: SMSMessageHandler): void {
     this.handler = handler;
     console.log("[SMS] Message handler registered ✓");
   }
-
-  // ─── Send anything to any phone number — usable from anywhere ────────────
 
   async send(to: string, data: unknown): Promise<void> {
     if (!this.initialized) {
@@ -61,148 +48,47 @@ class SMSService {
       return;
     }
 
-    const json = JSON.stringify(data);
-    const payload = encodeBinary(json);
-
-    console.log(
-      `[SMS] → ${to} | raw: ${json.length}B | codec: ${payload.length}B`
-    );
-
-    await this.sender.send(to, Buffer.from(payload));
+    const payload = JSON.stringify(data);
+    console.log(`[SMS] → ${to} | text: ${payload}`);
+    await this.sender.sendPlainText(to, payload);
   }
 
   async sendText(to: string, text: string): Promise<void> {
     this.assertInitialized();
-
-    const payload = Buffer.from(text, "utf-8");
-    console.log(`[SMS] → ${to} | text payload: ${payload.length}B`);
+    console.log(`[SMS] → ${to} | text: ${text}`);
     await this.sender.sendPlainText(to, text);
   }
 
-  // ─── Called by router on every incoming webhook hit ───────────────────────
-
   async handleIncoming(raw: string, from: string): Promise<void> {
     this.assertInitialized();
-    console.log(`[SMS] webhook payload received from ${from} | rawChars=${raw.length}`);
+    console.log(`[SMS] webhook received from ${from} | rawChars=${raw.length}`);
 
-    let packet;
-    try {
-      packet = parsePacket(raw);
-      console.log(
-        `[SMS] packet parsed from ${from} | sid=${packet.sid} seq=${packet.seq + 1}/${packet.total} type=${packet.type} payloadBytes=${packet.payload.length}`
-      );
-    } catch (e) {
-      console.warn(`[SMS] parsePacket failed for ${from}; treating as direct payload`);
-      await this.handleDirectPayload(raw, from);
+    if (!this.handler) {
+      console.warn("[SMS] No handler registered!");
       return;
     }
 
-    const packetTypeKnown = Object.values(PacketType).includes(packet.type);
-    const sidLooksValid = /^[A-Za-z0-9]{2}$/.test(packet.sid);
-    const packetLooksPlausible =
-      packetTypeKnown &&
-      sidLooksValid &&
-      packet.total > 0 &&
-      packet.seq < packet.total;
+    let action: string = "sms";
+    let payload: any = raw;
 
-    if (!packetLooksPlausible) {
-      console.warn(
-        `[SMS] packet appears invalid/incompatible from ${from}; falling back to direct payload handling`
-      );
-      await this.handleDirectPayload(raw, from);
-      return;
-    }
-
-    if (packet.type !== PacketType.REQUEST) {
-      console.log(`[SMS] Ignoring non-request packet (type=${packet.type}) from ${from}`);
-      return;
-    }
-
-    const full = this.sessions.insert(
-      packet.sid,
-      packet.seq,
-      packet.total,
-      from,
-      packet.payload
-    );
-
-    if (!full) {
-      console.log(`[SMS] waiting for more chunks | sid=${packet.sid} from=${from}`);
-      return; // still waiting for remaining chunks
-    }
-
-    console.log(`[SMS] ✓ Session ${packet.sid} complete — processing fullBytes=${full.length}`);
-
-    try {
-      const decodedString = decodeBinary(new Uint8Array(full));
-      console.log(`[SMS] reassembled data decoded | sid=${packet.sid} chars=${decodedString.length}`);
-
-      let action: any = "general";
-      let payload: any = decodedString;
-
-      // Try to parse as JSON envelope if it looks like one
-      if (decodedString.startsWith("{") && decodedString.endsWith("}")) {
-        try {
-          const envelope: SMSRequestEnvelope = JSON.parse(decodedString);
-          action = envelope.action;
-          payload = envelope.payload;
-          console.log(`[SMS] JSON envelope detected | action=${action}`);
-        } catch (_) {
-          // Stay as direct string
-        }
+    // Try to parse as JSON envelope if it looks like one
+    if (raw.trim().startsWith("{") && raw.trim().endsWith("}")) {
+      try {
+        const envelope: SMSRequestEnvelope = JSON.parse(raw);
+        action = envelope.action;
+        payload = envelope.payload;
+        console.log(`[SMS] JSON envelope detected | action=${action}`);
+      } catch (_) {
+        // Stay as direct string
       }
-
-      if (!this.handler) {
-        console.warn("[SMS] No handler registered!");
-        await this.send(from, { ok: false, err: "Server handler not configured" });
-        return;
-      }
-
-      await this.dispatchToHandler(action, payload, from, packet.sid);
-    } catch (e: any) {
-      console.error(`[SMS] Processing error for ${from}:`, e);
-      await this.send(from, { ok: false, err: e?.message ?? "Internal server error" });
     }
+
+    await this.dispatchToHandler(action, payload, from, "direct");
   }
-
-  // ─── Guard ────────────────────────────────────────────────────────────────
 
   private assertInitialized(): void {
     if (!this.initialized)
-      console.warn("[SMS] Call SMS.init() before using the service. Handlers disabled.");
-  }
-
-  private shouldSkipDefaultResponse(result: unknown): result is SMSHandlerResult {
-    return (
-      typeof result === "object" &&
-      result !== null &&
-      "skipDefaultResponse" in result &&
-      Boolean((result as SMSHandlerResult).skipDefaultResponse)
-    );
-  }
-
-  private unwrapHandlerData(result: unknown): unknown {
-    if (
-      typeof result === "object" &&
-      result !== null &&
-      "data" in result &&
-      Object.prototype.hasOwnProperty.call(result, "skipDefaultResponse")
-    ) {
-      return (result as SMSHandlerResult).data;
-    }
-
-    return result;
-  }
-
-  private async handleDirectPayload(raw: string, from: string): Promise<void> {
-    if (!this.handler) {
-      console.warn("[SMS] No handler registered for direct payload mode");
-      await this.send(from, { ok: false, err: "Server handler not configured" });
-      return;
-    }
-
-    console.log(`[SMS] processing direct payload mode from ${from}`);
-    await this.dispatchToHandler("sms", raw, from, "direct");
+      console.warn("[SMS] Call SMS.init() before using the service.");
   }
 
   private async dispatchToHandler(
@@ -211,21 +97,24 @@ class SMSService {
     from: string,
     sid: string
   ): Promise<void> {
-    if (!this.handler) {
-      console.warn("[SMS] No handler registered! Call SMS.onMessage() in app.ts");
-      await this.send(from, { ok: false, err: "Server handler not configured" });
-      return;
-    }
+    if (!this.handler) return;
 
     const result = await this.handler(action, payload, from);
     console.log(`[SMS] handler completed | sid=${sid} from=${from}`);
 
-    if (this.shouldSkipDefaultResponse(result)) {
-      console.log(`[SMS] Handler opted out of default response for ${from}`);
+    // If result is null or undefined, or explicitly handled, don't send default response
+    if (result === undefined || result === null) return;
+    
+    if (typeof result === "object" && (result as any).skipDefaultResponse) {
       return;
     }
 
-    await this.send(from, { ok: true, data: this.unwrapHandlerData(result) });
+    let data = result;
+    if (typeof result === "object" && "data" in (result as any)) {
+      data = (result as any).data;
+    }
+
+    await this.send(from, { ok: true, data });
   }
 }
 

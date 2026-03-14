@@ -45,84 +45,6 @@ class _OfflineChatScreenState extends ConsumerState<OfflineChatScreen> {
     _scrollToBottom();
   }
 
-  void _showPasteReplyDialog() {
-    final pasteController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.sms_rounded, color: AppColors.primary, size: 22),
-            SizedBox(width: 8),
-            Text(
-              'Paste SMS Reply',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Paste the encoded SMS reply you received from the server:',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: pasteController,
-              minLines: 3,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText: 'Paste encoded SMS text here…',
-                hintStyle:
-                    const TextStyle(color: AppColors.textHint, fontSize: 13),
-                filled: true,
-                fillColor: const Color(0xFFF5F8F5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-              style: const TextStyle(
-                fontSize: 13,
-                fontFamily: 'monospace',
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final encoded = pasteController.text.trim();
-              if (encoded.isNotEmpty) {
-                Navigator.pop(ctx);
-                ref
-                    .read(offlineChatProvider.notifier)
-                    .receiveReply(encoded);
-                _scrollToBottom();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Decode & Show',
-                style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +129,7 @@ class _OfflineChatScreenState extends ConsumerState<OfflineChatScreen> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Offline SMS Mode — messages encoded & sent via SMS',
+                    'Offline SMS Mode — messages sent via SMS',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -290,13 +212,7 @@ class _OfflineChatScreenState extends ConsumerState<OfflineChatScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Paste reply button
-                IconButton(
-                  onPressed: _showPasteReplyDialog,
-                  tooltip: 'Paste SMS Reply',
-                  icon: const Icon(Icons.move_to_inbox_rounded,
-                      color: AppColors.primary),
-                ),
+                // (Manual paste button removed for automated flow)
 
                 // Text input
                 Expanded(
@@ -360,20 +276,6 @@ class _OfflineChatScreenState extends ConsumerState<OfflineChatScreen> {
               ],
             ),
             const SizedBox(height: 6),
-            // Hint text
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.info_outline_rounded,
-                    size: 11, color: AppColors.textHint),
-                SizedBox(width: 4),
-                Text(
-                  'Tap 📥 to paste & decode an SMS reply from the server',
-                  style:
-                      TextStyle(fontSize: 11, color: AppColors.textHint),
-                ),
-              ],
-            ),
           ],
         ),
       ),

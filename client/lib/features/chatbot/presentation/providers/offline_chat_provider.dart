@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/chat_models.dart';
-import '../../../../core/services/sms_codec.dart';
 import '../../../../core/services/sms_service.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -38,6 +36,14 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
   OfflineChatNotifier() : super(const OfflineChatState()) {
     _loadMessages();
     _addWelcomeIfEmpty();
+    _initSms();
+  }
+
+  void _initSms() {
+    SmsService().init();
+    SmsService().listenForReplies((text) {
+      receiveReply(text);
+    });
   }
 
   Future<void> _loadMessages() async {
@@ -70,10 +76,9 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
               '📶 आप ऑफलाइन मोड में हैं।\n\n'
               'You are in **Offline Mode**.\n\n'
               'Type your farming question and tap Send. '
-              'Your message will be sent via SMS to our AI farming assistant.\n\n'
-              '• 📤 Your question → encoded → SMS sent\n'
-              '• 📥 Server replies to your phone via SMS\n'
-              '• Paste the encoded reply below to read it here.\n\n'
+              'Your message will be sent automatically via SMS.\n\n'
+              '• 📤 Your question → Sent automatically\n'
+              '• 📥 Server replies appear here automatically\n\n'
               'बताइये, क्या सहायता चाहिए?',
         ),
       ],
@@ -87,8 +92,8 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
     final pendingMsg = ChatMessage(
       role: 'assistant',
       content:
-          '⏳ आपका सन्देश SMS के ज़रिए भेजा जा रहा है…\n'
-          'Sent via SMS — await reply in your SMS app.',
+          '⏳ Sending via SMS…\n'
+          'Await response here.',
       isLoading: false,
     );
 
@@ -99,9 +104,7 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
     );
 
     try {
-      // SmsService now handles encodeToBytes internally to match Python reference
-      await SmsService().sendEncoded(text.trim());
-      // SMS app is now open — we leave the pending bubble as-is
+      await SmsService().sendSilently(text.trim());
       state = state.copyWith(isSending: false);
     } catch (e) {
       // Replace pending bubble with error
@@ -109,7 +112,7 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
       msgs.removeLast(); // remove pending
       msgs.add(ChatMessage(
         role: 'assistant',
-        content: '❌ Failed to open SMS app: ${e.toString()}',
+        content: '❌ Failed to send SMS: ${e.toString()}',
       ));
       state = state.copyWith(messages: msgs, isSending: false, error: e.toString());
     }
@@ -121,29 +124,17 @@ class OfflineChatNotifier extends StateNotifier<OfflineChatState> {
     if (text.trim().isEmpty) return;
 
     try {
-      // 1. Decode Base91 once to get the raw binary (packet or naked payload)
-      Uint8List payload = SmsCodec.b91Decode(text.trim());
-      
-      if (payload.length >= 5 && payload[0] > 2) {
-        // 2. Looks like a packet (Header: SID[2] SEQ[1] TOTAL[1] TYPE[1])
-        // Header bytes (SID/etc) are all > 32. Flags are 0, 1, 2.
-        payload = payload.sublist(5);
-      }
-
-      // 3. Decode the naked payload (flag + data)
-      final decoded = SmsCodec.decodeFromBytes(payload);
-      final replyMsg = ChatMessage(role: 'assistant', content: decoded);
+      final replyMsg = ChatMessage(role: 'assistant', content: text.trim());
       state = state.copyWith(messages: [...state.messages, replyMsg]);
       _saveMessages();
     } catch (e) {
       state = state.copyWith(
-        error: 'Decoding error: $e',
+        error: 'Processing error: $e',
         messages: [
           ...state.messages,
           ChatMessage(
             role: 'assistant',
-            content:
-                '❌ Could not decode server reply. Make sure you copied the full SMS text.',
+            content: '❌ Could not process server reply.',
           ),
         ],
       );
