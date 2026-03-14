@@ -605,8 +605,8 @@ class HomeScreen extends ConsumerWidget {
         onTap: () => context.push(RouteNames.schemes),
       ),
       _ServiceItem(
-        labelEn: 'Community\nFund',
-        labelHi: 'समुदाय\nनिधि',
+        labelEn: 'Community',
+        labelHi: 'समुदाय',
         svgData: AppIcons.community,
         imageAsset: 'assets/icons/ic_community.png',
         bgColor: AppColors.cardLavender,
@@ -699,8 +699,8 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               _ServiceItem(
-                labelEn: 'Community\nFund',
-                labelHi: 'समुदाय\nनिधि',
+                labelEn: 'Community',
+                labelHi: 'समुदाय',
                 svgData: AppIcons.community,
                 imageAsset: 'assets/icons/ic_community.png',
                 bgColor: AppColors.cardLavender,

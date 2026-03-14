@@ -3,10 +3,33 @@ import * as NotificationService from '../notifications/notification.service.js';
 
 const prisma = new PrismaClient();
 
+const COMMUNITY_TYPE_ALIASES: Record<string, CommunityType> = {
+    ROUND: CommunityType.RADIUS_BASED,
+    RADIUS: CommunityType.RADIUS_BASED,
+    STATE: CommunityType.STATE_WIDE,
+    CROP: CommunityType.CROP_SPECIFIC
+};
+
+const COMMUNITY_TYPES = new Set(Object.values(CommunityType));
+
+const normalizeCommunityType = (rawType: unknown): CommunityType => {
+    if (typeof rawType !== 'string' || !rawType.trim()) {
+        return CommunityType.GENERAL;
+    }
+
+    const normalized = rawType.trim().toUpperCase().replace(/[\s-]+/g, '_');
+
+    if (COMMUNITY_TYPES.has(normalized as CommunityType)) {
+        return normalized as CommunityType;
+    }
+
+    return COMMUNITY_TYPE_ALIASES[normalized] || CommunityType.GENERAL;
+};
+
 // Haversine formula distance calculation for MongoDB
 export const getNearbyCommunities = async (lat: number, lng: number, radiusKm: number) => {
     // In a real production scenario, use MongoDB $geoNear.
-    // Here we filter by type ROUND or RADIUS_BASED, but for general communities:
+    // Here we filter by type RADIUS_BASED, but for general communities:
     const communities = await prisma.community.findMany({
         where: {
             isActive: true,
@@ -36,11 +59,13 @@ export const getNearbyCommunities = async (lat: number, lng: number, radiusKm: n
 };
 
 export const createCommunity = async (userId: string, data: any) => {
+    const communityType = normalizeCommunityType(data?.type);
+
     const community = await prisma.community.create({
         data: {
             name: data.name,
             description: data.description,
-            type: data.type || CommunityType.GENERAL,
+            type: communityType,
             createdById: userId,
             isPrivate: data.isPrivate || false,
             centerLatitude: data.latitude,

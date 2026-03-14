@@ -50,7 +50,7 @@ export class RentalService {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          owner: { select: { id: true, email: true } },
+          owner: { select: { id: true, name: true, email: true, phone: true } },
           _count: { select: { bids: true } },
         },
       }),
@@ -63,12 +63,12 @@ export class RentalService {
     const asset = await prisma.asset.findUnique({
       where: { id: req.params.assetId },
       include: {
-        owner: { select: { id: true, email: true } },
+        owner: { select: { id: true, name: true, email: true, phone: true } },
         bids: {
           orderBy: { amount: "desc" },
-          include: { bidder: { select: { id: true, email: true } } },
+          include: { bidder: { select: { id: true, name: true, email: true, phone: true } } },
         },
-        rental: { include: { tenant: { select: { id: true, email: true } } } },
+        rental: { include: { tenant: { select: { id: true, name: true, email: true, phone: true } } } },
       },
     });
     if (!asset) throw new NotFoundError("Asset not found");
@@ -161,7 +161,7 @@ export class RentalService {
         ? { assetId: params.assetId }
         : { assetId: params.assetId, bidderId: user!.id },
       orderBy: { amount: "desc" },
-      include: { bidder: { select: { id: true, email: true } } },
+      include: { bidder: { select: { id: true, name: true, email: true, phone: true } } },
     });
   }
 
@@ -170,7 +170,16 @@ export class RentalService {
       where: { bidderId: (req as any).user.id },
       orderBy: { createdAt: "desc" },
       include: {
-        asset: { select: { id: true, title: true, type: true, status: true } },
+        asset: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            status: true,
+            ownerId: true,
+            owner: { select: { id: true, name: true, email: true, phone: true } },
+          },
+        },
       },
     });
   }
@@ -179,7 +188,7 @@ export class RentalService {
     const { user, params } = req as any;
     const { assetId, bidId } = params;
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const asset = await tx.asset.findUnique({ where: { id: assetId } });
       if (!asset) throw new NotFoundError("Asset not found");
       if (asset.ownerId !== user!.id) throw new ForbiddenError("Forbidden");
@@ -200,9 +209,14 @@ export class RentalService {
         data: { status: BidStatus.ACCEPTED },
       });
 
+      const pendingOtherBids = await tx.bid.findMany({
+        where: { assetId, id: { not: bidId }, status: BidStatus.PENDING },
+        select: { id: true, bidderId: true },
+      });
+
       // 2. Reject other bids for this asset
       await tx.bid.updateMany({
-        where: { assetId, id: { not: bidId }, status: BidStatus.PENDING },
+        where: { id: { in: pendingOtherBids.map((b) => b.id) } },
         data: { status: BidStatus.REJECTED },
       });
 
@@ -227,26 +241,46 @@ export class RentalService {
               : RentalStatus.UPCOMING,
         },
         include: {
-          tenant: { select: { id: true, email: true } },
-          asset: { select: { id: true, title: true } },
+          tenant: { select: { id: true, name: true, email: true, phone: true } },
+          asset: {
+            select: {
+              id: true,
+              title: true,
+              ownerId: true,
+              owner: { select: { id: true, name: true, email: true, phone: true } },
+            },
+          },
         },
       });
 
-      // Notify Bidder
-      try {
-        await NotificationService.createNotification({
-          userId: bid.bidderId,
-          title: 'Bid Accepted!',
-          body: `Your bid for "${asset.title}" has been accepted. Rental starts on ${bid.startDate.toLocaleDateString()}.`,
-          actionType: 'RENTAL_ACCEPTED',
-          actionId: rental.id,
-        });
-      } catch (error) {
-        console.error('Notification failed:', error);
-      }
-
-      return rental;
+      return { rental, assetTitle: asset.title, acceptedBid, rejectedBids: pendingOtherBids };
     });
+
+    // Notify accepted bidder
+    try {
+      await NotificationService.createNotification({
+        userId: result.acceptedBid.bidderId,
+        title: 'Bid Accepted!',
+        body: `Your bid for "${result.assetTitle}" has been accepted. Rental starts on ${result.acceptedBid.startDate.toLocaleDateString()}.`,
+        actionType: 'RENTAL_ACCEPTED',
+        actionId: result.rental.id,
+      });
+
+      // Notify all other bidders that their bid was not selected
+      for (const rejected of result.rejectedBids) {
+        await NotificationService.createNotification({
+          userId: rejected.bidderId,
+          title: 'Bid Update',
+          body: `Your bid for "${result.assetTitle}" was not selected.`,
+          actionType: 'RENTAL_REJECTED',
+          actionId: rejected.id,
+        });
+      }
+    } catch (error) {
+      console.error('Notification failed:', error);
+    }
+
+    return result.rental;
   }
 
   async withdrawBid(req: Request) {
@@ -266,8 +300,8 @@ export class RentalService {
     const rental = await prisma.rental.findUnique({
       where: { assetId: (req as any).params.assetId },
       include: {
-        tenant: { select: { id: true, email: true } },
-        asset: { include: { owner: { select: { id: true, email: true } } } },
+        tenant: { select: { id: true, name: true, email: true, phone: true } },
+        asset: { include: { owner: { select: { id: true, name: true, email: true, phone: true } } } },
       },
     });
     if (!rental) throw new NotFoundError("No rental found for this asset");
@@ -278,7 +312,17 @@ export class RentalService {
     return prisma.rental.findMany({
       where: { tenantId: (req as any).user.id },
       orderBy: { startDate: "desc" },
-      include: { asset: { select: { id: true, title: true, type: true } } },
+      include: {
+        asset: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            ownerId: true,
+            owner: { select: { id: true, name: true, email: true, phone: true } },
+          },
+        },
+      },
     });
   }
 

@@ -6,7 +6,6 @@ import '../../data/models/chat_models.dart';
 import '../../../../core/constants/command_constants.dart';
 import '../../../../router/app_router.dart';
 import '../../../../core/services/location_provider.dart';
-import '../../../../core/services/tts_service.dart';
 
 // ─── State ────────────────────────────────────────────────
 class ChatbotState {
@@ -136,14 +135,6 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
         isOffline: false,
       );
 
-      // Trigger TTS if it was a voice input
-      if (isVoice) {
-        _ref.read(ttsServiceProvider).speak(
-          response.ttsMessage ?? response.message, 
-          response.ttsLanguageHint ?? response.languageHint ?? 'hi',
-        );
-      }
-
       // Handle navigation action if context is available
       if (context != null && response.action != null) {
         _handleAction(response.action!, context);
@@ -169,7 +160,7 @@ class ChatbotNotifier extends StateNotifier<ChatbotState> {
         newMessages.add(ChatMessage(
           role: 'assistant',
           content:
-              '⚠️ AI assistant is currently unavailable. Please check your internet connection.\n\n(ऑफलाइन मोड) You can still use basic commands like:\n• "home" — Go to home page\n• "market" — View mandi prices\n• "marketplace" — Browse marketplace\n• "disease" — Disease detection\n• "community" — Communities\n• "profile" — Your profile',
+              '⚠️ AI assistant is currently unavailable. Please check your internet connection.\n\n(ऑफलाइन मोड) You can still use basic commands like:\n• "home" — Go to home page\n• "mandi" — View mandi prices\n• "market" / "bazar" — Browse marketplace\n• "disease" — Disease detection\n• "community" — Communities\n• "profile" — Your profile',
         ));
         state = state.copyWith(
           messages: newMessages,

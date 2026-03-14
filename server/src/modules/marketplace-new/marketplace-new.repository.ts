@@ -148,6 +148,35 @@ export class MarketplaceRepository {
         });
     }
 
+    async getPendingPurchaseRequestsForItem(itemId: string, excludeRequestId?: string) {
+        return prisma.marketplaceNewPurchaseRequest.findMany({
+            where: {
+                itemId,
+                status: MarketplaceRequestStatus.PENDING,
+                ...(excludeRequestId ? { id: { not: excludeRequestId } } : {}),
+            },
+            include: {
+                item: true,
+                buyer: { select: { id: true, name: true } },
+            },
+        });
+    }
+
+    async rejectPurchaseRequests(requestIds: string[]) {
+        if (!requestIds.length) return;
+        await prisma.marketplaceNewPurchaseRequest.updateMany({
+            where: { id: { in: requestIds } },
+            data: { status: MarketplaceRequestStatus.REJECTED },
+        });
+    }
+
+    async updateItemStatus(itemId: string, status: MarketplaceItemStatus) {
+        return prisma.marketplaceNewItem.update({
+            where: { id: itemId },
+            data: { status },
+        });
+    }
+
     async getPurchaseRequestById(requestId: string) {
         return prisma.marketplaceNewPurchaseRequest.findUnique({
             where: { id: requestId },
@@ -193,6 +222,35 @@ export class MarketplaceRepository {
             where: { id: offerId },
             data: { status },
             include: { demand: true }
+        });
+    }
+
+    async getPendingDemandOffersForDemand(demandId: string, excludeOfferId?: string) {
+        return prisma.marketplaceNewDemandOffer.findMany({
+            where: {
+                demandId,
+                status: MarketplaceRequestStatus.PENDING,
+                ...(excludeOfferId ? { id: { not: excludeOfferId } } : {}),
+            },
+            include: {
+                demand: true,
+                seller: { select: { id: true, name: true } },
+            },
+        });
+    }
+
+    async rejectDemandOffers(offerIds: string[]) {
+        if (!offerIds.length) return;
+        await prisma.marketplaceNewDemandOffer.updateMany({
+            where: { id: { in: offerIds } },
+            data: { status: MarketplaceRequestStatus.REJECTED },
+        });
+    }
+
+    async updateDemandStatus(demandId: string, status: MarketplaceDemandStatus) {
+        return prisma.marketplaceNewDemand.update({
+            where: { id: demandId },
+            data: { status },
         });
     }
 

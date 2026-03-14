@@ -29,6 +29,72 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
     ref.read(marketplaceItemsProvider.notifier).loadItems(category: category);
   }
 
+  void _showQuickBuyDialog(MarketplaceItem item, bool isHindi) {
+    final quantityController = TextEditingController();
+    final messageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isHindi ? 'खरीद अनुरोध भेजें' : 'Send Purchase Request'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: quantityController,
+              decoration: InputDecoration(
+                labelText: isHindi ? 'मात्रा (जैसे 50 kg)' : 'Quantity (e.g. 50 kg)',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: messageController,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: isHindi ? 'संदेश (वैकल्पिक)' : 'Message (Optional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(isHindi ? 'रद्द करें' : 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (quantityController.text.trim().isEmpty) return;
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                await ref.read(marketplaceApiProvider).sendPurchaseRequest({
+                  'itemId': item.id,
+                  'requestedQuantity': quantityController.text.trim(),
+                  'message': messageController.text.trim(),
+                });
+                if (!mounted) return;
+                // ignore: use_build_context_synchronously
+                Navigator.pop(dialogContext);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isHindi ? 'अनुरोध भेज दिया गया' : 'Purchase request sent successfully',
+                    ),
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Error: $e')),
+                );
+              }
+            },
+            child: Text(isHindi ? 'भेजें' : 'Send'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(marketplaceItemsProvider);
@@ -91,7 +157,9 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
                     final item = state.items[index];
                     return _ItemCard(
                       item: item,
+                      isHindi: isHindi,
                       onTap: () => context.push(RouteNames.itemDetail, extra: item),
+                      onBuy: () => _showQuickBuyDialog(item, isHindi),
                     );
                   },
                   childCount: state.items.length,
@@ -139,10 +207,17 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
 }
 
 class _ItemCard extends StatelessWidget {
-  final dynamic item;
+  final MarketplaceItem item;
+  final bool isHindi;
   final VoidCallback onTap;
+  final VoidCallback onBuy;
 
-  const _ItemCard({required this.item, required this.onTap});
+  const _ItemCard({
+    required this.item,
+    required this.isHindi,
+    required this.onTap,
+    required this.onBuy,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +296,25 @@ class _ItemCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: onBuy,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.shopping_bag_rounded, size: 16),
+                        label: Text(
+                          isHindi ? 'अभी खरीदें' : 'Buy Now',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   ],
                 ),

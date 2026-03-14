@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
@@ -206,6 +207,9 @@ class _MyRentalsTab extends ConsumerWidget {
         itemBuilder: (context, index) {
           final rental = state.rentals[index];
           final daysLeft = rental.endDate.difference(DateTime.now()).inDays;
+          final ownerPhone = rental.asset?.owner?['phone']?.toString() ?? '';
+          final showCallButton = ownerPhone.trim().isNotEmpty &&
+              (rental.status == RentalStatus.UPCOMING || rental.status == RentalStatus.ACTIVE);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
@@ -264,6 +268,24 @@ class _MyRentalsTab extends ConsumerWidget {
                     ),
                   ],
                 ),
+                if (showCallButton) ...[
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _makePhoneCall(context, ownerPhone),
+                      icon: const Icon(Icons.call_rounded, size: 18),
+                      label: Text(isHindi ? 'मालिक को कॉल करें' : 'Call Owner'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           );
@@ -282,4 +304,17 @@ class _MyRentalsTab extends ConsumerWidget {
   }
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
+
+  Future<void> _makePhoneCall(BuildContext context, String phoneNumber) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final uri = Uri(scheme: 'tel', path: phoneNumber.trim());
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
+    }
+
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Could not open phone dialer')),
+    );
+  }
 }

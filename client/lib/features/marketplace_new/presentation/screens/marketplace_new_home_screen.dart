@@ -191,6 +191,22 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
           iconColor: const Color(0xFF7B1FA2),
           onTap: () => context.push(RouteNames.browseDemands),
         ),
+        _ActionCard(
+          label: isHindi ? 'बोली लगाएं' : 'Place a Bid',
+          subtitle: isHindi ? '(आइटम पर बोली)' : '(Bid on Items)',
+          icon: Icons.gavel_rounded,
+          color: const Color(0xFFFFF3E0),
+          iconColor: const Color(0xFFE65100),
+          onTap: () => context.push(RouteNames.browseItems),
+        ),
+        _ActionCard(
+          label: isHindi ? 'मेरी लिस्टिंग' : 'My Listings',
+          subtitle: isHindi ? '(प्रबंधित करें)' : '(Manage)',
+          icon: Icons.inventory_2_rounded,
+          color: const Color(0xFFE8EAF6),
+          iconColor: const Color(0xFF283593),
+          onTap: () => context.push(RouteNames.myListings),
+        ),
       ],
     );
   }
