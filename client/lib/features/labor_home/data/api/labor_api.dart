@@ -9,6 +9,8 @@ class LaborApi {
   }
 
   Future<Response> updateProfile(Map<String, dynamic> data) async {
+    print('--- LABOR API UPDATE PROFILE CALLED ---');
+    print('Sending data: $data');
     return await _apiClient.dio.put('/labor/profile', data: data);
   }
 

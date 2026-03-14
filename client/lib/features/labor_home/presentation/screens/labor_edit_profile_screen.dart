@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../data/api/labor_api.dart';
 import '../../data/constants/labor_skills.dart';
+import '../providers/labor_profile_provider.dart';
 
 class LaborEditProfileScreen extends ConsumerStatefulWidget {
   const LaborEditProfileScreen({super.key});
@@ -224,6 +225,7 @@ class _LaborEditProfileScreenState
                                 ? 'अपना नाम दर्ज करें'
                                 : 'Enter your name',
                             icon: CupertinoIcons.person,
+                            enabled: true,
                           ),
 
                           const SizedBox(height: 20),
@@ -460,11 +462,21 @@ class _LaborEditProfileScreenState
   Future<void> _saveProfile(bool isHindi) async {
     setState(() => _isSaving = true);
     try {
+      final newName = _nameController.text.trim();
+      final newPhone = _phoneController.text.trim();
+
       await _laborApi.updateProfile({
         'skills': _selectedSkills,
+        'name': newName.isNotEmpty ? newName : null,
+        'phone': newPhone.isNotEmpty ? newPhone : null,
       });
 
       if (mounted) {
+        // Update user state so the new name appears everywhere
+        if (newName.isNotEmpty) {
+           ref.read(authControllerProvider.notifier).updateCachedUser(name: newName);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -478,11 +490,13 @@ class _LaborEditProfileScreenState
             margin: const EdgeInsets.all(16),
           ),
         );
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go(RouteNames.laborHome);
-        }
+        
+        // Refresh the profile provider so the home screen updates immediately
+        ref.invalidate(laborProfileProvider);
+        
+        // Always route to home page explicitly rather than popping, 
+        // to ensure the home page rebuilds with fresh data
+        context.go(RouteNames.laborHome);
       }
     } catch (e) {
       debugPrint('❌ Labor profile save error: $e');

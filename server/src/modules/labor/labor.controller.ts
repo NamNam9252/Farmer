@@ -24,9 +24,14 @@ export class LaborController {
 
   updateProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log('--- [UPDATE PROFILE] ---');
+      console.log('User ID:', req.user.id);
+      console.log('Body:', req.body);
       const result = await this.service.updateProfile(req.user.id, req.body);
+      console.log('Result:', result);
       res.json({ success: true, message: 'Profile updated successfully', data: result });
     } catch (err) {
+      console.error('--- [UPDATE PROFILE ERROR] ---', err);
       next(err);
     }
   };

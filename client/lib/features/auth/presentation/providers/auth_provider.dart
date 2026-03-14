@@ -131,4 +131,20 @@ class AuthController extends _$AuthController {
       state = AuthError(e.toString());
     }
   }
+
+  void updateCachedUser({String? name, String? phone}) {
+    if (state is Authenticated) {
+      final currentUser = (state as Authenticated).user;
+      final updatedUser = User(
+        id: currentUser.id,
+        name: name ?? currentUser.name,
+        phone: phone ?? currentUser.phone,
+        email: currentUser.email,
+        role: currentUser.role,
+        status: currentUser.status,
+        isEmailVerified: currentUser.isEmailVerified,
+      );
+      state = Authenticated(updatedUser);
+    }
+  }
 }
