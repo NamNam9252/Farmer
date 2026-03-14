@@ -188,7 +188,7 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
           : 'Instant crop diagnosis and treatment',
       backgroundImage: 'assets/images/service_icons/disease_detection.png',
       showBackButton: true,
-      onBack: () => context.pop(),
+      onBack: () => Navigator.of(context).pop(),
     );
   }
 

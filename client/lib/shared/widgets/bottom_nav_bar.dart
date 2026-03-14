@@ -144,12 +144,7 @@ class AppBottomNavBar extends ConsumerWidget {
                                     isSelected ? tab.activeSvg : tab.inactiveSvg,
                                     width: 24,
                                     height: 24,
-                                    colorFilter: isSelected
-                                        ? null
-                                        : ColorFilter.mode(
-                                            Colors.blueGrey[300]!,
-                                            BlendMode.srcIn,
-                                          ),
+                                    // Removed grey colorFilter to keep original icon colors
                                   ),
                                 ),
                                 const SizedBox(height: 3),
@@ -162,7 +157,7 @@ class AppBottomNavBar extends ConsumerWidget {
                                         : FontWeight.w500,
                                     color: isSelected
                                         ? AppColors.primary
-                                        : Colors.blueGrey[400],
+                                        : AppColors.textSecondary.withValues(alpha: 0.7),
                                   ),
                                 ),
                                 // Active indicator dot

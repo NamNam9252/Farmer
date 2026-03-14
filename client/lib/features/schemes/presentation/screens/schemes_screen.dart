@@ -64,7 +64,7 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
             subtitle: isHindi ? 'सरकारी योजनाएं और कृषि समाचार' : 'Government schemes & agri news',
             backgroundImage: 'assets/images/service_icons/schemes.png',
             showBackButton: true,
-            onBack: () => context.pop(),
+            onBack: () => Navigator.of(context).pop(),
           ),
         ],
         body: Column(

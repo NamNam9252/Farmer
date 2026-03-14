@@ -338,7 +338,7 @@ class AppIcons {
   // ─────────────────────────────────────────────
 
   static String navHome({bool active = false}) {
-    final c = active ? '#2E7D32' : '#9E9E9E';
+    const c = '#2E7D32';
     final b = active ? '#E8F5E9' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
@@ -351,14 +351,14 @@ class AppIcons {
   }
 
   static String navDisease({bool active = false}) {
-    final c = active ? '#D32F2F' : '#9E9E9E';
+    const c = '#D32F2F';
     final b = active ? '#FFEBEE' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <path d="M6 26 Q6 10 22 4 Q25 17 14 24Z" fill="$b" stroke="$c" stroke-width="2"/>
   <path d="M6 26 Q16 19 22 4" fill="none" stroke="$c" stroke-width="1.5"/>
-  <circle cx="13" cy="17" r="2" fill="${active ? '#FF5252' : '#BDBDBD'}"/>
-  <circle cx="17" cy="12" r="1.5" fill="${active ? '#FF5252' : '#BDBDBD'}"/>
+  <circle cx="13" cy="17" r="2" fill="#FF5252"/>
+  <circle cx="17" cy="12" r="1.5" fill="#FF5252"/>
   <circle cx="22" cy="20" r="6" fill="none" stroke="$c" stroke-width="2"/>
   <line x1="26.2" y1="24.2" x2="30" y2="28" stroke="$c" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
@@ -366,13 +366,13 @@ class AppIcons {
   }
 
   static String navMarket({bool active = false}) {
-    final c = active ? '#2E7D32' : '#9E9E9E';
+    const c = '#2E7D32';
     final b = active ? '#E8F5E9' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <path d="M3 13 Q16 6 29 13 L26 17 Q16 11 6 17Z" fill="${active ? '#FFB300' : '#E0E0E0'}"/>
+  <path d="M3 13 Q16 6 29 13 L26 17 Q16 11 6 17Z" fill="#FFB300"/>
   <rect x="6" y="16" width="20" height="12" rx="2" fill="$b" stroke="$c" stroke-width="1.5"/>
-  <rect x="6" y="16" width="20" height="4" fill="${active ? '#FFB300' : '#E0E0E0'}"/>
+  <rect x="6" y="16" width="20" height="4" fill="#FFB300"/>
   <rect x="8" y="23" width="7" height="5" rx="1" fill="$c"/>
   <rect x="17" y="23" width="7" height="5" rx="1" fill="$c"/>
 </svg>
@@ -380,7 +380,7 @@ class AppIcons {
   }
 
   static String navSchemes({bool active = false}) {
-    final c = active ? '#1976D2' : '#9E9E9E';
+    const c = '#1976D2';
     final b = active ? '#E3F2FD' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
@@ -388,13 +388,13 @@ class AppIcons {
   <rect x="10" y="12" width="12" height="2" rx="1" fill="$c" opacity="0.6"/>
   <rect x="10" y="17" width="8" height="2" rx="1" fill="$c" opacity="0.6"/>
   <rect x="10" y="22" width="10" height="2" rx="1" fill="$c" opacity="0.6"/>
-  <circle cx="24" cy="8" r="5" fill="${active ? '#FFA000' : '#BDBDBD'}" stroke="white" stroke-width="1.5"/>
+  <circle cx="24" cy="8" r="5" fill="#FFA000" stroke="white" stroke-width="1.5"/>
 </svg>
 ''';
   }
 
   static String navProfile({bool active = false}) {
-    final c = active ? '#7B1FA2' : '#9E9E9E';
+    const c = '#7B1FA2';
     final b = active ? '#F3E5F5' : '#F5F5F5';
     return '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">

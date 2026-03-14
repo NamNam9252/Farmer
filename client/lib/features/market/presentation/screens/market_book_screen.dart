@@ -127,15 +127,22 @@ class MarketBookScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SharedSliverAppBar(
+          SharedStickyHeader(
             title: isHindi ? 'मंडी भाव' : 'Crop Prices',
-            onLeadingPressed: () {
+            subtitle: isHindi ? 'ताजा मंडी भाव और बाजार विश्लेषण' : 'Latest market prices and analysis',
+            backgroundImage: 'assets/images/service_icons/market.png',
+            onBack: () {
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
               } else {
                 context.go(RouteNames.home);
               }
             },
+            gradientColors: const [
+              Color(0xFF4CAF50), // Green
+              Color(0xFF8BC34A), // Light Green
+              Color(0xFFCDDC39), // Lime
+            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
