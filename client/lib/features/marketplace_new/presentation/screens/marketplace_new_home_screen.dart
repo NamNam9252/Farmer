@@ -85,7 +85,7 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
                 () => context.push(RouteNames.myListings),
               ),
               _MyDemands(userId: userId),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 120),
                     ],
                   ),
                 ),

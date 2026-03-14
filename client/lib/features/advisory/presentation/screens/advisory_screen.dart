@@ -62,13 +62,13 @@ class AdvisoryScreen extends ConsumerWidget {
                       isHindi: isHindi,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 120),
                 ] else if (!state.isLoading && state.error == null)
                   _buildEmptyState(isHindi),
               ]),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
     );
