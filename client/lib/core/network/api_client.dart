@@ -26,6 +26,10 @@ class ApiClient {
           handler.next(options);
         },
         onError: (DioException e, handler) async {
+          print('--- DIO ERROR ---');
+          print('URL: ${e.requestOptions.uri}');
+          print('Status Code: ${e.response?.statusCode}');
+          print('Data: ${e.response?.data}');
           if (e.response?.statusCode == 401) {
             await _secureStorage.deleteToken();
             // Auth provider will handle routing redirect if we listen to the storage or state
@@ -34,6 +38,16 @@ class ApiClient {
         },
       ),
     );
+
+    // Add standard Logging
+    _dio.interceptors.add(LogInterceptor(
+      request: true,
+      requestHeader: true,
+      requestBody: true,
+      responseHeader: true,
+      responseBody: true,
+      error: true,
+    ));
   }
 
   static final ApiClient instance = ApiClient._();

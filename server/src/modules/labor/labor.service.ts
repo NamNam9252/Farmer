@@ -37,6 +37,8 @@ export class LaborService {
       latitude: body.latitude,
       longitude: body.longitude,
       serviceRadiusKm: body.serviceRadiusKm,
+      name: body.name,
+      phone: body.phone,
     });
   }
 

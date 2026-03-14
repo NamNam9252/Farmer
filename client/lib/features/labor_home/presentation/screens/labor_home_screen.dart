@@ -8,6 +8,8 @@ import '../../../../router/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
 import '../../../../shared/widgets/language_toggle.dart';
+import '../../data/constants/labor_skills.dart';
+import '../providers/labor_profile_provider.dart';
 
 class LaborHomeScreen extends ConsumerWidget {
   const LaborHomeScreen({super.key});
@@ -33,6 +35,29 @@ class LaborHomeScreen extends ConsumerWidget {
     final initials = userName.isNotEmpty
         ? userName.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
         : '?';
+
+    // Fetch skills from provider
+    final profileAsync = ref.watch(laborProfileProvider);
+    String displayRole = isHindi ? '👷 मज़दूर' : '👷 Labor';
+
+    profileAsync.whenData((profile) {
+      if (profile != null && profile['skills'] != null) {
+        final List<dynamic> rawSkills = profile['skills'];
+        if (rawSkills.isNotEmpty) {
+          final translatedSkills = rawSkills.take(3).map((skillKey) {
+            final skill = predefinedSkills.where((s) => s.key == skillKey).firstOrNull;
+            if (skill != null) {
+              return isHindi ? skill.hi : skill.en;
+            }
+            return skillKey.toString();
+          }).join(', ');
+          
+          displayRole = rawSkills.length > 3 
+              ? '$translatedSkills...' 
+              : translatedSkills;
+        }
+      }
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F6F3),
@@ -133,18 +158,22 @@ class LaborHomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2F1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  isHindi ? '👷 मज़दूर' : '👷 Labor',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF00695C),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2F1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    displayRole,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF00695C),
+                    ),
                   ),
                 ),
               ),
