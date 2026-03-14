@@ -45,7 +45,7 @@ class AdvisoryForm extends ConsumerWidget {
           children: [
             Expanded(
               child: _buildLevelPicker(
-                label: isHindi ? 'N' : 'Nitrogen',
+                label: isHindi ? 'नाइट्रोजन (Nitrogen)' : 'Nitrogen',
                 value: state.soilN,
                 isHindi: isHindi,
                 onChanged: (v) => ref.read(advisoryProvider.notifier).setSoilN(v),
@@ -54,7 +54,7 @@ class AdvisoryForm extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _buildLevelPicker(
-                label: isHindi ? 'P' : 'Phosphorus',
+                label: isHindi ? 'फास्फोरस (Phosphorus)' : 'Phosphorus',
                 value: state.soilP,
                 isHindi: isHindi,
                 onChanged: (v) => ref.read(advisoryProvider.notifier).setSoilP(v),
@@ -63,7 +63,7 @@ class AdvisoryForm extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _buildLevelPicker(
-                label: isHindi ? 'K' : 'Potassium',
+                label: isHindi ? 'पोटेशियम (Potassium)' : 'Potassium',
                 value: state.soilK,
                 isHindi: isHindi,
                 onChanged: (v) => ref.read(advisoryProvider.notifier).setSoilK(v),

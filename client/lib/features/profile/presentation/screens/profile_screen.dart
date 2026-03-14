@@ -83,18 +83,25 @@ class ProfileScreen extends ConsumerWidget {
     String role,
     bool isHindi,
   ) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'प्रोफ़ाइल' : 'My Profile',
       subtitle: '$name • $role',
+      onBack: () {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          context.go(RouteNames.home);
+        }
+      },
       leading: Container(
         margin: const EdgeInsets.only(left: 12),
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             width: 2,
           ),
         ),
@@ -104,13 +111,6 @@ class ProfileScreen extends ConsumerWidget {
           color: Colors.white,
         ),
       ),
-      onLeadingPressed: () {
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        } else {
-          context.go(RouteNames.home);
-        }
-      },
     );
   }
 

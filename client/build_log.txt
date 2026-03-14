@@ -1,0 +1,98 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter : Wasm dry run 
+findings:
+At line:1 char:1
++ flutter build web 
+2>&1 | Out-File 
+-Encoding utf8 
+build_log.txt
++ 
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Wasm dry run    
+ findings::String)     
+[], RemoteExceptio    n
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+Found 
+incompatibilities with 
+WebAssembly.
+
+file:///C:/Users/Owner/
+AppData/Local/Pub/Cache
+/hosted/pub.dev/flutter
+_tts-4.2.5/lib/flutter_
+tts_web.dart 104:23 - i
+nvalid_runtime_check_wi
+th_js_interop_types 
+lint violation: Cast 
+from 'JSAny?' to 'int' 
+casts a JS interop 
+value to a Dart type, 
+which might not be 
+platform-consistent. 
+(8)
+file:///C:/Users/Owner/
+AppData/Local/Pub/Cache
+/hosted/pub.dev/flutter
+_tts-4.2.5/lib/flutter_
+tts_web.dart 105:21 - i
+nvalid_runtime_check_wi
+th_js_interop_types 
+lint violation: Cast 
+from 'JSAny?' to 
+'String' casts a JS 
+interop value to a 
+Dart type, which might 
+not be 
+platform-consistent. 
+(8)
+file:///C:/Users/Owner/
+AppData/Local/Pub/Cache
+/hosted/pub.dev/flutter
+_tts-4.2.5/lib/flutter_
+tts_web.dart 107:21 - i
+nvalid_runtime_check_wi
+th_js_interop_types 
+lint violation: Cast 
+from 'JSAny?' to 
+'String' casts a JS 
+interop value to a 
+Dart type, which might 
+not be 
+platform-consistent. 
+(8)
+file:///C:/Users/Owner/
+AppData/Local/Pub/Cache
+/hosted/pub.dev/socket_
+io_common-3.1.1/lib/src
+/util/js_interop_type_a
+dapter.dart 7:10 - inva
+lid_runtime_check_with_
+js_interop_types lint 
+violation: Runtime 
+check between 'Object' 
+and 'JSString' checks 
+whether a Dart value 
+is a JS interop type, 
+which might not be 
+platform-consistent. 
+(7)
+
+Consider addressing 
+these issues to enable 
+wasm builds. See docs 
+for more info: https://
+docs.flutter.dev/platfo
+rm-integration/web/wasm
+
+Use --no-wasm-dry-run 
+to disable these 
+warnings.
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 4740 bytes (98.2% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 26320 bytes (98.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Compiling lib\main.dart for the Web...                             74.2s
+ΓêÜ Built build\web

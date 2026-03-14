@@ -17,6 +17,7 @@ class AdvisoryRepository implements IAdvisoryRepository {
     required String soilK,
     required String soilMoisture,
     required bool pestReported,
+    required String lang,
   }) async {
     final models = await _api.getRecommendation(
       crop: crop,
@@ -28,6 +29,7 @@ class AdvisoryRepository implements IAdvisoryRepository {
       soilK: soilK,
       soilMoisture: soilMoisture,
       pestReported: pestReported,
+      lang: lang,
     );
     return models.map((m) => m.toEntity()).toList();
   }

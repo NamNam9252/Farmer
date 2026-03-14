@@ -208,22 +208,25 @@ export class CropRecommendationService {
             ? [...new Set([...input.preferred_crops, ...dynamicCropList])].slice(0, 5)
             : dynamicCropList.slice(0, 5);
 
-        const priceSnapshots: { crop: string; price: string; market: string; date: string }[] = [];
+        const priceSnapshots: { crop: string; price: string; market: string; district: string; variety: string; date: string }[] = [];
 
         const pricePromises = cropsToCheck.map(async (crop: string) => {
             try {
-                const prices = await this.marketService.getMarketPrices({
+                const result = await this.marketService.getMandiPrices({
                     commodity: crop,
-                    market: geo.state || 'Delhi',
-                    date: new Date().toISOString().split('T')[0],
+                    state: geo.state || undefined,
+                    district: geo.district !== 'Unknown' ? geo.district : undefined,
                 });
-                if (prices.length > 0 && prices[0].averagePrice > 0) {
-                    console.log(`[CropRecommendation] SUCCESS - Price found for ${crop}: ${prices[0].averagePrice}/${prices[0].unit}`);
+                if (result.records.length > 0) {
+                    const r = result.records[0];
+                    console.log(`[CropRecommendation] SUCCESS [${result.searchStage}] - Price for ${crop}: ₹${r.modalPrice}/quintal at ${r.market}, ${r.district}`);
                     return {
-                        crop,
-                        price: `₹${prices[0].averagePrice}/quintal`,
-                        market: prices[0].market,
-                        date: prices[0].date,
+                        crop: r.commodity,
+                        price: `₹${r.modalPrice}/quintal`,
+                        market: r.market,
+                        district: r.district,
+                        variety: r.variety,
+                        date: r.arrivalDate,
                     };
                 } else {
                     console.log(`[CropRecommendation] INFO - No live market price found for ${crop}. Using AI-driven profit estimation.`);
@@ -254,7 +257,7 @@ ${input.preferred_crops?.length ? `- Farmer's Preferred Crops: ${input.preferred
 
 CURRENT MARKET PRICES (from Agmarknet for requested crops):
 ${priceSnapshots.length > 0
-                ? priceSnapshots.map(p => `- ${p.crop}: ${p.price} (${p.market}, ${p.date})`).join('\n')
+                ? priceSnapshots.map(p => `- ${p.crop} (${p.variety}): ${p.price} at ${p.market}, ${p.district} (${p.date})`).join('\n')
                 : '- AI MUST use its own deep knowledge of 2025-2026 Indian market prices to accurately estimate Revenue & Profit.'}
 
 Based on ALL of the above — soil, climate, season, current market prices, demand trends, cost of cultivation, and profit potential — recommend the TOP 5 most profitable crops for this farmer.`;

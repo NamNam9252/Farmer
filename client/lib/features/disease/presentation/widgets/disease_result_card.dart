@@ -118,13 +118,16 @@ class DiseaseResultCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Icon(
-                    report.isHealthy ? Icons.check_circle_rounded : Icons.warning_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+              child: Center(
+                child: Image.asset(
+                  report.isHealthy 
+                    ? 'assets/icons/ic_crop_advisory.png' // Repurposing as healthy
+                    : 'assets/icons/ic_disease.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.contain,
                 ),
+              ),
               ),
               const SizedBox(width: 14),
               Expanded(

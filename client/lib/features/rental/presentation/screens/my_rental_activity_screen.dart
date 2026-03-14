@@ -49,9 +49,9 @@ class _MyRentalActivityScreenState extends ConsumerState<MyRentalActivityScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
             title: isHindi ? 'मेरी रेंटल गतिविधि' : 'My Rental Activity',
             subtitle: isHindi ? 'अपने रेंटल प्रबंधित करें' : 'Manage your rentals',
             bottom: TabBar(
@@ -67,17 +67,15 @@ class _MyRentalActivityScreenState extends ConsumerState<MyRentalActivityScreen>
               ],
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _MyListingsTab(isHindi: isHindi),
-                _MyBidsTab(isHindi: isHindi),
-                _MyRentalsTab(isHindi: isHindi),
-              ],
-            ),
-          ),
         ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _MyListingsTab(isHindi: isHindi),
+            _MyBidsTab(isHindi: isHindi),
+            _MyRentalsTab(isHindi: isHindi),
+          ],
+        ),
       ),
     );
   }

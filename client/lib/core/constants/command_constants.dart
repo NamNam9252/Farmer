@@ -9,7 +9,7 @@ class CommandConstants {
       'disease', 'sick', 'illness', 'upchar', 'bimari', 'kida', 'plant health', 'detect', 'check plant', 'rog', 'ilaj', 'बीमारी', 'रोग', 'कीड़ा', 'इलाज', 'पौधे की जांच'
     ],
     RouteNames.market: [
-      'market', 'mandi', 'shop', 'bazar', 'price', 'rate', 'bhaw', 'market price', 'mandi rate', 'बाज़ार', 'मंडी', 'भाव', 'दाम', 'कीमत'
+      'market', 'mandi', 'crop price', 'mandi bhav', 'price', 'rate', 'bhaw', 'market price', 'mandi rate', 'मंडी', 'भाव', 'दाम', 'कीमत', 'मंडी भाव', 'फसल भाव'
     ],
     RouteNames.profile: [
       'profile', 'me', 'account', 'khata', 'settings', 'user', 'my details', 'meri profile', 'mera khata', 'प्रोफ़ाइल', 'खाता', 'मेरी जानकारी'
@@ -21,7 +21,7 @@ class CommandConstants {
       'crop', 'recommendation', 'fasal', 'kheti', 'production', 'suggestion', 'what to grow', 'konsi fasal ugaye', 'fasal sujhav', 'फसल', 'खेती', 'सुझाव', 'कौन सी फसल उगाएं'
     ],
     RouteNames.marketplaceNew: [
-      'marketplace', 'buy', 'sell', 'vyapar', 'trade', 'listing', 'khareeda', 'bechna', 'saaman', 'item sell', 'market place', 'व्यापार', 'बेचना', 'खरीदना', 'सामान'
+      'marketplace', 'bazar', 'buy', 'sell', 'vyapar', 'trade', 'listing', 'khareeda', 'bechna', 'saaman', 'item sell', 'market place', 'shop', 'बाज़ार', 'व्यापार', 'बेचना', 'खरीदना', 'सामान'
     ],
     RouteNames.community: [
       'community', 'group', 'samuh', 'charcha', 'forum', 'farmers group', 'kisan samuh', 'judna', 'समूह', 'समुदाय', 'चर्चा', 'किसान समूह'

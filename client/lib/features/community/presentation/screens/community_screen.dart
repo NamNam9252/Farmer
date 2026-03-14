@@ -142,11 +142,14 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   }
 
   Widget _buildHeader(bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'किसान समुदाय' : 'Farmer Communities',
       subtitle: isHindi 
           ? 'अपने क्षेत्र के किसानों से जुड़ें' 
           : 'Connect with farmers in your region',
+      backgroundImage: 'assets/images/service_icons/community_fund.png',
+      showBackButton: true,
+      onBack: () => context.pop(),
     );
   }
 

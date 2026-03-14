@@ -91,22 +91,23 @@ class _PostDemandScreenState extends ConsumerState<PostDemandScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: widget.demand != null ? 'Edit Demand' : 'Post Demand',
             subtitle: widget.demand != null 
                 ? 'Update your requirement' 
                 : 'Looking for produce? List it here.',
           ),
-          Expanded(
-            child: SingleChildScrollView(
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(16),
               child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(

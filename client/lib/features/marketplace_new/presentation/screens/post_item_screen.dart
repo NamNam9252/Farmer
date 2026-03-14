@@ -185,22 +185,24 @@ class _PostItemScreenState extends ConsumerState<PostItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: widget.item != null ? 'Edit Item' : 'Post Item to Sell',
             subtitle: widget.item != null 
                 ? 'Update your listing details' 
                 : 'List your produce for buyers',
           ),
-          Expanded(
-            child: SingleChildScrollView(
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(16),
               child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ... existing form children ...
               // Image Upload Section
               GestureDetector(
                 onTap: _isUploading ? null : _showImagePickerOptions,

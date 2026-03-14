@@ -95,7 +95,6 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
-
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
@@ -117,114 +116,110 @@ class HomeScreen extends ConsumerWidget {
           }
           await ref.read(notificationProvider.notifier).loadNotifications();
         },
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 120),
-            children: [
-              _buildHeader(
-                context,
-                ref,
-                userName,
-                lang,
-                isHindi,
-                locationText,
-              ),
-              const SizedBox(height: 20),
-              _buildAlertBanner(context, weatherState, isHindi),
-              _buildWeatherCard(context, isHindi, weatherState),
-              const SizedBox(height: 28),
-              _buildServicesSection(context, isHindi),
-              const SizedBox(height: 28),
-              _buildMandiPricesSection(isHindi),
-            ],
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-        ),
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────
-  //  HEADER
-  // ──────────────────────────────────────────────────────────
-  Widget _buildHeader(
-    BuildContext context,
-    WidgetRef ref,
-    String userName,
-    String lang,
-    bool isHindi,
-    String locationText,
-  ) {
-    return SharedHeader(
-      title: isHindi ? 'नमस्ते, $userName 🙏' : 'Namaste, $userName 🙏',
-      subtitle: locationText,
-      showBackButton: false,
-      leading: Container(
-        margin: const EdgeInsets.only(left: 12),
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.5),
-            width: 2,
-          ),
-        ),
-        child: const Icon(
-          Icons.person_rounded,
-          size: 30,
-          color: Colors.white,
-        ),
-      ),
-      actions: [
-        Consumer(
-          builder: (context, ref, child) {
-            final notificationState = ref.watch(notificationProvider);
-            final unreadCount =
-                notificationState.notifications.where((n) => !n.isRead).length;
-
-            return GestureDetector(
-              onTap: () => NotificationSheet.show(context, ref, isHindi),
-              child: Container(
-                width: 42,
-                height: 42,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
+          slivers: [
+            // ── Sticky Header ──
+            SharedStickyHeader(
+              title: isHindi ? 'नमस्ते, $userName 🙏' : 'Namaste, $userName 🙏',
+              subtitle: locationText,
+              showBackButton: false,
+              expandedHeight: 180,
+              collapsedHeight: 100,
+              leading: GestureDetector(
+                onTap: () => context.push(RouteNames.profile),
+                child: Container(
+                  margin: const EdgeInsets.only(left: 12),
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    size: 26,
+                    color: Colors.white,
                   ),
                 ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    if (unreadCount > 0)
-                      Positioned(
-                        top: 10,
-                        right: 10,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFF5252),
-                            shape: BoxShape.circle,
+              ),
+              actions: [
+                Consumer(
+                  builder: (context, ref, child) {
+                    final ns = ref.watch(notificationProvider);
+                    final unreadCount =
+                        ns.notifications.where((n) => !n.isRead).length;
+
+                    return GestureDetector(
+                      onTap: () => NotificationSheet.show(context, ref, isHindi),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
                         ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Icon(
+                              Icons.notifications_none_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            if (unreadCount > 0)
+                              Positioned(
+                                top: 10,
+                                right: 10,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFF5252),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            // ── Body content ──
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 120),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildAlertBanner(context, weatherState, isHindi),
+                    _buildWeatherCard(context, isHindi, weatherState),
+                    const SizedBox(height: 28),
+                    _buildServicesSection(context, isHindi),
+                    const SizedBox(height: 28),
+                    _buildMandiPricesSection(isHindi),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -245,8 +240,15 @@ class HomeScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: const Color(0xFFFFEBEE),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFEF9A9A), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -279,7 +281,7 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Text(
@@ -455,7 +457,11 @@ class HomeScreen extends ConsumerWidget {
                     width: 4,
                     height: 22,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+                      ),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -474,12 +480,15 @@ class HomeScreen extends ConsumerWidget {
                 onTap: () => _showAllFeatures(context, isHindi),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 14,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Text(
                     isHindi ? 'सभी देखें' : 'See All',
@@ -497,7 +506,7 @@ class HomeScreen extends ConsumerWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: services.length,
+            itemCount: 6,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               mainAxisSpacing: 18,
@@ -519,53 +528,52 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return [
       _ServiceItem(
-        labelEn: 'Market\n(Mandi)',
-        labelHi: 'बाज़ार\n(मंडी)',
+        labelEn: 'Crop\nPrice',
+        labelHi: 'मंडी\nभाव',
         svgData: AppIcons.market,
-        bgColor: const Color(0xFFFFF8E1),
-        onTap: () => context.go(RouteNames.market),
-      ),
-      _ServiceItem(
-        labelEn: 'Marketplace\n(New)',
-        labelHi: 'मार्केटप्लेस\n(नया)',
-        svgData: AppIcons.marketplace,
-        bgColor: const Color(0xFFE8F5E9),
-        onTap: () => context.push(RouteNames.marketplaceNew),
+        imageAsset: 'assets/icons/ic_market.png',
+        bgColor: AppColors.cardSunshine,
+        onTap: () => context.push(RouteNames.market),
       ),
       _ServiceItem(
         labelEn: 'Crop\nAdvisory',
         labelHi: 'फसल\nसलाह',
         svgData: AppIcons.cropAdvisory,
-        bgColor: const Color(0xFFE8F5E9),
-        onTap: () => context.go(RouteNames.advisory),
+        imageAsset: 'assets/icons/ic_crop_advisory.png',
+        bgColor: AppColors.cardMint,
+        onTap: () => context.push(RouteNames.advisory),
       ),
       _ServiceItem(
         labelEn: 'Disease\nDetection',
         labelHi: 'रोग\nपहचान',
         svgData: AppIcons.disease,
-        bgColor: const Color(0xFFFFEBEE),
-        onTap: () => context.go(RouteNames.disease),
+        imageAsset: 'assets/icons/ic_disease.png',
+        bgColor: AppColors.cardRose,
+        onTap: () => context.push(RouteNames.disease),
       ),
       _ServiceItem(
         labelEn: 'Schemes',
         labelHi: 'योजनाएं',
         svgData: AppIcons.schemes,
-        bgColor: const Color(0xFFE3F2FD),
+        imageAsset: 'assets/icons/ic_schemes.png',
+        bgColor: AppColors.cardSky,
         onTap: () => context.push(RouteNames.schemes),
       ),
       _ServiceItem(
         labelEn: 'Community\nFund',
         labelHi: 'समुदाय\nनिधि',
         svgData: AppIcons.community,
-        bgColor: const Color(0xFFF3E5F5),
-        onTap: () => context.go(RouteNames.community),
+        imageAsset: 'assets/icons/ic_community.png',
+        bgColor: AppColors.cardLavender,
+        onTap: () => context.push(RouteNames.community),
       ),
       _ServiceItem(
         labelEn: 'Smart\nFarming',
         labelHi: 'स्मार्ट\nखेती',
         svgData: AppIcons.smartFarming,
-        bgColor: const Color(0xFFE0F2F1),
-        onTap: () => context.go(RouteNames.cropRecommendation),
+        imageAsset: 'assets/icons/ic_smart_farming.png',
+        bgColor: AppColors.cardPeach,
+        onTap: () => context.push(RouteNames.cropRecommendation),
       ),
     ];
   }
@@ -585,13 +593,17 @@ class HomeScreen extends ConsumerWidget {
                 width: 4,
                 height: 22,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF57C00),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
+                  ),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(width: 10),
               Text(
-                isHindi ? 'लाइव मंडी भाव' : 'Live Mandi Prices',
+                isHindi ? 'लाइव मंडी भाव' : 'Live Crop Prices',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -654,50 +666,55 @@ class HomeScreen extends ConsumerWidget {
           builder: (_, scrollController) {
             final allFeatures = [
               _ServiceItem(
-                labelEn: 'Market\n(Mandi)',
-                labelHi: 'बाज़ार\n(मंडी)',
+                labelEn: 'Crop\nPrice',
+                labelHi: 'मंडी\nभाव',
                 svgData: AppIcons.market,
-                bgColor: const Color(0xFFFFF8E1),
+                imageAsset: 'assets/icons/ic_market.png',
+                bgColor: AppColors.cardSunshine,
                 onTap: () {
                   Navigator.pop(ctx);
-                  context.go(RouteNames.market);
+                  context.push(RouteNames.market);
                 },
               ),
               _ServiceItem(
                 labelEn: 'Crop\nAdvisory',
                 labelHi: 'फसल\nसलाह',
                 svgData: AppIcons.cropAdvisory,
-                bgColor: const Color(0xFFE8F5E9),
+                imageAsset: 'assets/icons/ic_crop_advisory.png',
+                bgColor: AppColors.cardMint,
                 onTap: () {
                   Navigator.pop(ctx);
-                  context.go(RouteNames.advisory);
+                  context.push(RouteNames.advisory);
                 },
               ),
               _ServiceItem(
                 labelEn: 'Disease\nDetection',
                 labelHi: 'रोग\nपहचान',
                 svgData: AppIcons.disease,
-                bgColor: const Color(0xFFFFEBEE),
+                imageAsset: 'assets/icons/ic_disease.png',
+                bgColor: AppColors.cardRose,
                 onTap: () {
                   Navigator.pop(ctx);
-                  context.go(RouteNames.disease);
+                  context.push(RouteNames.disease);
                 },
               ),
               _ServiceItem(
                 labelEn: 'Smart\nFarming',
                 labelHi: 'स्मार्ट\nखेती',
                 svgData: AppIcons.smartFarming,
-                bgColor: const Color(0xFFE0F2F1),
+                imageAsset: 'assets/icons/ic_smart_farming.png',
+                bgColor: AppColors.cardPeach,
                 onTap: () {
                   Navigator.pop(ctx);
-                  context.go(RouteNames.cropRecommendation);
+                  context.push(RouteNames.cropRecommendation);
                 },
               ),
               _ServiceItem(
                 labelEn: 'Govt\nSchemes',
                 labelHi: 'सरकारी\nयोजनाएं',
                 svgData: AppIcons.schemes,
-                bgColor: const Color(0xFFE3F2FD),
+                imageAsset: 'assets/icons/ic_schemes.png',
+                bgColor: AppColors.cardSky,
                 onTap: () {
                   Navigator.pop(ctx);
                   context.push(RouteNames.schemes);
@@ -707,10 +724,22 @@ class HomeScreen extends ConsumerWidget {
                 labelEn: 'Community\nFund',
                 labelHi: 'समुदाय\nनिधि',
                 svgData: AppIcons.community,
-                bgColor: const Color(0xFFF3E5F5),
+                imageAsset: 'assets/icons/ic_community.png',
+                bgColor: AppColors.cardLavender,
                 onTap: () {
                   Navigator.pop(ctx);
-                  context.go(RouteNames.community);
+                  context.push(RouteNames.community);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Marketplace\n(New)',
+                labelHi: 'मार्केटप्लेस\n(नया)',
+                svgData: AppIcons.marketplace,
+                imageAsset: 'assets/icons/ic_marketplace.png',
+                bgColor: AppColors.cardMint,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.push(RouteNames.marketplaceNew);
                 },
               ),
               _ServiceItem(
@@ -727,6 +756,7 @@ class HomeScreen extends ConsumerWidget {
                 labelEn: 'Weather\nAlerts',
                 labelHi: 'मौसम\nचेतावनी',
                 svgData: AppIcons.weatherAlert,
+                imageAsset: 'assets/icons/ic_weather.png',
                 bgColor: const Color(0xFFE1F5FE),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -899,69 +929,183 @@ class _ServiceItem {
     required this.labelEn,
     required this.labelHi,
     required this.svgData,
+    this.imageAsset,
     required this.bgColor,
     required this.onTap,
+    this.isViewAll = false,
   });
 
   final String labelEn;
   final String labelHi;
   final String svgData;
+  final String? imageAsset;
   final Color bgColor;
   final VoidCallback onTap;
+  final bool isViewAll;
 }
 
 // ──────────────────────────────────────────────────────────
-//  SERVICE CARD  (clean illustrated icon style)
+//  SERVICE CARD  (animated tap feedback)
 // ──────────────────────────────────────────────────────────
-class _ServiceCard extends StatelessWidget {
+class _ServiceCard extends StatefulWidget {
   const _ServiceCard({required this.item, required this.isHindi});
 
   final _ServiceItem item;
   final bool isHindi;
 
   @override
+  State<_ServiceCard> createState() => _ServiceCardState();
+}
+
+class _ServiceCardState extends State<_ServiceCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: item.onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Icon circle
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              color: item.bgColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.07),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: SvgPicture.string(
-                item.svgData,
-                width: 48,
-                height: 48,
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+        _controller.reverse();
+        widget.item.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnim.value,
+            child: child,
+          );
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon circle
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: widget.item.bgColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.item.bgColor.withValues(alpha: 0.6),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: widget.item.isViewAll
+                    ? Center(
+                        child: Icon(
+                          Icons.grid_view_rounded,
+                          size: 38,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : widget.item.imageAsset != null
+                        ? Image.asset(
+                            widget.item.imageAsset!,
+                            width: 76,
+                            height: 76,
+                            fit: BoxFit.cover,
+                          )
+                        : widget.item.labelEn.contains('Smart')
+                            ? _buildSmartFarmingIcon()
+                            : Center(
+                                child: SvgPicture.string(
+                                  widget.item.svgData,
+                                  width: 48,
+                                  height: 48,
+                                ),
+                              ),
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              widget.isHindi
+                  ? widget.item.labelHi.replaceAll('\n', ' ')
+                  : widget.item.labelEn.replaceAll('\n', ' '),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmartFarmingIcon() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0),
+        shape: BoxShape.circle,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            Icons.agriculture_rounded,
+            size: 44,
+            color: Colors.deepOrange[800]?.withValues(alpha: 0.15),
           ),
-          const SizedBox(height: 8),
-          Text(
-            isHindi
-                ? item.labelHi.replaceAll('\n', ' ')
-                : item.labelEn.replaceAll('\n', ' '),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              height: 1.3,
+          Positioned(
+            top: 14,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              size: 32,
+              color: Colors.deepOrange[800],
+            ),
+          ),
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.psychology_rounded,
+                size: 20,
+                color: Colors.deepOrange[400],
+              ),
             ),
           ),
         ],
@@ -995,12 +1139,16 @@ class _MandiPriceTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: (isUp ? AppColors.success : AppColors.error)
+              .withValues(alpha: 0.1),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

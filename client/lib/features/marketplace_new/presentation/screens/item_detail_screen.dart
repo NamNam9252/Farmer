@@ -30,12 +30,13 @@ class ItemDetailScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          SharedSliverAppBar(
+          SharedStickyHeader(
             title: latestItem.itemName,
             subtitle: '₹${latestItem.pricePerUnit} • ${latestItem.category}',
             backgroundImage: latestItem.imageUrl != null && latestItem.imageUrl!.isNotEmpty
                 ? latestItem.imageUrl
-                : null,
+                : 'assets/icons/icon_marketplace.png',
+            onBack: () => context.pop(),
             actions: [
               if (isOwner) ...[
                 IconButton(
@@ -45,7 +46,7 @@ class ItemDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                    child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => context.pushNamed(RouteNames.postItem, extra: latestItem),
                 ),
@@ -56,7 +57,7 @@ class ItemDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.delete, color: Colors.white, size: 18),
+                    child: const Icon(Icons.delete_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => _showDeleteConfirmation(context, ref),
                 ),
@@ -69,7 +70,7 @@ class ItemDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.report_problem_outlined, color: Colors.white, size: 18),
+                    child: const Icon(Icons.report_problem_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => _showReportDialog(context, ref),
                 ),

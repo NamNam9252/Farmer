@@ -55,11 +55,14 @@ class CropRecommendationScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'AI फसल सलाहकार' : 'AI Crop Advisor',
       subtitle: isHindi
           ? 'आपकी मिट्टी के लिए AI-संचालित फसल सुझाव'
           : 'AI-powered crop suggestions for your soil',
+      backgroundImage: 'assets/images/service_icons/smart_farming.png',
+      showBackButton: true,
+      onBack: () => context.pop(),
     );
   }
 
@@ -283,7 +286,7 @@ class CropRecommendationScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               isHindi
-                  ? 'AI आपकी मिट्टी, मौसम और बाज़ार का विश्लेषण करेगा और सर्वोत्तम फसल सुझाएगा।'
+                  ? 'AI आपकी मिट्टी, मौसम और मंडी का विश्लेषण करेगा और सर्वोत्तम फसल सुझाएगा।'
                   : 'AI will analyse soil, weather and market trends to suggest the best crops for you.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
@@ -497,7 +500,10 @@ class _CropCard extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.eco_rounded, size: 48, color: Colors.white),
+                      Text(
+                        CropCatalog.getById(crop.crop)?.emoji ?? '🌾',
+                        style: const TextStyle(fontSize: 48),
+                      ),
                       const SizedBox(height: 4),
                       Text(isHindi ? crop.cropHindi : crop.crop, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
                     ],
@@ -514,7 +520,7 @@ class _CropCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${isHindi ? "बाज़ार भाव" : "Market"}: ${crop.currentMarketPrice}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    Text('${isHindi ? "मंडी भाव" : "Crop Price"}: ${crop.currentMarketPrice}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(color: _riskColor(crop.riskLevel).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),

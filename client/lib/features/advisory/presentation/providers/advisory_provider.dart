@@ -4,6 +4,7 @@ import '../../domain/usecases/get_recommendation_usecase.dart';
 import '../../domain/advisory_repository_contract.dart';
 import '../../data/repository/advisory_repository.dart';
 import '../../../weather/presentation/providers/weather_provider.dart';
+import '../../../../core/services/language_provider.dart';
 
 // --- Providers ---
 
@@ -106,6 +107,7 @@ class AdvisoryNotifier extends StateNotifier<AdvisoryState> {
         soilK: state.soilK,
         soilMoisture: state.soilMoisture,
         pestReported: state.pestReported,
+        lang: _ref.read(languageProvider),
       );
       state = state.copyWith(results: results, isLoading: false);
     } catch (e) {
