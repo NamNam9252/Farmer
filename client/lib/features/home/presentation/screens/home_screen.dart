@@ -528,8 +528,8 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return [
       _ServiceItem(
-        labelEn: 'Market\n(Mandi)',
-        labelHi: 'बाज़ार\n(मंडी)',
+        labelEn: 'Crop\nPrice',
+        labelHi: 'मंडी\nभाव',
         svgData: AppIcons.market,
         imageAsset: 'assets/icons/ic_market.png',
         bgColor: AppColors.cardSunshine,
@@ -603,7 +603,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                isHindi ? 'लाइव मंडी भाव' : 'Live Mandi Prices',
+                isHindi ? 'लाइव मंडी भाव' : 'Live Crop Prices',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -666,8 +666,8 @@ class HomeScreen extends ConsumerWidget {
           builder: (_, scrollController) {
             final allFeatures = [
               _ServiceItem(
-                labelEn: 'Market\n(Mandi)',
-                labelHi: 'बाज़ार\n(मंडी)',
+                labelEn: 'Crop\nPrice',
+                labelHi: 'मंडी\nभाव',
                 svgData: AppIcons.market,
                 imageAsset: 'assets/icons/ic_market.png',
                 bgColor: AppColors.cardSunshine,

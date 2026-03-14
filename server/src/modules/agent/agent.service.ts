@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { WeatherService } from '../weather/weather.service.js';
+import { MarketService } from '../market/market.service.js';
 import { MarketplaceService } from '../marketplace-new/marketplace-new.service.js';
 import { AdvisoryService } from '../advisory/advisory.service.js';
 import { CropRecommendationService } from '../crop-recommendation/crop-recommendation.service.js';
@@ -113,7 +114,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'navigate_to_page',
-            description: 'Navigate the user to a specific page/screen in the Farmer app. Use this when user wants to go to a page, see a feature, or open a section.',
+            description: 'Navigate the user to a specific page/screen in the Farmer app. Use when user wants to go to a page. Key mappings: "mandi"/"crop price"/"bhav" → /market, "bazar"/"buy"/"sell"/"kharid"/"bech" → /marketplace-new, "disease"/"rog" → /disease, "advisory"/"salah" → /advisory, "smart farming"/"crop recommendation" → /crop-recommendation.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -157,7 +158,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'get_market_prices',
-            description: 'Get mandi (marketplace) prices for crops. Use when user asks about crop prices, mandi rates, market prices.',
+            description: 'Get live mandi (crop) prices. The app calls this page "Crop Price" (मंडी). Use when user asks about crop prices, mandi rates, bhav, daam, or fsal ki keemat.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -173,7 +174,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'list_marketplace_items',
-            description: 'Browse items available for sale on the marketplace. Use when user wants to see what is available to buy.',
+            description: 'Browse items available for sale on the Bazar (बाज़ार). The app calls this "Bazar". Use when user wants to see items to buy, browse, or shop.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -187,7 +188,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'create_marketplace_listing',
-            description: 'Create a new item listing for selling on the marketplace. Use when user wants to sell something. ALWAYS confirm with user before creating.',
+            description: 'Create a new item listing for selling on the Bazar (बाज़ार). Use when user wants to sell something. ALWAYS confirm with user before creating.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -207,7 +208,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'create_demand_post',
-            description: 'Post a demand/buy request on the marketplace. Use when user wants to buy something specific.',
+            description: 'Post a demand/buy request on the Bazar (बाज़ार). Use when user wants to buy something specific.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -335,10 +336,10 @@ ${imagePath ? `## Visual Context:
 
 ## Your Capabilities:
 You can perform ANY action a user can do manually in the app:
-1. **Navigate** — Send users to any page (home, disease detection, market, marketplace, community, advisory, crop recommendation, profile)
+1. **Navigate** — Send users to any page. The crop price page is called "Crop Price" in English and "मंडी" in Hindi. The buy/sell page is called "Bazar" (बाज़ार).
 2. **Weather** — Fetch real-time weather data for any location
-3. **Market Prices** — Get live mandi/crop prices from across India
-4. **Marketplace** — Browse items for sale, create sell listings, post buy demands
+3. **Crop Prices** — Get live mandi/crop prices from across India
+4. **Bazar** — Browse items for sale, create sell listings, post buy demands
 5. **Communities** — Find, browse, and join farmer communities
 6. **Crop Advice** — AI-powered crop recommendations based on soil and season
 7. **Advisory** — Farming advisory based on current field conditions
@@ -363,8 +364,8 @@ You can perform ANY action a user can do manually in the app:
 ## Available Pages and Hindi Names:
 - Home (/) — Main dashboard (मुख्य पन्ना)
 - Disease Detection (/disease) — Crop disease analysis (बीमारी की जांच)
-- Market (/market) — Live mandi prices (मंडी भाव)
-- Marketplace (/marketplace-new) — Buy/sell (खरीद-बेच)
+- Crop Price (/market) — Live mandi prices (मंडी भाव)
+- Bazar (/marketplace-new) — Buy/sell (खरीद-बेच)
 - Schemes (/schemes) — Government schemes (सरकारी योजनाएं)
 - Community (/community) — Farmer communities (किसान समूह)
 - Advisory (/advisory) — Farming advice (खेती की सलाह)
@@ -375,6 +376,7 @@ Be helpful, warm, and proactive. You are the farmer's best digital companion! �
 
 // ─── Service Instances ───────────────────────────────────────
 const weatherService = new WeatherService();
+const marketService = new MarketService();
 const marketplaceService = new MarketplaceService();
 const advisoryService = new AdvisoryService();
 const cropRecommendationService = new CropRecommendationService();
@@ -490,21 +492,31 @@ async function executeTool(
 
         case 'get_market_prices': {
             try {
-                // Use the Data.gov.in API directly for market prices
-                const apiKey = process.env.DATA_GOV_API_KEY;
-                let url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${apiKey}&format=json&limit=10`;
-                if (args.state) url += `&filters[state]=${encodeURIComponent(args.state)}`;
-                if (args.district) url += `&filters[district]=${encodeURIComponent(args.district)}`;
-                if (args.commodity) url += `&filters[commodity]=${encodeURIComponent(args.commodity)}`;
+                // Use the smart waterfall MarketService for mandi prices
+                const mandiResult = await marketService.getMandiPrices({
+                    commodity: args.commodity,
+                    state: args.state,
+                    district: args.district,
+                });
 
-                const res = await fetch(url);
-                const data = await res.json() as any;
-                const records = data.records || [];
+                const cardData = mapMarketPriceCards(
+                    mandiResult.records.map(r => ({
+                        commodity: r.commodity,
+                        modal_price: r.modalPrice,
+                        market: `${r.market}, ${r.district}`,
+                        unit: r.unit,
+                        arrival_date: r.arrivalDate,
+                    }))
+                );
 
-                const slice = records.slice(0, 10);
-                const cardData = mapMarketPriceCards(slice);
                 return {
-                    result: slice,
+                    result: {
+                        searchStage: mandiResult.searchStage,
+                        message: mandiResult.message,
+                        totalResults: mandiResult.totalResults,
+                        records: mandiResult.records.slice(0, 10),
+                        suggestions: mandiResult.suggestions,
+                    },
                     action: {
                         type: 'display_data',
                         dataType: 'market_prices',

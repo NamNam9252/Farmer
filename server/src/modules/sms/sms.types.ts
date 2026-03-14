@@ -38,8 +38,13 @@ export interface SMSResponseEnvelope {
   err?:  string;
 }
 
+export interface SMSHandlerResult {
+  skipDefaultResponse?: boolean;
+  data?: unknown;
+}
+
 export type SMSMessageHandler = (
   action:  string,
   payload: unknown,
   from:    string
-) => Promise<unknown>;
+) => Promise<unknown | SMSHandlerResult>;

@@ -275,7 +275,6 @@ class _ActionCard extends StatelessWidget {
   final String? subtitle;
   final IconData icon;
   final Color color;
-  final Color iconColor;
   final VoidCallback onTap;
 
   const _ActionCard({
@@ -283,7 +282,6 @@ class _ActionCard extends StatelessWidget {
     this.subtitle,
     required this.icon,
     required this.color,
-    required this.iconColor,
     required this.onTap,
   });
 

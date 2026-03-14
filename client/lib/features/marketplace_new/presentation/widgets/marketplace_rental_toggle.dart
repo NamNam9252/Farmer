@@ -34,7 +34,7 @@ class MarketplaceRentalToggle extends StatelessWidget {
         children: [
           Expanded(
             child: _ToggleItem(
-              label: isHindi ? 'मार्केटप्लेस' : 'Marketplace',
+              label: isHindi ? 'बाज़ार' : 'Bazar',
               isSelected: marketplaceSelected,
               onTap: () => context.go(RouteNames.marketplaceShop),
             ),

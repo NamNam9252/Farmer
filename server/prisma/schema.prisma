@@ -2808,6 +2808,7 @@ model Asset {
 
   title       String
   description String
+  imageUrl    String?
   type        AssetType
   status      AssetStatus @default(AVAILABLE)
 

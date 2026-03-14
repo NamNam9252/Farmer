@@ -22,6 +22,26 @@ export class LaborService {
     });
   }
 
+  async getProfile(userId: string) {
+    const profile = await this.repo.findProfileByUserId(userId);
+    if (!profile) return null;
+    return profile;
+  }
+
+  async updateProfile(userId: string, body: any) {
+    return this.repo.upsertProfile(userId, {
+      skills: body.skills,
+      experienceYears: body.experienceYears,
+      dailyRate: body.dailyRate,
+      districtId: body.districtId,
+      latitude: body.latitude,
+      longitude: body.longitude,
+      serviceRadiusKm: body.serviceRadiusKm,
+      name: body.name,
+      phone: body.phone,
+    });
+  }
+
   async listAvailable(districtId?: string) {
     return this.repo.findAvailable(districtId);
   }

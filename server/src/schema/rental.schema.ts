@@ -8,6 +8,7 @@ export const CreateAssetSchema = z.object({
   description: z.string().min(1),
   type: AssetTypeSchema,
   basePrice: z.number().positive(),
+  imageUrl: z.string().url().optional(),
 });
 
 export const UpdateAssetSchema = CreateAssetSchema.partial().extend({

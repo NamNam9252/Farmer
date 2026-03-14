@@ -8,6 +8,84 @@ class MarketRepository implements IMarketRepository {
   final ApiClient _apiClient = ApiClient.instance;
 
   @override
+  Future<MandiPriceResult> getMandiPrices({
+    String? commodity,
+    String? state,
+    String? district,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get(
+        AppConstants.mandiPricesEndpoint,
+        queryParameters: {
+          if (commodity != null && commodity.isNotEmpty) 'commodity': commodity,
+          if (state != null && state.isNotEmpty) 'state': state,
+          if (district != null && district.isNotEmpty) 'district': district,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      final List<dynamic> rawRecords = data['records'] ?? [];
+      final records = rawRecords
+          .map((json) => MarketPriceModel.fromMandiJson(json as Map<String, dynamic>))
+          .toList();
+
+      final suggestions = data['suggestions'] as Map<String, dynamic>? ?? {};
+      final nearestMarkets = (suggestions['nearestMarkets'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [];
+      final otherCrops = (suggestions['otherCropsInArea'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [];
+
+      return MandiPriceResult(
+        records: records,
+        searchStage: data['searchStage'] as String? ?? 'unknown',
+        message: data['message'] as String? ?? '',
+        totalResults: data['totalResults'] as int? ?? records.length,
+        nearestMarkets: nearestMarkets,
+        otherCropsInArea: otherCrops,
+      );
+    } catch (e) {
+      throw Exception('Error fetching mandi prices: $e');
+    }
+  }
+
+  @override
+  Future<List<String>> getStates() async {
+    try {
+      final response = await _apiClient.dio.get(AppConstants.marketStatesEndpoint);
+      if (response.data['success'] == true) {
+        return List<String>.from(response.data['data']);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch states');
+      }
+    } catch (e) {
+      throw Exception('Error fetching states: $e');
+    }
+  }
+
+  @override
+  Future<List<String>> getDistricts(String state) async {
+    try {
+      final response = await _apiClient.dio.get(
+        AppConstants.marketDistrictsEndpoint,
+        queryParameters: {'state': state},
+      );
+      if (response.data['success'] == true) {
+        return List<String>.from(response.data['data']);
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch districts');
+      }
+    } catch (e) {
+      throw Exception('Error fetching districts: $e');
+    }
+  }
+
+  // ── Legacy methods ──
+
+  @override
   Future<List<MarketPrice>> getMarketPrices({
     String? commodity,
     String? market,

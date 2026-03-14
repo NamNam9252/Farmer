@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../router/route_names.dart';
 import '../providers/auth_provider.dart';
 import '../state/auth_state.dart';
+import '../../domain/entities/user.dart';
 
 import 'package:flutter/cupertino.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -52,7 +53,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (next is Authenticated) {
-        context.go(RouteNames.disease);
+        if (next.user.role == UserRole.labor) {
+          context.go(RouteNames.laborHome);
+        } else {
+          context.go(RouteNames.home);
+        }
       } else if (next is AuthError) {
         ScaffoldMessenger.of(
           context,
