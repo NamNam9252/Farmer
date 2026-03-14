@@ -416,16 +416,16 @@ function createTtsMessage(text: string): string {
 
     // Remove emojis and special symbols
     clean = clean.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}]/gu, '');
-    
+
     // Trim and normalize whitespace
     clean = clean.trim().replace(/\s+/g, ' ');
-    
+
     // Limit to 3 sentences
     const sentences = clean.split(/[.!?।]/).filter(s => s.trim().length > 0);
     if (sentences.length > 3) {
         return sentences.slice(0, 3).join('. ') + '.';
     }
-    
+
     return clean;
 }
 
@@ -470,7 +470,7 @@ async function executeTool(
             try {
                 const lat = args.latitude ?? ambientLocation?.lat;
                 const lng = args.longitude ?? ambientLocation?.lng;
-                
+
                 if (!lat || !lng) {
                     return { result: { error: 'Location coordinates missing' } };
                 }
@@ -550,43 +550,43 @@ async function executeTool(
 
         case 'create_marketplace_listing': {
             // Don't execute — return confirmation action
-                return {
-                    result: { status: 'awaiting_confirmation', listing: args },
-                    action: {
-                        type: 'confirm',
-                        confirmAction: 'create_marketplace_listing',
-                        confirmPayload: {
-                            itemName: args.itemName,
-                            description: args.description,
-                            pricePerUnit: args.pricePerUnit,
-                            unit: args.unit,
-                            quantityAvailable: args.quantityAvailable,
-                            category: args.category,
-                            location: args.location,
-                        },
-                        message: `Create listing: ${args.itemName} at ₹${args.pricePerUnit}/${args.unit}?`,
+            return {
+                result: { status: 'awaiting_confirmation', listing: args },
+                action: {
+                    type: 'confirm',
+                    confirmAction: 'create_marketplace_listing',
+                    confirmPayload: {
+                        itemName: args.itemName,
+                        description: args.description,
+                        pricePerUnit: args.pricePerUnit,
+                        unit: args.unit,
+                        quantityAvailable: args.quantityAvailable,
+                        category: args.category,
+                        location: args.location,
                     },
-                };
+                    message: `Create listing: ${args.itemName} at ₹${args.pricePerUnit}/${args.unit}?`,
+                },
+            };
         }
 
         case 'create_demand_post': {
-                return {
-                    result: { status: 'awaiting_confirmation', demand: args },
-                    action: {
-                        type: 'confirm',
-                        confirmAction: 'create_demand_post',
-                        confirmPayload: {
-                            itemName: args.itemName,
-                            description: args.description,
-                            expectedPrice: args.expectedPrice || args.budgetPerUnit,
-                            unit: args.unit,
-                            quantityNeeded: args.quantityNeeded,
-                            category: args.category,
-                            location: args.location,
-                        },
-                        message: `Post demand: ${args.itemName}, budget ₹${args.expectedPrice || args.budgetPerUnit}/${args.unit}?`,
+            return {
+                result: { status: 'awaiting_confirmation', demand: args },
+                action: {
+                    type: 'confirm',
+                    confirmAction: 'create_demand_post',
+                    confirmPayload: {
+                        itemName: args.itemName,
+                        description: args.description,
+                        expectedPrice: args.expectedPrice || args.budgetPerUnit,
+                        unit: args.unit,
+                        quantityNeeded: args.quantityNeeded,
+                        category: args.category,
+                        location: args.location,
                     },
-                };
+                    message: `Post demand: ${args.itemName}, budget ₹${args.expectedPrice || args.budgetPerUnit}/${args.unit}?`,
+                },
+            };
         }
 
         case 'list_communities': {
@@ -595,7 +595,7 @@ async function executeTool(
                 const lng = args.longitude ?? ambientLocation?.lng;
 
                 if (!lat || !lng) {
-                     return { result: { error: 'Location coordinates missing' } };
+                    return { result: { error: 'Location coordinates missing' } };
                 }
 
                 const communities = await CommunityService.getNearbyCommunities(
@@ -834,9 +834,9 @@ export async function handleChat(
         const toolCall: any = choice.message.tool_calls[0];
         const toolArgs = JSON.parse(toolCall.function.arguments);
         const { result, action } = await executeTool(
-            toolCall.function.name, 
-            toolArgs, 
-            userId, 
+            toolCall.function.name,
+            toolArgs,
+            userId,
             { lat, lng, imagePath }
         );
 
