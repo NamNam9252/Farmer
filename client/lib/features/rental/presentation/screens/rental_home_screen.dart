@@ -42,51 +42,46 @@ class _RentalHomeScreenState extends ConsumerState<RentalHomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: isHindi ? 'रेंटल हब' : 'Rental Hub',
             subtitle: isHindi
                 ? 'उपकरण और जमीन किराए पर लें या दें'
                 : 'Rent or Lease Equipment & Land',
-            onLeadingPressed: () => context.go(RouteNames.marketplaceNew),
+            backgroundImage: 'assets/images/service_icons/marketplace.png',
+            onBack: () => context.go(RouteNames.marketplaceNew),
           ),
-          MarketplaceRentalToggle(
-            isHindi: isHindi,
-            marketplaceSelected: false,
+          SliverToBoxAdapter(
+            child: MarketplaceRentalToggle(
+              isHindi: isHindi,
+              marketplaceSelected: false,
+            ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                _loadData();
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildManagementShortcuts(context, isHindi),
-                    const SizedBox(height: 24),
-                    _buildActionGrid(context, isHindi),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader(
-                      context, 
-                      isHindi ? 'मेरी सक्रिय लिस्टिंग' : 'My Active Listings', 
-                      () => context.push(RouteNames.myRentalActivity),
-                    ),
-                    const _MyActiveAssetsList(),
-                    const SizedBox(height: 24),
-                    _buildSectionHeader(
-                      context, 
-                      isHindi ? 'मेरे सक्रिय रेंटल' : 'My Active Rentals', 
-                      () => context.push(RouteNames.myRentalActivity),
-                    ),
-                    const _MyActiveRentalsList(),
-                    const SizedBox(height: 120),
-                  ],
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 16),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildManagementShortcuts(context, isHindi),
+                const SizedBox(height: 24),
+                _buildActionGrid(context, isHindi),
+                const SizedBox(height: 32),
+                _buildSectionHeader(
+                  context, 
+                  isHindi ? 'मेरी सक्रिय लिस्टिंग' : 'My Active Listings', 
+                  () => context.push(RouteNames.myRentalActivity),
                 ),
-              ),
+                const _MyActiveAssetsList(),
+                const SizedBox(height: 24),
+                _buildSectionHeader(
+                  context, 
+                  isHindi ? 'मेरे सक्रिय रेंटल' : 'My Active Rentals', 
+                  () => context.push(RouteNames.myRentalActivity),
+                ),
+                const _MyActiveRentalsList(),
+                const SizedBox(height: 120),
+              ]),
             ),
           ),
         ],
@@ -126,22 +121,24 @@ class _RentalHomeScreenState extends ConsumerState<RentalHomeScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.1,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.95,
         children: [
           _ActionCard(
             label: isHindi ? 'रेंटल पोस्ट करें' : 'Post Rental',
+            subtitle: isHindi ? '(किराये पर दें)' : '(List for Rent)',
             icon: Icons.add_circle_outline_rounded,
-            color: const Color(0xFFE8F5E9),
-            iconColor: Colors.green[800]!,
+            color: AppColors.cardMint,
+            iconColor: AppColors.primary,
             onTap: () => context.push(RouteNames.postRentalAsset),
           ),
           _ActionCard(
             label: isHindi ? 'रेंटल ब्राउज़ करें' : 'Browse Rentals',
+            subtitle: isHindi ? '(किराये पर लें)' : '(Rent from Others)',
             icon: Icons.search_rounded,
-            color: const Color(0xFFE3F2FD),
-            iconColor: Colors.blue[800]!,
+            color: AppColors.cardSky,
+            iconColor: const Color(0xFF1565C0),
             onTap: () => context.push(RouteNames.browseRentals),
           ),
         ],
@@ -168,6 +165,7 @@ class _RentalHomeScreenState extends ConsumerState<RentalHomeScreen> {
 
 class _ActionCard extends StatelessWidget {
   final String label;
+  final String? subtitle;
   final IconData icon;
   final Color color;
   final Color iconColor;
@@ -175,6 +173,7 @@ class _ActionCard extends StatelessWidget {
 
   const _ActionCard({
     required this.label,
+    this.subtitle,
     required this.icon,
     required this.color,
     required this.iconColor,
@@ -190,22 +189,48 @@ class _ActionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: iconColor.withOpacity(0.1)),
+          border: Border.all(color: iconColor.withValues(alpha: 0.12), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: iconColor.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: iconColor),
-            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 28, color: iconColor),
+            ),
+            const SizedBox(height: 10),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
+              style: const TextStyle(
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: iconColor,
+                color: AppColors.textPrimary,
               ),
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textHint,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -222,23 +247,49 @@ class _ShortcutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.warmCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 18, color: AppColors.primary),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

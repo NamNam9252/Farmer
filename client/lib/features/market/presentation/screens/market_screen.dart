@@ -21,7 +21,7 @@ class MarketScreen extends ConsumerWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildHeader(context),
+          _buildHeader(context, ref),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
@@ -71,13 +71,15 @@ class MarketScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    final isHindi = ref.watch(languageProvider) == 'hi';
-    return SharedSliverAppBar(
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider);
+    final isHindi = lang == 'hi';
+    return SharedStickyHeader(
       title: isHindi ? 'बाज़ार भाव' : 'Market Prices',
       subtitle: isHindi 
           ? 'मंडियों से फसलों के वास्तविक समय के भाव' 
           : 'Real-time commodity prices from mandis',
+      backgroundImage: 'assets/images/service_icons/market.png',
     );
   }
 

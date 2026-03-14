@@ -17,6 +17,7 @@ class AdvisoryApi {
     required String soilK,
     required String soilMoisture,
     required bool pestReported,
+    required String lang,
   }) async {
     try {
       final response = await _client.dio.post(
@@ -31,6 +32,7 @@ class AdvisoryApi {
           'soil_k': soilK,
           'soil_moisture': soilMoisture,
           'pest_reported': pestReported,
+          'lang': lang,
         },
       );
 

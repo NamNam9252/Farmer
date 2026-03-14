@@ -75,15 +75,11 @@ class MarketBookScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SharedSliverAppBar(
+          SharedStickyHeader(
             title: isHindi ? AppStrings.marketTitleHindi : AppStrings.marketTitle,
-            onLeadingPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              } else {
-                context.go(RouteNames.home);
-              }
-            },
+            backgroundImage: 'assets/images/service_icons/market.png',
+            showBackButton: true,
+            onBack: () => context.pop(),
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16.0),

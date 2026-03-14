@@ -13,5 +13,6 @@ abstract class IAdvisoryRepository {
     required String soilK,
     required String soilMoisture,
     required bool pestReported,
+    required String lang,
   });
 }

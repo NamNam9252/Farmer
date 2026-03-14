@@ -55,11 +55,14 @@ class CropRecommendationScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'AI फसल सलाहकार' : 'AI Crop Advisor',
       subtitle: isHindi
           ? 'आपकी मिट्टी के लिए AI-संचालित फसल सुझाव'
           : 'AI-powered crop suggestions for your soil',
+      backgroundImage: 'assets/images/service_icons/smart_farming.png',
+      showBackButton: true,
+      onBack: () => context.pop(),
     );
   }
 
@@ -497,7 +500,10 @@ class _CropCard extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.eco_rounded, size: 48, color: Colors.white),
+                      Text(
+                        CropCatalog.getById(crop.crop)?.emoji ?? '🌾',
+                        style: const TextStyle(fontSize: 48),
+                      ),
                       const SizedBox(height: 4),
                       Text(isHindi ? crop.cropHindi : crop.crop, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
                     ],

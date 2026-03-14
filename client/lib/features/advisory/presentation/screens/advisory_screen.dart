@@ -75,11 +75,14 @@ class AdvisoryScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? AppStrings.advisoryTitleHindi : AppStrings.advisoryTitle,
       subtitle: isHindi 
           ? 'आपकी खेती की जरूरतों के लिए विशेषज्ञ सलाह' 
           : 'Expert advice for your farming needs',
+      backgroundImage: 'assets/images/service_icons/crop_advisory.png',
+      showBackButton: true,
+      onBack: () => context.pop(),
     );
   }
 

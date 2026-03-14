@@ -89,16 +89,13 @@ class _RentalAssetDetailScreenState extends ConsumerState<RentalAssetDetailScree
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                   SharedHeader(
+          SharedStickyHeader(
             title: isHindi ? 'रेंटल विवरण' : 'Rental Details',
             subtitle: asset.title,
-            trailing: isOwner ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+            actions: [
+              if (isOwner) ...[
                 IconButton(
                   icon: const Icon(Icons.edit_rounded, color: Colors.white),
                   onPressed: () => context.push(RouteNames.postRentalAsset, extra: asset),
@@ -108,34 +105,30 @@ class _RentalAssetDetailScreenState extends ConsumerState<RentalAssetDetailScree
                   onPressed: () => _confirmDelete(context, ref, asset.id, isHindi),
                 ),
               ],
-            ) : null,
+            ],
           ),
           if (asset.imageUrl != null)
-            Container(
-              height: 250,
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                image: DecorationImage(
-                  image: NetworkImage(asset.imageUrl!),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {
-                    print('Detail Image Load Error: $exception');
-                  }
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+            SliverToBoxAdapter(
+              child: Container(
+                height: 250,
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  image: DecorationImage(
+                    image: NetworkImage(asset.imageUrl!),
+                    fit: BoxFit.cover,
                   ),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
               ),
             ),
-              ],
-            ),
-          ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(

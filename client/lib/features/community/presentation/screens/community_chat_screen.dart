@@ -214,42 +214,47 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F4F1),
-      body: Column(
-        children: [
-          SharedHeader(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
             title: widget.communityName,
             subtitle: _connectionStatus == 'connected'
                 ? (isHindi ? 'ऑनलाइन' : 'Online')
                 : (isHindi ? 'कनेक्ट हो रहा है...' : 'Connecting...'),
-            paddingBottom: 16,
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : _error != null
-                    ? _buildErrorPlaceholder()
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              reverse: true,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                              itemCount: _messages.length,
-                              itemBuilder: (context, index) {
-                                final msg = _messages[index];
-                                final sender = msg['sender'] as Map<String, dynamic>? ?? {};
-                                final isMe = msg['senderId'] == currentUserId;
-                                
-                                return _buildMessageBubble(msg, sender, isMe);
-                              },
-                            ),
-                          ),
-                          _buildInputArea(isHindi),
-                        ],
-                      ),
+            onBack: () => context.pop(),
+            backgroundImage: 'assets/images/service_icons/community_fund.png',
           ),
         ],
+        body: Column(
+          children: [
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : _error != null
+                      ? _buildErrorPlaceholder()
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                reverse: true,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                itemCount: _messages.length,
+                                itemBuilder: (context, index) {
+                                  final msg = _messages[index];
+                                  final sender = msg['sender'] as Map<String, dynamic>? ?? {};
+                                  final isMe = msg['senderId'] == currentUserId;
+                                  
+                                  return _buildMessageBubble(msg, sender, isMe);
+                                },
+                              ),
+                            ),
+                            _buildInputArea(isHindi),
+                          ],
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }

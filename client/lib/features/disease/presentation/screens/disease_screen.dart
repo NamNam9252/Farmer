@@ -181,11 +181,14 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
   }
 
   Widget _buildHeader(bool isHindi, String lang) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? AppStrings.diseaseTitleHindi : AppStrings.diseaseTitle,
       subtitle: isHindi 
           ? 'तत्काल फसल निदान और उपचार' 
           : 'Instant crop diagnosis and treatment',
+      backgroundImage: 'assets/images/service_icons/disease_detection.png',
+      showBackButton: true,
+      onBack: () => context.pop(),
     );
   }
 
