@@ -124,6 +124,11 @@ class _BrowseRentalsScreenState extends ConsumerState<BrowseRentalsScreen> {
               isHindi: isHindi,
               currentUserId: currentUserId,
               onTap: () => context.push(RouteNames.rentalAssetDetail.replaceAll(':id', asset.id), extra: asset),
+              quickActionLabel: isHindi ? 'अभी किराए पर लें' : 'Rent Now',
+              onQuickAction: () => context.push(
+                RouteNames.rentalAssetDetail.replaceAll(':id', asset.id),
+                extra: asset,
+              ),
             );
           },
           childCount: filteredAssets.length,

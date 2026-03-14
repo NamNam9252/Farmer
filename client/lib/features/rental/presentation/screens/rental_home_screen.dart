@@ -141,6 +141,22 @@ class _RentalHomeScreenState extends ConsumerState<RentalHomeScreen> {
             iconColor: const Color(0xFF1565C0),
             onTap: () => context.push(RouteNames.browseRentals),
           ),
+          _ActionCard(
+            label: isHindi ? 'मेरी लिस्टिंग' : 'My Listings',
+            subtitle: isHindi ? '(प्रबंधित करें)' : '(Manage)',
+            icon: Icons.inventory_2_rounded,
+            color: AppColors.cardLavender,
+            iconColor: const Color(0xFF7B1FA2),
+            onTap: () => context.push(RouteNames.myRentalActivity),
+          ),
+          _ActionCard(
+            label: isHindi ? 'मेरी बोलियां' : 'My Bids',
+            subtitle: isHindi ? '(बोली देखें)' : '(View Bids)',
+            icon: Icons.gavel_rounded,
+            color: const Color(0xFFFFF3E0),
+            iconColor: const Color(0xFFE65100),
+            onTap: () => context.push(RouteNames.myRentalActivity),
+          ),
         ],
       ),
     );

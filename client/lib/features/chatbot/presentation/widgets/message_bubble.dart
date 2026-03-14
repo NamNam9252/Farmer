@@ -153,17 +153,11 @@ class MessageBubble extends ConsumerWidget {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Prioritize ttsLanguageHint from backend for custom voice summary
-                          final String lang = message.ttsLanguageHint ?? 
-                              message.languageHint ?? 
-                              (message.content.contains(RegExp(r'[\u0900-\u097F]')) ? 'hi' : 'en');
-                          
                           // Use ttsMessage if available, otherwise fallback to main content
                           final String textToSpeak = message.ttsMessage ?? message.content;
 
                           ref.read(ttsServiceProvider).speak(
                                 textToSpeak,
-                                lang,
                               );
                         },
                         child: Container(

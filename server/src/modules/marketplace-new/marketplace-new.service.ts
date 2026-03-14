@@ -1,6 +1,6 @@
 import { MarketplaceRepository } from './marketplace-new.repository.js';
 import * as NotificationService from '../notifications/notification.service.js';
-import { MarketplaceRequestStatus } from '@prisma/client';
+import { MarketplaceDemandStatus, MarketplaceItemStatus, MarketplaceRequestStatus } from '@prisma/client';
 
 export class MarketplaceService {
     private repository = new MarketplaceRepository();
@@ -97,8 +97,29 @@ export class MarketplaceService {
             throw new Error('Unauthorized or request not found');
         }
 
+        if (request.status !== MarketplaceRequestStatus.PENDING) {
+            throw new Error('This purchase request is no longer pending');
+        }
+
         const status = accept ? MarketplaceRequestStatus.ACCEPTED : MarketplaceRequestStatus.REJECTED;
         const updatedRequest = await this.repository.updatePurchaseRequestStatus(requestId, status);
+
+        if (accept) {
+            await this.repository.updateItemStatus(request.itemId, MarketplaceItemStatus.SOLD);
+
+            const competingRequests = await this.repository.getPendingPurchaseRequestsForItem(request.itemId, requestId);
+            await this.repository.rejectPurchaseRequests(competingRequests.map((r) => r.id));
+
+            for (const competing of competingRequests) {
+                await NotificationService.createNotification({
+                    userId: competing.buyerId,
+                    title: 'Request Closed',
+                    body: `Another buyer's request was accepted for "${request.item.itemName}".`,
+                    actionType: 'REQUEST_REJECTED',
+                    actionId: competing.id,
+                });
+            }
+        }
 
         // Notify Buyer
         await NotificationService.createNotification({
@@ -146,8 +167,29 @@ export class MarketplaceService {
             throw new Error('Unauthorized or offer not found');
         }
 
+        if (offer.status !== MarketplaceRequestStatus.PENDING) {
+            throw new Error('This offer is no longer pending');
+        }
+
         const status = accept ? MarketplaceRequestStatus.ACCEPTED : MarketplaceRequestStatus.REJECTED;
         const updatedOffer = await this.repository.updateDemandOfferStatus(offerId, status);
+
+        if (accept) {
+            await this.repository.updateDemandStatus(offer.demandId, MarketplaceDemandStatus.FULFILLED);
+
+            const competingOffers = await this.repository.getPendingDemandOffersForDemand(offer.demandId, offerId);
+            await this.repository.rejectDemandOffers(competingOffers.map((o) => o.id));
+
+            for (const competing of competingOffers) {
+                await NotificationService.createNotification({
+                    userId: competing.sellerId,
+                    title: 'Offer Closed',
+                    body: `The demand "${offer.demand.itemName}" has been fulfilled by another seller.`,
+                    actionType: 'OFFER_REJECTED',
+                    actionId: competing.id,
+                });
+            }
+        }
 
         // Notify Seller
         await NotificationService.createNotification({

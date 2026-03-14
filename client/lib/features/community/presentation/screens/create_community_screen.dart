@@ -26,15 +26,13 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
 
   final Map<String, String> _typesEn = {
     'GENERAL': 'General',
-    'CROP_BASED': 'Crop Based',
-    'ROUND': 'Round',
+    'CROP_SPECIFIC': 'Crop Specific',
     'RADIUS_BASED': 'Area Based',
   };
 
   final Map<String, String> _typesHi = {
     'GENERAL': 'सामान्य',
-    'CROP_BASED': 'फसल आधारित',
-    'ROUND': 'राउंड',
+    'CROP_SPECIFIC': 'फसल विशिष्ट',
     'RADIUS_BASED': 'क्षेत्र आधारित',
   };
 

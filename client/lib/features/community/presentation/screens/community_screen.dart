@@ -60,24 +60,69 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CreateCommunityScreen(),
-            ),
-          );
-        },
-        elevation: 6,
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text(
-          isHindi ? 'समुदाय बनाएं' : 'Create Community',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.5,
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CreateCommunityScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_rounded, size: 20),
+                  label: Text(
+                    isHindi ? 'बनाएं' : 'Create',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 4,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // Scroll down to browse nearby communities to join
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isHindi 
+                              ? 'नीचे स्क्रॉल करें और किसी समुदाय पर क्लिक करें' 
+                              : 'Browse communities below and tap to join',
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.group_add_rounded, size: 20),
+                  label: Text(
+                    isHindi ? 'शामिल हों' : 'Join',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

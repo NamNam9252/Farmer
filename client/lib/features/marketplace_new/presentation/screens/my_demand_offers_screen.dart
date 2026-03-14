@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../providers/marketplace_new_provider.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
@@ -275,8 +276,18 @@ class _MyDemandOffersScreenState extends ConsumerState<MyDemandOffersScreen> wit
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(
       scheme: 'tel',
-      path: phoneNumber,
+      path: phoneNumber.trim(),
     );
-    // Requires url_launcher
+
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open phone dialer')),
+      );
+    }
   }
 }
