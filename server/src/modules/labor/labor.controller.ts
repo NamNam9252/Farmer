@@ -40,8 +40,49 @@ export class LaborController {
     try {
       const result = await this.service.listAvailable(
         req.query.districtId as string,
+        req.query.all === 'true'
       );
 
+      res.json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  requestBooking = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.service.requestBooking(
+        req.user.id,
+        req.params.laborId as any,
+        req.body,
+      );
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getBookingRequests = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.service.getLaborBookingRequests(req.user.id);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  respondToBookingRequest = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.service.respondToBookingRequest(
+        req.user.id,
+        req.params.id as any,
+        req.body,
+      );
       res.json(result);
     } catch (err) {
       next(err);
@@ -82,6 +123,15 @@ export class LaborController {
       const result = await this.service.farmerLabor(req.user.id);
 
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getMyEmployments = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.service.getMyEmployments(req.user.id);
+      res.json({ success: true, data: result });
     } catch (err) {
       next(err);
     }

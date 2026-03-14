@@ -5,6 +5,7 @@ import { MarketplaceService } from '../marketplace-new/marketplace-new.service.j
 import { AdvisoryService } from '../advisory/advisory.service.js';
 import { CropRecommendationService } from '../crop-recommendation/crop-recommendation.service.js';
 import { DiseaseService } from '../disease/disease.service.js';
+import { LaborService } from '../labor/labor.service.js';
 import * as CommunityService from '../community/community.service.js';
 import { PrismaClient } from '@prisma/client';
 
@@ -55,6 +56,28 @@ type UserProfileCard = {
     phone?: string | null;
     email?: string | null;
     role?: string | null;
+};
+
+type LaborCard = {
+    id: string;
+    name: string;
+    skills: string[];
+    dailyRate: number | string;
+    experienceYears: number | string;
+    serviceRadiusKm?: number | string;
+    phone?: string;
+};
+
+const mapLaborCards = (laborers: any[]): LaborCard[] => {
+    return (laborers || []).map((l) => ({
+        id: l?.id ?? '',
+        name: l?.user?.name ?? 'Unknown',
+        skills: l?.skills ?? [],
+        dailyRate: l?.dailyRate ?? '?',
+        experienceYears: l?.experienceYears ?? '?',
+        serviceRadiusKm: l?.serviceRadiusKm,
+        phone: l?.user?.phone,
+    }));
 };
 
 const mapWeatherCard = (data: any): WeatherCard => {
@@ -114,7 +137,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         type: 'function',
         function: {
             name: 'navigate_to_page',
-            description: 'Navigate the user to a specific page/screen in the Farmer app. Use when user wants to go to a page. Key mappings: "mandi"/"crop price"/"bhav" → /market, "bazar"/"buy"/"sell"/"kharid"/"bech" → /marketplace-new, "disease"/"rog" → /disease, "advisory"/"salah" → /advisory, "smart farming"/"crop recommendation" → /crop-recommendation.',
+            description: 'Navigate the user to a specific page/screen in the Farmer app. Use when user wants to go to a page. Key mappings: "mandi"/"crop price"/"bhav" → /market, "bazar"/"buy"/"sell"/"kharid"/"bech" → /marketplace-new, "disease"/"rog" → /disease, "advisory"/"salah" → /advisory, "smart farming"/"crop recommendation" → /crop-recommendation, "helper"/"madadgar"/"mazdoor"/"labor" → /labor-listing, "labor home"/"labor profile" → /labor-home.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -126,7 +149,7 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
                             '/marketplace-new/post-demand', '/marketplace-new/browse-items',
                             '/marketplace-new/browse-demands', '/marketplace-new/my-listings',
                             '/marketplace-new/purchase-requests', '/marketplace-new/demand-offers',
-                            '/community',
+                            '/community', '/labor-listing', '/labor-home',
                         ],
                         description: 'The route path to navigate to',
                     },
@@ -318,6 +341,38 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'list_available_helpers',
+            description: 'Find available farm helpers/laborers nearby. Use when user asks to find helpers, laborers, mazdoor, madadgar, workers, or says "helper chahiye", "mazdoor dhundo", "madadgar khojo". Returns a list of available laborers with their skills, rates, and experience.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    districtId: { type: 'string', description: 'District ID to filter by (optional)' },
+                },
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'book_labor',
+            description: 'Send a booking request to a specific laborer/helper. Use when user wants to hire or book a specific laborer. ALWAYS confirm with user before booking. Requires laborId (from list_available_helpers result), task description, and dates.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    laborId: { type: 'string', description: 'ID of the laborer to book (from list_available_helpers result)' },
+                    laborName: { type: 'string', description: 'Name of the laborer (for display)' },
+                    taskDescription: { type: 'string', description: 'Description of the farming task (e.g. harvesting, weeding, irrigation)' },
+                    startDate: { type: 'string', description: 'Start date in ISO format (e.g. 2026-03-15)' },
+                    endDate: { type: 'string', description: 'End date in ISO format (e.g. 2026-03-17)' },
+                    agreedRate: { type: 'number', description: 'Agreed daily rate in INR' },
+                },
+                required: ['laborId', 'taskDescription', 'startDate'],
+            },
+        },
+    },
 ];
 
 // ─── System Prompt ───────────────────────────────────────────
@@ -344,6 +399,7 @@ You can perform ANY action a user can do manually in the app:
 6. **Crop Advice** — AI-powered crop recommendations based on soil and season
 7. **Advisory** — Farming advisory based on current field conditions
 8. **Profile** — View user profile information
+9. **Get Helper** — Find and book available farm laborers/helpers (मददगार खोजें). Search by availability, view skills, experience, daily rate, and send booking requests.
 
 ## Rules for Response:
 - **DUAL OUTPUT**: You can provide your response in two formats. 
@@ -353,12 +409,13 @@ You can perform ANY action a user can do manually in the app:
 - **Audio 'ttsMessage'** MUST be in **HINGLISH (Mostly Hindi)** regardless of the visual message language. It should be short (2-3 sentences), simple, and very natural to listen to. **NO EMOJIS, NO MARKDOWN, NO SPECIAL CHARACTERS.**
 - Respond visually in the SAME LANGUAGE the user uses (Hindi or English).
 - **STRICT: Do NOT use Markdown tables.**
-- For WRITE operations (creating listings, joining communities), ALWAYS call the tool with type "confirm".
+- For WRITE operations (creating listings, joining communities, booking laborers), ALWAYS call the tool with type "confirm".
 - When navigating, briefly explain what the page does.
 - When the user query is ambiguous, ask clarifying questions. For example, if they say "sell wheat" — ask about price, quantity, unit.
 - Keep responses concise and farmer-friendly. Avoid jargon.
 - If you don't have enough info to call a tool (e.g. no lat/lon for weather), ask the user for the missing information or suggest using the app's location.
 - For marketplace listings: ask about item name, price, unit, quantity, and category step by step if user hasn't provided them.
+- For labor booking: ask about task description, dates, and rate step by step if user hasn't provided them. Show the laborer's name, rate, and skills to help user decide.
 - You can see images if the user sends one — describe what you see and suggest disease analysis if it's a crop image.
 
 ## Available Pages and Hindi Names:
@@ -371,6 +428,8 @@ You can perform ANY action a user can do manually in the app:
 - Advisory (/advisory) — Farming advice (खेती की सलाह)
 - Crop Recommendation (/crop-recommendation) — Crop suggestions (फसल सुझाव)
 - Profile (/profile) — User account (मेरी प्रोफाइल)
+- Get Helper (/labor-listing) — Find farm helpers/laborers (मददगार खोजें)
+- Labor Home (/labor-home) — Labor dashboard for registered laborers (मजदूर डैशबोर्ड)
 
 Be helpful, warm, and proactive. You are the farmer's best digital companion! 🌾`;
 
@@ -381,6 +440,7 @@ const marketplaceService = new MarketplaceService();
 const advisoryService = new AdvisoryService();
 const cropRecommendationService = new CropRecommendationService();
 const diseaseService = new DiseaseService();
+const laborService = new LaborService();
 
 // ─── Tool Executor ───────────────────────────────────────────
 interface AgentAction {
@@ -742,6 +802,44 @@ async function executeTool(
             }
         }
 
+        case 'list_available_helpers': {
+            try {
+                const laborers = await laborService.listAvailable(args.districtId);
+                const cardData = mapLaborCards(laborers);
+                return {
+                    result: {
+                        totalResults: cardData.length,
+                        laborers: cardData,
+                    },
+                    action: {
+                        type: 'display_data',
+                        dataType: 'available_laborers',
+                        data: cardData,
+                    },
+                };
+            } catch (error: any) {
+                return { result: { error: 'Failed to fetch available helpers: ' + error.message } };
+            }
+        }
+
+        case 'book_labor': {
+            return {
+                result: { status: 'awaiting_confirmation', booking: args },
+                action: {
+                    type: 'confirm',
+                    confirmAction: 'book_labor',
+                    confirmPayload: {
+                        laborId: args.laborId,
+                        taskDescription: args.taskDescription,
+                        startDate: args.startDate,
+                        endDate: args.endDate || args.startDate,
+                        agreedRate: args.agreedRate,
+                    },
+                    message: `Book ${args.laborName || 'helper'} for "${args.taskDescription}" from ${args.startDate}?`,
+                },
+            };
+        }
+
         default:
             return { result: { error: `Unknown tool: ${toolName}` } };
     }
@@ -776,6 +874,14 @@ export async function executeConfirmedAction(
         }
         case 'join_community':
             return CommunityService.joinCommunity(userId, payload.communityId);
+        case 'book_labor': {
+            return laborService.requestBooking(userId, payload.laborId, {
+                taskDescription: payload.taskDescription,
+                startDate: payload.startDate,
+                endDate: payload.endDate || payload.startDate,
+                agreedRate: payload.agreedRate,
+            });
+        }
         default:
             throw new Error(`Unknown confirmed action: ${action}`);
     }

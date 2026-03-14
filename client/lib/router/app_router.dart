@@ -17,6 +17,9 @@ import '../core/theme/app_theme.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/labor_home/presentation/screens/labor_home_screen.dart';
 import '../features/labor_home/presentation/screens/labor_edit_profile_screen.dart';
+import '../features/labor_home/presentation/screens/labor_listing_screen.dart';
+import '../features/labor_home/presentation/screens/labor_location_onboarding_screen.dart';
+import '../features/labor_home/presentation/screens/labor_requests_screen.dart';
 import '../features/auth/domain/entities/user.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/advisory/presentation/screens/advisory_screen.dart';
@@ -151,7 +154,18 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RouteNames.offlineChat,
         builder: (context, state) => const OfflineChatScreen(),
-      ),
+      ),GoRoute(
+            path: RouteNames.laborListing,
+            builder: (context, state) => const LaborListingScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.laborOnboarding,
+            builder: (context, state) => const LaborLocationOnboardingScreen(),
+          ),
+          GoRoute(
+            path: RouteNames.laborRequests,
+            builder: (context, state) => const LaborRequestsScreen(),
+              ),
       ShellRoute(
         builder: (context, state, child) {
           final location = state.uri.path;

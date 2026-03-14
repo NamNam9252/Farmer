@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
@@ -11,6 +14,7 @@ import '../../../auth/presentation/state/auth_state.dart';
 import '../../data/api/labor_api.dart';
 import '../../data/constants/labor_skills.dart';
 import '../providers/labor_profile_provider.dart';
+import '../../../../shared/widgets/shared_app_bar.dart';
 
 class LaborEditProfileScreen extends ConsumerStatefulWidget {
   const LaborEditProfileScreen({super.key});
@@ -25,8 +29,13 @@ class _LaborEditProfileScreenState
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _locationController = TextEditingController();
   final _skillSearchController = TextEditingController();
+  
+  double _latitude = 20.5937;
+  double _longitude = 78.9629;
+  double _serviceRadius = 10;
+  bool _isDetecting = false;
+  final MapController _mapController = MapController();
   
   final _laborApi = LaborApi();
   final List<String> _selectedSkills = [];
@@ -45,9 +54,79 @@ class _LaborEditProfileScreenState
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _locationController.dispose();
     _skillSearchController.dispose();
+    _mapController.dispose();
     super.dispose();
+  }
+
+  Future<bool> _ensureLocationAccess() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enable GPS location service to auto-detect your location.'),
+          ),
+        );
+      }
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission denied. Please allow permission and try again.'),
+          ),
+        );
+      }
+      return false;
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission permanently denied. Enable it from app settings.'),
+          ),
+        );
+      }
+      await Geolocator.openAppSettings();
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _detectLocation() async {
+    setState(() => _isDetecting = true);
+    try {
+      final hasAccess = await _ensureLocationAccess();
+      if (!hasAccess) return;
+
+      final position = await Geolocator.getCurrentPosition();
+      final newLoc = LatLng(position.latitude, position.longitude);
+      
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+      
+      _mapController.move(newLoc, 13);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error detecting location: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDetecting = false);
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -63,6 +142,17 @@ class _LaborEditProfileScreenState
             _selectedSkills.add(skill.toString());
           }
         }
+        final lat = profile['latitude'];
+        final lng = profile['longitude'];
+        if (lat != null && lng != null) {
+          _latitude = lat.toDouble();
+          _longitude = lng.toDouble();
+          // Move map contextually
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) _mapController.move(LatLng(_latitude, _longitude), 13);
+          });
+        }
+        _serviceRadius = (profile['serviceRadiusKm'] ?? 10).toDouble();
       }
     } catch (_) {
       // Profile may not exist yet — that's OK
@@ -98,48 +188,16 @@ class _LaborEditProfileScreenState
       body: SafeArea(
         child: Column(
           children: [
-            // ── APP BAR ──
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => context.canPop()
-                        ? context.pop()
-                        : context.go(RouteNames.laborHome),
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_rounded,
-                        size: 20,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text(
-                    isHindi ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            // ── PREMIUM HEADER ──
+            SharedHeader(
+              backgroundImage: 'assets/images/service_icons/smart_farming.png',
+              title: isHindi ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile',
+              subtitle: isHindi ? 'अपनी जानकारी अपडेट करें' : 'Update your information',
+              onLeadingPressed: () => _isDetecting || _isSaving
+                  ? null
+                  : (Navigator.of(context).canPop()
+                      ? context.pop()
+                      : context.go(RouteNames.laborHome)),
             ),
 
             // ── FORM ──
@@ -395,19 +453,166 @@ class _LaborEditProfileScreenState
 
                           const SizedBox(height: 24),
 
-                          // Preferred Work Location
-                          _FieldLabel(
-                            label: isHindi
-                                ? 'पसंदीदा कार्य स्थान'
-                                : 'Preferred Work Location',
+                          // ── LOCATION SELECTOR (MAP) ──
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _FieldLabel(
+                                label: isHindi ? 'कार्य स्थान (मैप)' : 'Work Location (Map)',
+                              ),
+                              TextButton.icon(
+                                onPressed: _isDetecting ? null : _detectLocation,
+                                icon: _isDetecting
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.my_location_rounded, size: 16),
+                                label: Text(
+                                  isHindi ? 'GPS से खोजें' : 'Detect GPS',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF00897B),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
-                          _StyledField(
-                            controller: _locationController,
-                            hint: isHindi
-                                ? 'जैसे: हापुड़, मेरठ'
-                                : 'e.g. Hapur, Meerut',
-                            icon: Icons.location_on_rounded,
+                          
+                          // The Map Widget
+                          Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: FlutterMap(
+                              mapController: _mapController,
+                              options: MapOptions(
+                                initialCenter: LatLng(_latitude, _longitude),
+                                initialZoom: 13.0,
+                                onTap: (tapPos, point) {
+                                  setState(() {
+                                    _latitude = point.latitude;
+                                    _longitude = point.longitude;
+                                  });
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  userAgentPackageName: 'com.namnam.farmer',
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    Marker(
+                                      point: LatLng(_latitude, _longitude),
+                                      width: 40,
+                                      height: 40,
+                                      alignment: Alignment.topCenter,
+                                      child: const Icon(
+                                        Icons.location_on_rounded,
+                                        color: Colors.red,
+                                        size: 40,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Coordinates Display
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.grey[200]!),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isHindi ? 'अक्षांश (Lat)' : 'Latitude',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                      ),
+                                      Text(
+                                        _latitude.toStringAsFixed(6),
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.grey[200]!),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isHindi ? 'देशांतर (Lng)' : 'Longitude',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                      ),
+                                      Text(
+                                        _longitude.toStringAsFixed(6),
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Working Radius Slider
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _FieldLabel(
+                                label: isHindi ? 'कार्य त्रिज्या' : 'Working Radius',
+                              ),
+                              Text(
+                                '${_serviceRadius.toInt()} km',
+                                style: const TextStyle(
+                                  color: Color(0xFF00897B),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: _serviceRadius,
+                            min: 1,
+                            max: 100,
+                            activeColor: const Color(0xFF00897B),
+                            onChanged: (val) => setState(() => _serviceRadius = val),
+                          ),
+                          Text(
+                            isHindi 
+                              ? 'आप इस दायरे के भीतर किसानों को दिखाई देंगे' 
+                              : 'You will be visible to farmers within this radius',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
                           ),
 
                           const SizedBox(height: 36),
@@ -469,6 +674,9 @@ class _LaborEditProfileScreenState
         'skills': _selectedSkills,
         'name': newName.isNotEmpty ? newName : null,
         'phone': newPhone.isNotEmpty ? newPhone : null,
+        'latitude': _latitude != 0 ? _latitude : null,
+        'longitude': _longitude != 0 ? _longitude : null,
+        'serviceRadiusKm': _serviceRadius.toInt(),
       });
 
       if (mounted) {

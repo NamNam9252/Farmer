@@ -125,6 +125,7 @@ class HomeScreen extends ConsumerWidget {
             SharedStickyHeader(
               title: isHindi ? 'नमस्ते, $userName 🙏' : 'Namaste, $userName 🙏',
               subtitle: locationText,
+              backgroundImage: 'assets/images/service_icons/smart_farming.png',
               showBackButton: false,
               expandedHeight: 180,
               collapsedHeight: 100,
@@ -506,7 +507,7 @@ class HomeScreen extends ConsumerWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 6,
+            itemCount: services.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               mainAxisSpacing: 18,
@@ -574,6 +575,14 @@ class HomeScreen extends ConsumerWidget {
         imageAsset: 'assets/icons/ic_smart_farming.png',
         bgColor: AppColors.cardPeach,
         onTap: () => context.push(RouteNames.cropRecommendation),
+      ),
+      _ServiceItem(
+        labelEn: 'Get\nHelper',
+        labelHi: 'मददगार\nखोजें',
+        svgData: AppIcons.community,
+        imageAsset: 'assets/icons/ic_get_helper.png',
+        bgColor: AppColors.cardSky,
+        onTap: () => context.push(RouteNames.laborListing),
       ),
     ];
   }
@@ -743,24 +752,14 @@ class HomeScreen extends ConsumerWidget {
                 },
               ),
               _ServiceItem(
-                labelEn: 'Warehouse\nStorage',
-                labelHi: 'भंडारण\nसेवा',
-                svgData: AppIcons.warehouse,
-                bgColor: const Color(0xFFEFEBE9),
+                labelEn: 'Get\nHelper',
+                labelHi: 'मददगार\nखोजें',
+                svgData: AppIcons.community,
+                imageAsset: 'assets/icons/ic_get_helper.png',
+                bgColor: AppColors.cardSky,
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showComingSoon(context, isHindi);
-                },
-              ),
-              _ServiceItem(
-                labelEn: 'Weather\nAlerts',
-                labelHi: 'मौसम\nचेतावनी',
-                svgData: AppIcons.weatherAlert,
-                imageAsset: 'assets/icons/ic_weather.png',
-                bgColor: const Color(0xFFE1F5FE),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push(RouteNames.weatherDetails);
+                  context.push(RouteNames.laborListing);
                 },
               ),
             ];
@@ -877,20 +876,6 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, bool isHindi) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isHindi ? 'जल्द आ रहा है!' : 'Coming Soon!',
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
 }
 
 // ──────────────────────────────────────────────────────────
