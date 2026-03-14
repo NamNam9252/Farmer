@@ -45,17 +45,19 @@ class SharedHeader extends StatelessWidget {
               ),
         image: backgroundImage != null
             ? DecorationImage(
-                image: NetworkImage(backgroundImage!),
+                image: backgroundImage!.startsWith('assets/')
+                    ? AssetImage(backgroundImage!) as ImageProvider
+                    : NetworkImage(backgroundImage!),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  Colors.black.withValues(alpha: 0.4),
+                  Colors.black.withValues(alpha: 0.3),
                   BlendMode.darken,
                 ),
               )
             : null,
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(

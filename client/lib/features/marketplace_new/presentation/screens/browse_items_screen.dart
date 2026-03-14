@@ -46,6 +46,7 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
         slivers: [
           SharedStickyHeader(
             title: isHindi ? 'उत्पाद खरीदें' : 'Buy Produce',
+            backgroundImage: 'assets/images/service_icons/marketplace.png',
             subtitle: isHindi 
                 ? 'सीधे उच्च गुणवत्ता वाले उत्पाद खरीदें' 
                 : 'Buy quality produce directly',
