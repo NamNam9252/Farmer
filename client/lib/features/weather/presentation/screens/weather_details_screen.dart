@@ -33,9 +33,19 @@ class WeatherDetailsScreen extends ConsumerWidget {
             physics: const BouncingScrollPhysics(),
             slivers: [
               // SharedSliverAppBar instead of _buildAppBar
-              SharedSliverAppBar(
-                title: isHindi ? 'मौसम की रिपोर्ट' : 'Weather Report',
-                subtitle: '${weatherState.district}, ${weatherState.state}',
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => context.pop(),
+                ),
+                title: Text(
+                  isHindi ? 'मौसम की रिपोर्ट' : 'Weather Report',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                centerTitle: true,
+                pinned: true,
               ),
               SliverToBoxAdapter(
                 child: Padding(

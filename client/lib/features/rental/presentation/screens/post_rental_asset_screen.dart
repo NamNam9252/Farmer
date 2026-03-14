@@ -56,9 +56,10 @@ class _PostRentalAssetScreenState extends ConsumerState<PostRentalAssetScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: isHindi 
                 ? (isEditing ? 'अपडेट रेंटल' : 'रेंटल पोस्ट करें') 
                 : (isEditing ? 'Update Rental' : 'Post Rental'),
@@ -66,8 +67,8 @@ class _PostRentalAssetScreenState extends ConsumerState<PostRentalAssetScreen> {
                 ? 'अपना उपकरण या जमीन किराए पर दें' 
                 : 'Rent out your equipment or land',
           ),
-          Expanded(
-            child: SingleChildScrollView(
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,

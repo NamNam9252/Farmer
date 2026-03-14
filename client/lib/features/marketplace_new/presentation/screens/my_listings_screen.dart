@@ -42,9 +42,9 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> with Single
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
             title: isHindi ? 'मेरी लिस्टिंग' : 'My Listings',
             subtitle: isHindi 
                 ? 'अपनी सक्रिय वस्तुओं और मांगों का प्रबंधन करें' 
@@ -62,16 +62,14 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> with Single
               ],
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                const _MyItemsList(),
-                const _MyDemandsList(),
-              ],
-            ),
-          ),
         ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            const _MyItemsList(),
+            const _MyDemandsList(),
+          ],
+        ),
       ),
     );
   }

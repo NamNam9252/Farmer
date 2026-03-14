@@ -34,21 +34,25 @@ class _BrowseRentalsScreenState extends ConsumerState<BrowseRentalsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: isHindi ? 'रेंटल ब्राउज़ करें' : 'Browse Rentals',
             subtitle: isHindi 
                 ? 'किराए के लिए उपलब्ध सभी चीजें'
                 : 'All available items for rent',
+            backgroundImage: 'assets/images/service_icons/marketplace.png',
           ),
-          _buildTypeFilters(isHindi),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async => ref.read(rentalAssetsProvider.notifier).loadAssets(),
-              child: _buildContent(state, isHindi),
-            ),
+          SliverToBoxAdapter(
+            child: _buildTypeFilters(isHindi),
           ),
+          if (state.isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            _buildSliverContent(state, isHindi),
         ],
       ),
     );
@@ -80,9 +84,8 @@ class _BrowseRentalsScreenState extends ConsumerState<BrowseRentalsScreen> {
     );
   }
 
-  Widget _buildContent(RentalAssetsState state, bool isHindi) {
-    if (state.isLoading) return const Center(child: CircularProgressIndicator());
-    if (state.error != null) return Center(child: Text('Error: ${state.error}'));
+  Widget _buildSliverContent(RentalAssetsState state, bool isHindi) {
+    if (state.error != null) return SliverFillRemaining(child: Center(child: Text('Error: ${state.error}')));
     
     final authState = ref.watch(authControllerProvider);
     final currentUserId = authState is Authenticated ? authState.user.id : null;
@@ -93,33 +96,39 @@ class _BrowseRentalsScreenState extends ConsumerState<BrowseRentalsScreen> {
     }).toList();
 
     if (filteredAssets.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              isHindi ? 'कोई रेंटल नहीं मिला' : 'No rentals found',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              Text(
+                isHindi ? 'कोई रेंटल नहीं मिला' : 'No rentals found',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
+    return SliverPadding(
       padding: const EdgeInsets.all(16),
-      itemCount: filteredAssets.length,
-      itemBuilder: (context, index) {
-        final asset = filteredAssets[index];
-        return RentalAssetCard(
-          asset: asset,
-          isHindi: isHindi,
-          currentUserId: currentUserId,
-          onTap: () => context.push(RouteNames.rentalAssetDetail.replaceAll(':id', asset.id), extra: asset),
-        );
-      },
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final asset = filteredAssets[index];
+            return RentalAssetCard(
+              asset: asset,
+              isHindi: isHindi,
+              currentUserId: currentUserId,
+              onTap: () => context.push(RouteNames.rentalAssetDetail.replaceAll(':id', asset.id), extra: asset),
+            );
+          },
+          childCount: filteredAssets.length,
+        ),
+      ),
     );
   }
 

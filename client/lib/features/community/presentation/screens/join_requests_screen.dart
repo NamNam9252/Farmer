@@ -79,7 +79,7 @@ class _JoinRequestsScreenState extends ConsumerState<JoinRequestsScreen> {
   }
 
   Widget _buildHeader(bool isHindi) {
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: isHindi ? 'शामिल होने के अनुरोध' : 'Join Requests',
       subtitle: isHindi 
           ? 'लंबित सदस्यताओं को प्रबंधित करें' 

@@ -103,9 +103,10 @@ class _CommunityDetailScreenState
         ? (isHindi ? 'निजी' : 'Private')
         : (isHindi ? 'सार्वजनिक' : 'Public');
 
-    return SharedSliverAppBar(
+    return SharedStickyHeader(
       title: community.name,
       subtitle: '$memberText • $privacyText',
+      onBack: () => context.pop(),
       actions: [
         if (currentUserId != null && community.createdBy?.id == currentUserId) ...[
           IconButton(

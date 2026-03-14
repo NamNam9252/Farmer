@@ -38,8 +38,10 @@ class SMSService {
     const missing: string[] = [];
     if (!config.httpSmsApiKey)    missing.push("HTTPSMS_API_KEY");
     if (!config.httpSmsFromPhone) missing.push("HTTPSMS_FROM_PHONE");
-    if (missing.length)
-      throw new Error(`[SMS] Missing env vars: ${missing.join(", ")}`);
+    if (missing.length) {
+      console.warn(`[SMS] Missing env vars: ${missing.join(", ")}. SMS service disabled.`);
+      return;
+    }
 
     this.sender      = new SMSSender(config);
     this.sessions    = new SMSSessionManager(config.timeoutMs);
@@ -58,7 +60,10 @@ class SMSService {
   // ─── Send anything to any phone number — usable from anywhere ────────────
 
   async send(to: string, data: unknown): Promise<void> {
-    this.assertInitialized();
+    if (!this.initialized) {
+      this.assertInitialized();
+      return;
+    }
 
     const json       = JSON.stringify(data);
     const compressed = await gzip(Buffer.from(json, "utf-8"));
@@ -156,7 +161,7 @@ class SMSService {
 
   private assertInitialized(): void {
     if (!this.initialized)
-      throw new Error("[SMS] Call SMS.init() before using the service");
+      console.warn("[SMS] Call SMS.init() before using the service. Handlers disabled.");
   }
 
   private shouldSkipDefaultResponse(result: unknown): result is SMSHandlerResult {

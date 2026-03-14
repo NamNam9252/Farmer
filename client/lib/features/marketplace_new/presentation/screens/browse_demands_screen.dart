@@ -43,37 +43,46 @@ class _BrowseDemandsScreenState extends ConsumerState<BrowseDemandsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SharedStickyHeader(
             title: isHindi ? 'खरीददार की मांग' : 'Buyer Demands',
             subtitle: isHindi 
                 ? 'स्थानीय उत्पादों की आवश्यकताओं को पूरा करें' 
                 : 'Fulfill local produce requirements',
           ),
-          _buildCategoryFilters(categories),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async => ref.read(marketplaceDemandsProvider.notifier).loadDemands(category: _selectedCategory),
-              child: state.isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : state.error != null
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : state.demands.isEmpty
-                    ? const _EmptyState(message: 'No demands found')
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                        itemCount: state.demands.length,
-                        itemBuilder: (context, index) {
-                          final demand = state.demands[index];
-                          return _DemandCard(
-                            demand: demand,
-                            onTap: () => context.push(RouteNames.demandDetail, extra: demand),
-                          );
-                        },
-                      ),
-            ),
+          SliverToBoxAdapter(
+            child: _buildCategoryFilters(categories),
           ),
+          if (state.isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (state.error != null)
+            SliverFillRemaining(
+              child: Center(child: Text('Error: ${state.error}')),
+            )
+          else if (state.demands.isEmpty)
+            const SliverFillRemaining(
+              child: _EmptyState(message: 'No demands found'),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final demand = state.demands[index];
+                    return _DemandCard(
+                      demand: demand,
+                      onTap: () => context.push(RouteNames.demandDetail, extra: demand),
+                    );
+                  },
+                  childCount: state.demands.length,
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
@@ -56,22 +57,29 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
-            title: isHindi ? 'समाचार और योजनाएं' : 'News and Schemes',
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
+            title: isHindi ? 'समाचार और योजनाएं' : 'News & Schemes',
+            subtitle: isHindi ? 'सरकारी योजनाएं और कृषि समाचार' : 'Government schemes & agri news',
+            backgroundImage: 'assets/images/service_icons/schemes.png',
+            showBackButton: true,
+            onBack: () => context.pop(),
           ),
+        ],
+        body: Column(
+          children: [
           // Custom Styled TabBar Section
           Container(
             margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -82,14 +90,14 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
               unselectedLabelColor: AppColors.textSecondary,
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  colors: [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF43A047)],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
-                    blurRadius: 8,
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.35),
+                    blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -128,13 +136,13 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.08)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -196,7 +204,7 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
                             fontWeight: FontWeight.w600,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                             side: BorderSide(
                               color:
                                   isSelected
@@ -219,8 +227,9 @@ class _SchemesScreenState extends ConsumerState<SchemesScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSchemesTab(bool isHindi) {
     final schemesAsync = ref.watch(schemesControllerProvider);

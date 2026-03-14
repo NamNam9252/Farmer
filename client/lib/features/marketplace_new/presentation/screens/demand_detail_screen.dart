@@ -29,9 +29,11 @@ class DemandDetailScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          SharedSliverAppBar(
+          SharedStickyHeader(
             title: latestDemand.itemName,
             subtitle: '₹${latestDemand.expectedPrice} • ${latestDemand.category}',
+            onBack: () => context.pop(),
+            backgroundImage: 'assets/icons/icon_marketplace.png',
             actions: [
               if (isOwner) ...[
                 IconButton(
@@ -41,7 +43,7 @@ class DemandDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                    child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => context.pushNamed(RouteNames.postDemand, extra: latestDemand),
                 ),
@@ -52,7 +54,7 @@ class DemandDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.delete, color: Colors.white, size: 18),
+                    child: const Icon(Icons.delete_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => _showDeleteConfirmation(context, ref),
                 ),
@@ -65,7 +67,7 @@ class DemandDetailScreen extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.report_problem_outlined, color: Colors.white, size: 18),
+                    child: const Icon(Icons.report_problem_rounded, color: Colors.white, size: 18),
                   ),
                   onPressed: () => _showReportDialog(context, ref),
                 ),

@@ -34,9 +34,9 @@ class _MyPurchaseRequestsScreenState extends ConsumerState<MyPurchaseRequestsScr
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
             title: 'Orders & Requests',
             subtitle: 'Track your incoming and outgoing purchase requests',
             bottom: TabBar(
@@ -52,16 +52,14 @@ class _MyPurchaseRequestsScreenState extends ConsumerState<MyPurchaseRequestsScr
               ],
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildRequestList(state.incomingRequests, state.isLoading, true),
-                _buildRequestList(state.sentRequests, state.isLoading, false),
-              ],
-            ),
-          ),
         ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildRequestList(state.incomingRequests, state.isLoading, true),
+            _buildRequestList(state.sentRequests, state.isLoading, false),
+          ],
+        ),
       ),
     );
   }

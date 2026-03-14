@@ -33,9 +33,9 @@ class _MyDemandOffersScreenState extends ConsumerState<MyDemandOffersScreen> wit
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SharedHeader(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SharedStickyHeader(
             title: 'Supply Offers',
             subtitle: 'Review and manage offers for produce',
             bottom: TabBar(
@@ -51,16 +51,14 @@ class _MyDemandOffersScreenState extends ConsumerState<MyDemandOffersScreen> wit
               ],
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOfferList(state.incomingOffers, state.isLoading, true),
-                _buildOfferList(state.sentOffers, state.isLoading, false),
-              ],
-            ),
-          ),
         ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOfferList(state.incomingOffers, state.isLoading, true),
+            _buildOfferList(state.sentOffers, state.isLoading, false),
+          ],
+        ),
       ),
     );
   }
