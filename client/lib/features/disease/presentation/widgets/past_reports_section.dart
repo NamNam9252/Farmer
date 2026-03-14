@@ -153,6 +153,7 @@ class _ReportTile extends ConsumerWidget {
                           ? Image.file(
                             File(report.imagePath),
                             fit: BoxFit.cover,
+                            cacheWidth: 150, // Optimize for list performance
                             errorBuilder:
                                 (context, error, stackTrace) => Container(
                                   color: AppColors.surface,

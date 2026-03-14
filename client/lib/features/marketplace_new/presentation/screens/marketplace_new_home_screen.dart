@@ -6,6 +6,7 @@ import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
 import '../providers/marketplace_new_provider.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
+import '../widgets/marketplace_rental_toggle.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
@@ -57,6 +58,10 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
                 : 'Sell Direct. No Middlemen.',
             onLeadingPressed: () => context.go('/'),
           ),
+          MarketplaceRentalToggle(
+            isHindi: isHindi,
+            marketplaceSelected: true,
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -85,7 +90,7 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
                 () => context.push(RouteNames.myListings),
               ),
               _MyDemands(userId: userId),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 120),
                     ],
                   ),
                 ),

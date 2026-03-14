@@ -119,7 +119,7 @@ class HomeScreen extends ConsumerWidget {
         },
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.only(bottom: 32),
+            padding: const EdgeInsets.only(bottom: 120),
             children: [
               _buildHeader(
                 context,

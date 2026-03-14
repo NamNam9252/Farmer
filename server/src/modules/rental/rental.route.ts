@@ -27,6 +27,7 @@ router.get("/me/bids", requireAuth, controller.getMyBids);
 // Rentals
 router.get("/assets/:assetId/rental", requireAuth, controller.getRentalByAsset);
 router.get("/me/rentals", requireAuth, controller.getMyRentals);
+router.get("/me/assets", requireAuth, controller.getMyAssets);
 
 export { RentalService, RentalController };
 export default router;

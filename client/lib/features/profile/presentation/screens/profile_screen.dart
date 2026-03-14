@@ -68,7 +68,7 @@ class ProfileScreen extends ConsumerWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: AppColors.textHint, fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 120),
               ]),
             ),
           ),

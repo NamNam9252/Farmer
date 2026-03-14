@@ -42,6 +42,7 @@ class ImagePreviewCard extends ConsumerWidget {
               child: Image.file(
                 image,
                 fit: BoxFit.cover,
+                cacheWidth: 600, // Optimize memory and scroll performance
                 errorBuilder:
                     (context, error, stackTrace) => Container(
                       color: AppColors.surface,

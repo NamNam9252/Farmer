@@ -52,11 +52,40 @@ class DiseaseResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (report.isOffline) _buildOfflineWarning(),
           _buildHeader(),
           _buildConfidenceBar(),
           const Divider(height: 1),
           _buildBody(context),
           _buildActions(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfflineWarning() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isHindi
+                  ? "यह परिणाम सटीक नहीं हो सकता है। बेहतर विश्लेषण के लिए इंटरनेट से जुड़ें।"
+                  : "This result may not be accurate. Connect to internet for better analysis.",
+              style: TextStyle(
+                color: Colors.orange.shade900,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );

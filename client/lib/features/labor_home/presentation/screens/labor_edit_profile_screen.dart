@@ -1,0 +1,666 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/language_provider.dart';
+import '../../../../router/route_names.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/state/auth_state.dart';
+import '../../data/api/labor_api.dart';
+import '../../data/constants/labor_skills.dart';
+
+class LaborEditProfileScreen extends ConsumerStatefulWidget {
+  const LaborEditProfileScreen({super.key});
+
+  @override
+  ConsumerState<LaborEditProfileScreen> createState() =>
+      _LaborEditProfileScreenState();
+}
+
+class _LaborEditProfileScreenState
+    extends ConsumerState<LaborEditProfileScreen> {
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _skillSearchController = TextEditingController();
+  
+  final _laborApi = LaborApi();
+  final List<String> _selectedSkills = [];
+  bool _initialized = false;
+  bool _isLoading = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _locationController.dispose();
+    _skillSearchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _laborApi.getProfile();
+      final data = response.data;
+      if (data != null && data['success'] == true && data['data'] != null) {
+        final profile = data['data'];
+        if (profile['skills'] != null) {
+          _selectedSkills.clear();
+          for (final skill in profile['skills']) {
+            _selectedSkills.add(skill.toString());
+          }
+        }
+      }
+    } catch (_) {
+      // Profile may not exist yet — that's OK
+    }
+    setState(() => _isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final lang = ref.watch(languageProvider);
+    final isHindi = lang == 'hi';
+
+    // Pre-fill user fields
+    if (!_initialized && authState is Authenticated) {
+      _nameController.text = authState.user.name;
+      _phoneController.text = authState.user.phone;
+      _emailController.text = authState.user.email ?? '';
+      _initialized = true;
+    }
+
+    final searchQuery = _skillSearchController.text.toLowerCase();
+    final filteredSkills = predefinedSkills.where((skill) {
+      if (_selectedSkills.contains(skill.key)) return false;
+      if (searchQuery.isEmpty) return true;
+      return skill.en.toLowerCase().contains(searchQuery) ||
+          skill.hi.contains(searchQuery) ||
+          skill.key.toLowerCase().contains(searchQuery);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F6F3),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── APP BAR ──
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.canPop()
+                        ? context.pop()
+                        : context.go(RouteNames.laborHome),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 20,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    isHindi ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── FORM ──
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF00897B),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar
+                          Center(
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 90,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF00897B),
+                                        Color(0xFF26A69A),
+                                      ],
+                                    ),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF00897B)
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    size: 42,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF57C00),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: const Color(0xFFF7F6F3),
+                                        width: 3,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt_rounded,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // Name
+                          _FieldLabel(
+                            label: isHindi ? 'पूरा नाम' : 'Full Name',
+                          ),
+                          const SizedBox(height: 8),
+                          _StyledField(
+                            controller: _nameController,
+                            hint: isHindi
+                                ? 'अपना नाम दर्ज करें'
+                                : 'Enter your name',
+                            icon: CupertinoIcons.person,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Phone
+                          _FieldLabel(
+                            label:
+                                isHindi ? 'फ़ोन नंबर' : 'Phone Number',
+                          ),
+                          const SizedBox(height: 8),
+                          _StyledField(
+                            controller: _phoneController,
+                            hint: isHindi ? 'फ़ोन नंबर' : 'Phone number',
+                            icon: CupertinoIcons.phone,
+                            keyboardType: TextInputType.phone,
+                            enabled: false,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Email
+                          _FieldLabel(
+                            label: isHindi ? 'ईमेल' : 'Email',
+                          ),
+                          const SizedBox(height: 8),
+                          _StyledField(
+                            controller: _emailController,
+                            hint: isHindi ? 'ईमेल पता' : 'Email address',
+                            icon: CupertinoIcons.mail,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // ── SKILLS ── (fuzzy search tags)
+                          _FieldLabel(
+                            label: isHindi ? 'कौशल' : 'Skills',
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isHindi
+                                ? 'अपने कौशल खोजें और चुनें'
+                                : 'Search and select your skills',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textHint.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Selected skills chips
+                          if (_selectedSkills.isNotEmpty) ...[
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _selectedSkills.map((skillKey) {
+                                final skill = predefinedSkills
+                                    .where((s) => s.key == skillKey)
+                                    .firstOrNull;
+                                final label = skill != null
+                                    ? (isHindi ? skill.hi : skill.en)
+                                    : skillKey;
+                                return _SkillChip(
+                                  label: label,
+                                  isSelected: true,
+                                  onTap: () {
+                                    setState(() =>
+                                        _selectedSkills.remove(skillKey));
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+
+                          // Search field
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: _skillSearchController,
+                              onChanged: (_) => setState(() {}),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: isHindi
+                                    ? '🔍 कौशल खोजें...'
+                                    : '🔍 Search skills...',
+                                hintStyle: TextStyle(
+                                  color: AppColors.textHint
+                                      .withValues(alpha: 0.5),
+                                  fontSize: 14,
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.search_rounded,
+                                  color: Color(0xFF00897B),
+                                  size: 20,
+                                ),
+                                suffixIcon:
+                                    _skillSearchController.text.isNotEmpty
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              _skillSearchController.clear();
+                                              setState(() {});
+                                            },
+                                            child: const Icon(
+                                              Icons.close_rounded,
+                                              size: 18,
+                                              color: AppColors.textHint,
+                                            ),
+                                          )
+                                        : null,
+                                border: InputBorder.none,
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Available skills
+                          if (filteredSkills.isNotEmpty)
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: filteredSkills.take(12).map((skill) {
+                                return _SkillChip(
+                                  label: isHindi ? skill.hi : skill.en,
+                                  isSelected: false,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedSkills.add(skill.key);
+                                      _skillSearchController.clear();
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+
+                          if (filteredSkills.isEmpty &&
+                              searchQuery.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                isHindi
+                                    ? 'कोई कौशल नहीं मिला'
+                                    : 'No skills found',
+                                style: TextStyle(
+                                  color: AppColors.textHint.withValues(alpha: 0.6),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 24),
+
+                          // Preferred Work Location
+                          _FieldLabel(
+                            label: isHindi
+                                ? 'पसंदीदा कार्य स्थान'
+                                : 'Preferred Work Location',
+                          ),
+                          const SizedBox(height: 8),
+                          _StyledField(
+                            controller: _locationController,
+                            hint: isHindi
+                                ? 'जैसे: हापुड़, मेरठ'
+                                : 'e.g. Hapur, Meerut',
+                            icon: Icons.location_on_rounded,
+                          ),
+
+                          const SizedBox(height: 36),
+
+                          // Save Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed:
+                                  _isSaving ? null : () => _saveProfile(isHindi),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00897B),
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor:
+                                    const Color(0xFF00897B).withValues(alpha: 0.5),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2.5,
+                                      ),
+                                    )
+                                  : Text(
+                                      isHindi
+                                          ? 'प्रोफ़ाइल सहेजें'
+                                          : 'Save Profile',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveProfile(bool isHindi) async {
+    setState(() => _isSaving = true);
+    try {
+      await _laborApi.updateProfile({
+        'skills': _selectedSkills,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isHindi ? 'प्रोफ़ाइल सहेजा गया!' : 'Profile saved!',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            backgroundColor: const Color(0xFF00897B),
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(RouteNames.laborHome);
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Labor profile save error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isHindi
+                  ? 'प्रोफ़ाइल सहेजने में त्रुटि: $e'
+                  : 'Error saving profile: $e',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _isSaving = false);
+  }
+}
+
+// ── SKILL CHIP ──
+class _SkillChip extends StatelessWidget {
+  const _SkillChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF00897B)
+              : const Color(0xFFE0F2F1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF00695C)
+                : const Color(0xFFB2DFDB),
+            width: 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF00897B).withValues(alpha: 0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : const Color(0xFF00695C),
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.close_rounded,
+                size: 15,
+                color: Colors.white70,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── FIELD LABEL ──
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.3,
+      ),
+    );
+  }
+}
+
+// ── STYLED TEXT FIELD ──
+class _StyledField extends StatelessWidget {
+  const _StyledField({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.keyboardType = TextInputType.text,
+    this.enabled = true,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final TextInputType keyboardType;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: enabled ? Colors.white : const Color(0xFFF0F0F0),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        enabled: enabled,
+        style: TextStyle(
+          color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: AppColors.textHint.withValues(alpha: 0.6),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: enabled
+                ? const Color(0xFF00897B)
+                : AppColors.textSecondary,
+            size: 20,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: Color(0xFF00897B),
+              width: 1.5,
+            ),
+          ),
+          disabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    );
+  }
+}

@@ -165,8 +165,9 @@ class _DiseaseScreenState extends ConsumerState<DiseaseScreen>
                         const TipBanner(),
                         const SizedBox(height: 24),
                         PastReportsSection(isHindi: isHindi),
-                        const SizedBox(height: 32),
                       ],
+                      // Increased padding to ensure no "scroll hang" at the bottom
+                      const SizedBox(height: 180),
                     ]),
                   ),
                 ),

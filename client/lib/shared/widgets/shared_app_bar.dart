@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SharedHeader extends StatelessWidget {
   final String title;
@@ -11,6 +12,7 @@ class SharedHeader extends StatelessWidget {
   final Widget? bottom;
   final VoidCallback? onLeadingPressed;
   final String? backgroundImage;
+  final Widget? trailing;
 
   const SharedHeader({
     super.key,
@@ -24,6 +26,7 @@ class SharedHeader extends StatelessWidget {
     this.bottom,
     this.onLeadingPressed,
     this.backgroundImage,
+    this.trailing,
   });
 
   @override
@@ -78,9 +81,16 @@ class SharedHeader extends StatelessWidget {
                         child: const Icon(Icons.arrow_back_rounded,
                             color: Colors.white, size: 18),
                       ),
-                      onPressed: onLeadingPressed ?? () => Navigator.of(context).pop(),
+                      onPressed: onLeadingPressed ?? () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          // Fallback to home if no history
+                          context.go('/');
+                        }
+                      },
                     ),
-                  const Spacer(),
+                  if (trailing != null) trailing! else const Spacer(),
                   if (actions != null) ...actions!,
                 ],
               ),
@@ -134,6 +144,7 @@ class SharedSliverAppBar extends StatelessWidget {
   final Widget? bottom;
   final VoidCallback? onLeadingPressed;
   final String? backgroundImage;
+  final Widget? trailing;
 
   const SharedSliverAppBar({
     super.key,
@@ -146,6 +157,7 @@ class SharedSliverAppBar extends StatelessWidget {
     this.bottom,
     this.onLeadingPressed,
     this.backgroundImage,
+    this.trailing,
   });
 
   @override
@@ -161,6 +173,7 @@ class SharedSliverAppBar extends StatelessWidget {
         bottom: bottom,
         onLeadingPressed: onLeadingPressed,
         backgroundImage: backgroundImage,
+        trailing: trailing,
       ),
     );
   }

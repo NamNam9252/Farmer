@@ -26,12 +26,8 @@ export const ListAssetsSchema = z.object({
 export const PlaceBidSchema = z
   .object({
     amount: z.number().positive(),
-    startDate: z
-      .string()
-      .datetime({ message: "startDate must be a valid ISO datetime" }),
-    endDate: z
-      .string()
-      .datetime({ message: "endDate must be a valid ISO datetime" }),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
     message: z.string().max(500).optional(),
   })
   .refine((d) => new Date(d.startDate) > new Date(), {

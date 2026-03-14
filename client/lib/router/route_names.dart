@@ -14,6 +14,7 @@ class RouteNames {
   static const String advisory = '/advisory';
   static const String cropRecommendation = '/crop-recommendation';
   static const String marketplaceNew = '/marketplace-new';
+  static const String marketplaceShop = '/marketplace-new/shop';
   static const String postItem = '/marketplace-new/post-item';
   static const String postDemand = '/marketplace-new/post-demand';
   static const String browseItems = '/marketplace-new/browse-items';
@@ -29,4 +30,15 @@ class RouteNames {
   static const String schemes = '/schemes';
   static const String chatbot = '/chatbot';
   static const String weatherDetails = '/weather-details';
+  static const String laborHome = '/labor-home';
+  static const String laborEditProfile = '/labor-home/edit-profile';
+  
+  // Rental
+  static const String rentalHome = '/marketplace-new/rental';
+  static const String browseRentals = '/marketplace-new/rental/browse';
+  static const String rentalAssetDetail = '/marketplace-new/rental/:id';
+  static const String postRentalAsset = '/marketplace-new/rental/post';
+  static const String myRentalActivity = '/marketplace-new/rental/my-activity';
+  static const String myRentals = '/marketplace-new/rental/my-rentals';
+  static const String myBids = '/marketplace-new/rental/my-bids';
 }

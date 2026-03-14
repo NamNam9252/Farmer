@@ -62,7 +62,7 @@ class _BrowseDemandsScreenState extends ConsumerState<BrowseDemandsScreen> {
                   : state.demands.isEmpty
                     ? const _EmptyState(message: 'No demands found')
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                         itemCount: state.demands.length,
                         itemBuilder: (context, index) {
                           final demand = state.demands[index];

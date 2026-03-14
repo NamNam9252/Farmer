@@ -4,9 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../api/disease_api.dart';
 import '../models/disease_report_model.dart';
 import '../../domain/disease_repository_contract.dart';
+import 'package:client/services/offline_model_service.dart';
+import 'package:client/utils/connectivity_service.dart';
+import '../../domain/entities/disease_report.dart';
 
 class DiseaseRepository implements IDiseaseRepository {
   final DiseaseApi _api = DiseaseApi();
+  final OfflineModelService _offlineModel = OfflineModelService();
+  final ConnectivityService _connectivity = ConnectivityService();
 
   static const String _reportsKey = 'disease_reports_local';
 
@@ -16,16 +21,60 @@ class DiseaseRepository implements IDiseaseRepository {
     required String cropType,
     String language = 'hi',
   }) async {
-    final reportFromServer = await _api.analyzeImage(
-      imageFile: imageFile,
-      cropType: cropType,
-      language: language,
+    final bool isOnline = await _connectivity.isConnected();
+
+    if (isOnline) {
+      try {
+        final reportFromServer = await _api.analyzeImage(
+          imageFile: imageFile,
+          cropType: cropType,
+          language: language,
+        );
+        final report = reportFromServer.copyWith(
+          imagePath: imageFile.path,
+          isOffline: false,
+        );
+        await _saveReportLocally(report);
+        return report;
+      } catch (e) {
+        print('API failed, falling back to offline: $e');
+      }
+    }
+
+    // Offline logic - specific to crop model
+    final offlineResult = await _offlineModel.predict(imageFile, cropType: cropType);
+    
+    final report = DiseaseReportModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      imagePath: imageFile.path,
+      diseaseName: offlineResult['diseaseName'] as String,
+      diseaseNameHindi: offlineResult['diseaseNameHindi'] as String,
+      cropName: offlineResult['plant'] as String,
+      confidenceScore: offlineResult['confidence'] as double,
+      severity: _parseSeverity(offlineResult['severity'] as String),
+      isHealthy: offlineResult['isHealthy'] as bool,
+      description: offlineResult['description'] as String,
+      descriptionHindi: offlineResult['descriptionHindi'] as String,
+      treatments: [offlineResult['treatment'] as String],
+      treatmentsHindi: [offlineResult['treatmentHindi'] as String],
+      preventions: [],
+      preventionsHindi: [],
+      productLinks: [],
+      createdAt: DateTime.now(),
+      isOffline: true,
     );
-    // Use local path for the report so it's viewable on the device
-    // Now copyWith returns DiseaseReportModel properly
-    final report = reportFromServer.copyWith(imagePath: imageFile.path);
+
     await _saveReportLocally(report);
     return report;
+  }
+
+  DiseaseSeverity _parseSeverity(String value) {
+    switch (value.toLowerCase()) {
+      case 'low': return DiseaseSeverity.low;
+      case 'medium': return DiseaseSeverity.medium;
+      case 'high': return DiseaseSeverity.high;
+      default: return DiseaseSeverity.none;
+    }
   }
 
   @override

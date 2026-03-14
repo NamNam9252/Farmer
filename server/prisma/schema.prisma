@@ -517,6 +517,8 @@ model District {
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  currentFarmerId String? @db.ObjectId
+
   // Relations
   state               State                   @relation(fields: [stateId], references: [id])
   pincodes            Pincode[]
@@ -534,6 +536,7 @@ model District {
   userEvents          UserEvent[]
 
   @@unique([stateId, name])
+  @@index([currentFarmerId])
   @@index([stateId])
   @@index([isDeleted])
   @@map("districts")
@@ -659,17 +662,17 @@ model User {
   rateLimitLogs              RateLimitLog[]
 
   // Marketplace New Relations
-  marketplaceItems           MarketplaceNewItem[]        @relation("SellerItems")
-  marketplaceDemands         MarketplaceNewDemand[]      @relation("BuyerDemands")
+  marketplaceItems            MarketplaceNewItem[]            @relation("SellerItems")
+  marketplaceDemands          MarketplaceNewDemand[]          @relation("BuyerDemands")
   marketplacePurchaseRequests MarketplaceNewPurchaseRequest[] @relation("BuyerRequests")
   marketplaceIncomingRequests MarketplaceNewPurchaseRequest[] @relation("SellerRequests")
-  marketplaceSentOffers       MarketplaceNewDemandOffer[] @relation("SellerOffers")
-  marketplaceIncomingOffers   MarketplaceNewDemandOffer[] @relation("BuyerOffers")
+  marketplaceSentOffers       MarketplaceNewDemandOffer[]     @relation("SellerOffers")
+  marketplaceIncomingOffers   MarketplaceNewDemandOffer[]     @relation("BuyerOffers")
 
   // Rental
-  ownedAssets                 Asset[]                     @relation("OwnedAssets")
-  placedBids                  Bid[]                       @relation("PlacedBids")
-  activeRentals               Rental[]                    @relation("ActiveRentals")
+  ownedAssets   Asset[]  @relation("OwnedAssets")
+  placedBids    Bid[]    @relation("PlacedBids")
+  activeRentals Rental[] @relation("ActiveRentals")
 
   @@index([role])
   @@index([status])
@@ -799,6 +802,9 @@ model FarmerProfile {
   chatSessions          ChatSession[]          @relation("ChatSessionFarmer")
   schemeApplications    SchemeApplication[]
   laborBookingsAsFarmer LaborBooking[]         @relation("LaborBookingFarmer")
+  laborEmployments      LaborEmployment[]
+
+  //laborers LaborEmployment[]
 
   @@index([trustScore])
   @@index([isDeleted])
@@ -1576,12 +1582,12 @@ model NewsArticle {
   state    State?    @relation(fields: [stateId], references: [id])
   district District? @relation("DistrictNewsArticle", fields: [districtId], references: [id])
 
+  @@index([sourceUrl])
   @@index([isNational])
   @@index([stateId])
   @@index([districtId])
   @@index([isDeleted])
   @@index([isPublished, publishedAt])
-  @@unique([sourceUrl])
   @@map("news_articles")
 }
 
@@ -1866,21 +1872,21 @@ model CommunityChatReadReceipt {
 }
 
 model ContentReport {
-  id           String       @id @default(auto()) @map("_id") @db.ObjectId
-  reporterId   String       @db.ObjectId
-  postId       String?      @db.ObjectId
-  commentId    String?      @db.ObjectId
-  chatMsgId    String?      @db.ObjectId
-  listingId            String?      @db.ObjectId
-  blogId               String?      @db.ObjectId
-  newMarketplaceItemId String?      @db.ObjectId
-  newMarketplaceDemandId String?    @db.ObjectId
-  reason               ReportReason
-  description  String?
-  status       String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
-  reviewedById String?      @db.ObjectId
-  reviewedAt   DateTime?
-  createdAt    DateTime     @default(now())
+  id                     String       @id @default(auto()) @map("_id") @db.ObjectId
+  reporterId             String       @db.ObjectId
+  postId                 String?      @db.ObjectId
+  commentId              String?      @db.ObjectId
+  chatMsgId              String?      @db.ObjectId
+  listingId              String?      @db.ObjectId
+  blogId                 String?      @db.ObjectId
+  newMarketplaceItemId   String?      @db.ObjectId
+  newMarketplaceDemandId String?      @db.ObjectId
+  reason                 ReportReason
+  description            String?
+  status                 String       @default("OPEN") // OPEN|REVIEWED|ACTIONED|DISMISSED
+  reviewedById           String?      @db.ObjectId
+  reviewedAt             DateTime?
+  createdAt              DateTime     @default(now())
 
   reporter   User                  @relation("ContentReportReporter", fields: [reporterId], references: [id])
   reviewedBy User?                 @relation("ContentReportReviewer", fields: [reviewedById], references: [id])
@@ -2111,10 +2117,11 @@ model LaborProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User           @relation(fields: [userId], references: [id])
-  location Location?      @relation(fields: [locationId], references: [id])
-  district District?      @relation(fields: [districtId], references: [id])
-  bookings LaborBooking[]
+  user            User             @relation(fields: [userId], references: [id])
+  location        Location?        @relation(fields: [locationId], references: [id])
+  district        District?        @relation(fields: [districtId], references: [id])
+  bookings        LaborBooking[]
+  laborEmployment LaborEmployment?
 
   @@index([isAvailable])
   @@index([isDeleted])
@@ -2446,7 +2453,7 @@ model Notification {
   body       String
   imageUrl   String?
   actionType String?
-  actionId   String?             @db.ObjectId
+  actionId   String?
   isRead     Boolean             @default(false)
   readAt     DateTime?
   sentAt     DateTime?
@@ -2678,22 +2685,22 @@ enum MarketplaceRequestStatus {
 }
 
 model MarketplaceNewItem {
-  id            String                @id @default(auto()) @map("_id") @db.ObjectId
-  sellerId      String                @db.ObjectId
-  itemName      String
-  category      MarketplaceCategory
-  quantity      String
-  pricePerUnit  Float
-  location      String
-  description   String?
-  imageUrl      String?
-  status        MarketplaceItemStatus @default(ACTIVE)
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  id           String                @id @default(auto()) @map("_id") @db.ObjectId
+  sellerId     String                @db.ObjectId
+  itemName     String
+  category     MarketplaceCategory
+  quantity     String
+  pricePerUnit Float
+  location     String
+  description  String?
+  imageUrl     String?
+  status       MarketplaceItemStatus @default(ACTIVE)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
 
-  seller        User                  @relation("SellerItems", fields: [sellerId], references: [id])
+  seller           User                            @relation("SellerItems", fields: [sellerId], references: [id])
   purchaseRequests MarketplaceNewPurchaseRequest[]
-  reports       ContentReport[]       @relation("ContentReportNewItem")
+  reports          ContentReport[]                 @relation("ContentReportNewItem")
 
   @@index([sellerId])
   @@index([category])
@@ -2702,21 +2709,21 @@ model MarketplaceNewItem {
 }
 
 model MarketplaceNewDemand {
-  id              String                @id @default(auto()) @map("_id") @db.ObjectId
-  buyerId         String                @db.ObjectId
-  itemName        String
-  category      MarketplaceCategory
-  quantityNeeded  String
-  expectedPrice   Float
-  location        String
-  description     String?
-  status          MarketplaceDemandStatus @default(OPEN)
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  id             String                  @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId        String                  @db.ObjectId
+  itemName       String
+  category       MarketplaceCategory
+  quantityNeeded String
+  expectedPrice  Float
+  location       String
+  description    String?
+  status         MarketplaceDemandStatus @default(OPEN)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
 
-  buyer           User                  @relation("BuyerDemands", fields: [buyerId], references: [id])
-  offers          MarketplaceNewDemandOffer[]
-  reports         ContentReport[]       @relation("ContentReportNewDemand")
+  buyer   User                        @relation("BuyerDemands", fields: [buyerId], references: [id])
+  offers  MarketplaceNewDemandOffer[]
+  reports ContentReport[]             @relation("ContentReportNewDemand")
 
   @@index([buyerId])
   @@index([category])
@@ -2725,19 +2732,19 @@ model MarketplaceNewDemand {
 }
 
 model MarketplaceNewPurchaseRequest {
-  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
-  itemId            String                 @db.ObjectId
-  buyerId           String                 @db.ObjectId
-  sellerId          String                 @db.ObjectId
+  id                String                   @id @default(auto()) @map("_id") @db.ObjectId
+  itemId            String                   @db.ObjectId
+  buyerId           String                   @db.ObjectId
+  sellerId          String                   @db.ObjectId
   requestedQuantity String
   message           String?
   status            MarketplaceRequestStatus @default(PENDING)
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
 
-  item              MarketplaceNewItem     @relation(fields: [itemId], references: [id])
-  buyer             User                   @relation("BuyerRequests", fields: [buyerId], references: [id])
-  seller            User                   @relation("SellerRequests", fields: [sellerId], references: [id])
+  item   MarketplaceNewItem @relation(fields: [itemId], references: [id])
+  buyer  User               @relation("BuyerRequests", fields: [buyerId], references: [id])
+  seller User               @relation("SellerRequests", fields: [sellerId], references: [id])
 
   @@index([itemId])
   @@index([buyerId])
@@ -2746,20 +2753,20 @@ model MarketplaceNewPurchaseRequest {
 }
 
 model MarketplaceNewDemandOffer {
-  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
-  demandId          String                 @db.ObjectId
-  sellerId          String                 @db.ObjectId
-  buyerId           String                 @db.ObjectId
+  id                String                   @id @default(auto()) @map("_id") @db.ObjectId
+  demandId          String                   @db.ObjectId
+  sellerId          String                   @db.ObjectId
+  buyerId           String                   @db.ObjectId
   quantityAvailable String
   offeredPrice      Float
   message           String?
   status            MarketplaceRequestStatus @default(PENDING)
-  createdAt         DateTime               @updatedAt
-  updatedAt         DateTime               @updatedAt
+  createdAt         DateTime                 @updatedAt
+  updatedAt         DateTime                 @updatedAt
 
-  demand            MarketplaceNewDemand   @relation(fields: [demandId], references: [id])
-  seller            User                   @relation("SellerOffers", fields: [sellerId], references: [id])
-  buyer             User                   @relation("BuyerOffers", fields: [buyerId], references: [id])
+  demand MarketplaceNewDemand @relation(fields: [demandId], references: [id])
+  seller User                 @relation("SellerOffers", fields: [sellerId], references: [id])
+  buyer  User                 @relation("BuyerOffers", fields: [buyerId], references: [id])
 
   @@index([demandId])
   @@index([sellerId])
@@ -2775,29 +2782,29 @@ enum AssetType {
 }
 
 enum AssetStatus {
-  AVAILABLE   // open for bids
-  LOCKED      // bid accepted, rental active or pending start
-  INACTIVE    // owner took it off the market
+  AVAILABLE // open for bids
+  LOCKED // bid accepted, rental active or pending start
+  INACTIVE // owner took it off the market
 }
 
 enum BidStatus {
-  PENDING     // awaiting owner decision
-  ACCEPTED    // owner chose this bidder → tenant
-  REJECTED    // owner rejected, or auto-rejected on another bid acceptance
-  WITHDRAWN   // bidder cancelled their own bid
+  PENDING // awaiting owner decision
+  ACCEPTED // owner chose this bidder → tenant
+  REJECTED // owner rejected, or auto-rejected on another bid acceptance
+  WITHDRAWN // bidder cancelled their own bid
 }
 
 enum RentalStatus {
-  UPCOMING    // deal closed, rental hasn't started yet
-  ACTIVE      // currently rented
-  COMPLETED   // rental period ended
-  CANCELLED   // cancelled after closing (edge case)
+  UPCOMING // deal closed, rental hasn't started yet
+  ACTIVE // currently rented
+  COMPLETED // rental period ended
+  CANCELLED // cancelled after closing (edge case)
 }
 
 model Asset {
-  id          String      @id @default(cuid()) @map("_id")
-  ownerId     String
-  owner       User        @relation("OwnedAssets", fields: [ownerId], references: [id])
+  id      String @id @default(cuid()) @map("_id")
+  ownerId String
+  owner   User   @relation("OwnedAssets", fields: [ownerId], references: [id])
 
   title       String
   description String
@@ -2805,60 +2812,91 @@ model Asset {
   status      AssetStatus @default(AVAILABLE)
 
   // Pricing hint — bidders can bid above/below this
-  basePrice   Float
+  basePrice Float
 
-  bids        Bid[]
-  rental      Rental?
+  bids   Bid[]
+  rental Rental?
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Bid {
-  id          String    @id @default(cuid()) @map("_id")
-  assetId     String
-  asset       Asset     @relation(fields: [assetId], references: [id])
+  id      String @id @default(cuid()) @map("_id")
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id])
 
-  bidderId    String
-  bidder      User      @relation("PlacedBids", fields: [bidderId], references: [id])
+  bidderId String
+  bidder   User   @relation("PlacedBids", fields: [bidderId], references: [id])
 
-  amount      Float
-  status      BidStatus @default(PENDING)
+  amount Float
+  status BidStatus @default(PENDING)
 
   // Proposed rental window from the bidder
-  startDate   DateTime
-  endDate     DateTime
+  startDate DateTime
+  endDate   DateTime
 
-  message     String?   // optional note to owner
+  message String? // optional note to owner
 
-  rental      Rental?   // populated only if this bid was accepted
+  rental Rental? // populated only if this bid was accepted
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([assetId])
   @@index([bidderId])
 }
 
 model Rental {
-  id          String       @id @default(cuid()) @map("_id")
-  assetId     String       @unique   // one active rental per asset
-  asset       Asset        @relation(fields: [assetId], references: [id])
+  id      String @id @default(cuid()) @map("_id")
+  assetId String @unique // one active rental per asset
+  asset   Asset  @relation(fields: [assetId], references: [id])
 
-  bidId       String       @unique   // the winning bid
-  bid         Bid          @relation(fields: [bidId], references: [id])
+  bidId String @unique // the winning bid
+  bid   Bid    @relation(fields: [bidId], references: [id])
 
-  tenantId    String
-  tenant      User         @relation("ActiveRentals", fields: [tenantId], references: [id])
+  tenantId String
+  tenant   User   @relation("ActiveRentals", fields: [tenantId], references: [id])
 
   startDate   DateTime
   endDate     DateTime
   agreedPrice Float
 
-  status      RentalStatus @default(UPCOMING)
+  status RentalStatus @default(UPCOMING)
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId])
+}
+
+enum LaborEmploymentStatus {
+  ACTIVE
+  TERMINATED
+  PAUSED
+}
+
+model LaborEmployment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  laborId  String @unique @db.ObjectId
+  farmerId String @db.ObjectId
+
+  wageAmount Float
+
+  workHoursPerDay Int?
+  workDaysPerWeek Int?
+
+  startDate DateTime
+  endDate   DateTime?
+
+  status LaborEmploymentStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  labor  LaborProfile  @relation(fields: [laborId], references: [id])
+  farmer FarmerProfile @relation(fields: [farmerId], references: [id])
+
+  @@index([farmerId])
 }

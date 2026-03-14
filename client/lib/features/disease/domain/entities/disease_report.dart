@@ -80,6 +80,7 @@ class DiseaseReport {
   final List<String> preventionsHindi;
   final List<ProductLink> productLinks;
   final DateTime createdAt;
+  final bool isOffline;
 
   const DiseaseReport({
     required this.id,
@@ -98,6 +99,7 @@ class DiseaseReport {
     required this.preventionsHindi,
     required this.productLinks,
     required this.createdAt,
+    this.isOffline = false,
   });
 
   DiseaseReport copyWith({
@@ -117,6 +119,7 @@ class DiseaseReport {
     List<String>? preventionsHindi,
     List<ProductLink>? productLinks,
     DateTime? createdAt,
+    bool? isOffline,
   }) {
     return DiseaseReport(
       id: id ?? this.id,
@@ -135,6 +138,7 @@ class DiseaseReport {
       preventionsHindi: preventionsHindi ?? this.preventionsHindi,
       productLinks: productLinks ?? this.productLinks,
       createdAt: createdAt ?? this.createdAt,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 }

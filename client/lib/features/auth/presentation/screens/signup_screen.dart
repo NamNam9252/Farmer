@@ -89,7 +89,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (next is Authenticated) {
-        context.go(RouteNames.disease);
+        if (next.user.role == UserRole.labor) {
+          context.go(RouteNames.laborHome);
+        } else {
+          context.go(RouteNames.home);
+        }
       } else if (next is AuthError) {
         ScaffoldMessenger.of(
           context,

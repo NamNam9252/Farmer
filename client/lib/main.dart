@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/services/socket_service.dart';
+import 'services/offline_model_service.dart';
 
 
 void main() async {
@@ -16,6 +17,9 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('hi', null);
   await initializeDateFormatting('en', null);
+
+  // Pre-load database and default model
+  await OfflineModelService().loadModel();
   
   final prefs = await SharedPreferences.getInstance();
 
