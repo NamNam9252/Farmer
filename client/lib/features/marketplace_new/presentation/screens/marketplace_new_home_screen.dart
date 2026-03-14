@@ -52,7 +52,7 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
       body: Column(
         children: [
           SharedHeader(
-            title: isHindi ? 'मार्केटप्लेस' : 'Marketplace',
+            title: isHindi ? 'बाज़ार' : 'Bazar',
             subtitle: isHindi
                 ? 'सीधी बिक्री. कोई बिचौलिया नहीं।'
                 : 'Sell Direct. No Middlemen.',
@@ -136,34 +136,34 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 1.1,
+        childAspectRatio: 0.95,
         children: [
           _ActionCard(
-            label: isHindi ? 'बेचने के लिए आइटम डालें' : 'Post Item to Sell',
-            icon: Icons.add_business_rounded,
-            color: const Color(0xFFE8F5E9),
-            iconColor: Colors.green[800]!,
+            title: isHindi ? 'अपनी फसल लिस्ट करें' : 'List Your Harvest',
+            subtitle: isHindi ? '(आइटम डालें)' : '(Post Item)',
+            imagePath: 'assets/images/marketplace/card1.png',
+            color: const Color(0xFFEBEFDA),
             onTap: () => context.push(RouteNames.postItem),
           ),
           _ActionCard(
-            label: isHindi ? 'अपनी मांग डालें' : 'Post Demand',
-            icon: Icons.record_voice_over_rounded,
-            color: const Color(0xFFFFF3E0),
-            iconColor: Colors.orange[800]!,
-            onTap: () => context.push(RouteNames.postDemand),
-          ),
-          _ActionCard(
-            label: isHindi ? 'आइटम देखें' : 'Browse Items',
-            icon: Icons.shopping_basket_rounded,
-            color: const Color(0xFFE3F2FD),
-            iconColor: Colors.blue[800]!,
+            title: isHindi ? 'उपज खोजें' : 'Browse Produce',
+            subtitle: isHindi ? '(आइटम देखें)' : '(Browse Items)',
+            imagePath: 'assets/images/marketplace/card2.png',
+            color: const Color(0xFFDDF0EC),
             onTap: () => context.push(RouteNames.browseItems),
           ),
           _ActionCard(
-            label: isHindi ? 'खरीदार खोजें' : 'Browse Demands',
-            icon: Icons.find_in_page_rounded,
-            color: const Color(0xFFF3E5F5),
-            iconColor: Colors.purple[800]!,
+            title: isHindi ? 'अपनी जरूरत डालें' : 'Post Your Demand',
+            subtitle: isHindi ? '(मांग डालें)' : '(Post Demand)',
+            imagePath: 'assets/images/marketplace/card3.png',
+            color: const Color(0xFFFDE2CA),
+            onTap: () => context.push(RouteNames.postDemand),
+          ),
+          _ActionCard(
+            title: isHindi ? 'जरूरतें खोजें' : 'Search Demands',
+            subtitle: isHindi ? '(मांगें देखें)' : '(Browse Demands)',
+            imagePath: 'assets/images/marketplace/card4.png',
+            color: const Color(0xFFEDDFEF),
             onTap: () => context.push(RouteNames.browseDemands),
           ),
         ],
@@ -189,17 +189,17 @@ class _MarketplaceNewHomeScreenState extends ConsumerState<MarketplaceNewHomeScr
 }
 
 class _ActionCard extends StatelessWidget {
-  final String label;
-  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String imagePath;
   final Color color;
-  final Color iconColor;
   final VoidCallback onTap;
 
   const _ActionCard({
-    required this.label,
-    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.imagePath,
     required this.color,
-    required this.iconColor,
     required this.onTap,
   });
 
@@ -208,24 +208,45 @@ class _ActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: iconColor.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(16),
         ),
+        clipBehavior: Clip.hardEdge,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: iconColor),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: iconColor,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+              child: Column(
+                children: [
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

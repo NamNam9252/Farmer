@@ -10,8 +10,8 @@ class AppStrings {
   static const String navHomeHindi = 'होम';
   static const String navDisease = 'Disease';
   static const String navDiseaseHindi = 'रोग';
-  static const String navMarket = 'Market';
-  static const String navMarketHindi = 'बाज़ार';
+  static const String navMarket = 'Crop Price';
+  static const String navMarketHindi = 'मंडी';
   static const String navHelp = 'Help';
   static const String navHelpHindi = 'मदद';
 
@@ -80,7 +80,7 @@ class AppStrings {
   static const String yesterdayHindi = 'कल';
   
   // Market Book
-  static const String marketTitle = 'Market Book';
+  static const String marketTitle = 'Crop Price';
   static const String marketTitleHindi = 'मंडी भाव';
   static const String commodity = 'Commodity';
   static const String commodityHindi = 'फसल';
