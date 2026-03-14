@@ -1,8 +1,7 @@
-import zlib from "zlib";
-import { promisify } from "util";
 import { SMSSessionManager } from "./sms.session";
 import { SMSSender } from "./sms.sender";
 import { parsePacket } from "./sms.parser";
+import { decodeBinary, encodeBinary } from "./sms.codec";
 import {
   PacketType,
   SMSConfig,
@@ -10,9 +9,6 @@ import {
   SMSMessageHandler,
   SMSRequestEnvelope,
 } from "./sms.types";
-
-const gunzip = promisify(zlib.gunzip);
-const gzip   = promisify(zlib.gzip);
 
 class SMSService {
   private sender!:        SMSSender;
@@ -60,14 +56,14 @@ class SMSService {
   async send(to: string, data: unknown): Promise<void> {
     this.assertInitialized();
 
-    const json       = JSON.stringify(data);
-    const compressed = await gzip(Buffer.from(json, "utf-8"));
+    const json = JSON.stringify(data);
+    const payload = encodeBinary(json);
 
     console.log(
-      `[SMS] → ${to} | raw: ${json.length}B | compressed: ${compressed.length}B`
+      `[SMS] → ${to} | raw: ${json.length}B | codec: ${payload.length}B`
     );
 
-    await this.sender.send(to, compressed);
+    await this.sender.send(to, Buffer.from(payload));
   }
 
   async sendText(to: string, text: string): Promise<void> {
@@ -133,19 +129,31 @@ class SMSService {
     console.log(`[SMS] ✓ Session ${packet.sid} complete — processing fullBytes=${full.length}`);
 
     try {
-      const decompressed             = await gunzip(full);
-      const envelope: SMSRequestEnvelope = JSON.parse(decompressed.toString("utf-8"));
-      console.log(
-        `[SMS] envelope parsed | sid=${packet.sid} from=${from} action=${String(envelope.action)} payloadType=${typeof envelope.payload}`
-      );
+      const decodedString = decodeBinary(new Uint8Array(full));
+      console.log(`[SMS] reassembled data decoded | sid=${packet.sid} chars=${decodedString.length}`);
+
+      let action: any = "general";
+      let payload: any = decodedString;
+
+      // Try to parse as JSON envelope if it looks like one
+      if (decodedString.startsWith("{") && decodedString.endsWith("}")) {
+        try {
+          const envelope: SMSRequestEnvelope = JSON.parse(decodedString);
+          action = envelope.action;
+          payload = envelope.payload;
+          console.log(`[SMS] JSON envelope detected | action=${action}`);
+        } catch (_) {
+          // Stay as direct string
+        }
+      }
 
       if (!this.handler) {
-        console.warn("[SMS] No handler registered! Call SMS.onMessage() in app.ts");
+        console.warn("[SMS] No handler registered!");
         await this.send(from, { ok: false, err: "Server handler not configured" });
         return;
       }
 
-      await this.dispatchToHandler(envelope.action, envelope.payload, from, packet.sid);
+      await this.dispatchToHandler(action, payload, from, packet.sid);
     } catch (e: any) {
       console.error(`[SMS] Processing error for ${from}:`, e);
       await this.send(from, { ok: false, err: e?.message ?? "Internal server error" });

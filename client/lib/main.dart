@@ -10,6 +10,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/services/socket_service.dart';
 import 'services/offline_model_service.dart';
+import 'shared/widgets/connectivity_wrapper.dart';
 
 
 void main() async {
@@ -61,7 +62,7 @@ class KisanSaathiApp extends ConsumerWidget {
       routerConfig: router,
       scaffoldMessengerKey: scaffoldMessengerKey,
       builder: (context, child) {
-        return child!;
+        return ConnectivityWrapper(child: child!);
       },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

@@ -37,6 +37,7 @@ import '../features/marketplace_new/presentation/screens/my_demand_offers_screen
 import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 import '../features/schemes/presentation/screens/schemes_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
+import '../features/chatbot/presentation/screens/offline_chat_screen.dart';
 import '../features/rental/presentation/screens/rental_home_screen.dart';
 import '../features/rental/presentation/screens/browse_rentals_screen.dart';
 import '../features/rental/presentation/screens/rental_asset_detail_screen.dart';
@@ -146,6 +147,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RouteNames.laborEditProfile,
         builder: (context, state) => const LaborEditProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.offlineChat,
+        builder: (context, state) => const OfflineChatScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {

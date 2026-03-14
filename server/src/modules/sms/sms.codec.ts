@@ -14,7 +14,7 @@ const concatBytes = (a: Uint8Array, b: Uint8Array): Uint8Array => {
   return out;
 };
 
-export const encode = (text: string): string => {
+export const encodeBinary = (text: string): Uint8Array => {
   const raw = strToU8(text);
   const hasNonAscii = [...text].some((ch) => ch.charCodeAt(0) > 127);
   let payload: Uint8Array;
@@ -32,21 +32,29 @@ export const encode = (text: string): string => {
     payload = concatBytes(new Uint8Array([ZLIB_FLAG]), zlibbed);
   }
 
-  return base91.encode(Buffer.from(payload));
+  return payload;
+};
+
+export const decodeBinary = (payload: Uint8Array): string => {
+  if (!payload.length) return "";
+
+  const flag = payload[0];
+  const data = payload.slice(1);
+
+  if (flag === SMAZ_FLAG) return smazDecompress(Buffer.from(data));
+  if (flag === ZLIB_FLAG) return strFromU8(inflateSync(data));
+  return strFromU8(data);
+};
+
+export const encode = (text: string): string => {
+  return base91.encode(Buffer.from(encodeBinary(text)));
 };
 
 export const decode = (smsText: string): string => {
   const decoded = base91.decode(smsText);
   const payload = Buffer.isBuffer(decoded)
     ? new Uint8Array(decoded)
-    : new Uint8Array(Buffer.from(decoded, "latin1")); // ← fix: latin1, not utf-8
+    : new Uint8Array(Buffer.from(decoded, "latin1"));
 
-  if (!payload.length) return "";
-
-  const flag = payload[0];
-  const data = payload.slice(1);
-
-  if (flag === SMAZ_FLAG) return smazDecompress(data);
-  if (flag === ZLIB_FLAG) return strFromU8(inflateSync(data));
-  return strFromU8(data);
+  return decodeBinary(payload);
 };

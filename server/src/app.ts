@@ -150,12 +150,19 @@ SMS.onMessage(async (action, payload, from) => {
 
     let decodedPrompt = '';
     try {
-        decodedPrompt = decode(trimmedPayload);
+        // If it's a packet, SMSService already decoded it for us.
+        // If it was direct payload, it's still Base91.
+        // A simple heuristic: if it contains spaces, it's already plain text.
+        if (trimmedPayload.includes(' ')) {
+            decodedPrompt = trimmedPayload;
+        } else {
+            decodedPrompt = decode(trimmedPayload);
+        }
     } catch (error: any) {
         console.warn(
-            `[SMS] ignoring undecodable payload from ${from} | error=${error?.message ?? 'unknown'}`
+            `[SMS] decoding failed for ${from}, treating as plain text | error=${error?.message ?? 'unknown'}`
         );
-        return { skipDefaultResponse: true, data: { ignored: true, reason: 'decode-failed' } };
+        decodedPrompt = trimmedPayload;
     }
 
     if (!decodedPrompt.trim()) {
@@ -164,7 +171,7 @@ SMS.onMessage(async (action, payload, from) => {
     }
 
     console.log(
-        `[SMS] decoded prompt from ${from} | chars=${decodedPrompt.length} preview="${decodedPrompt.slice(0, SMS_LOG_PREVIEW)}"`
+        `[SMS] finalized prompt from ${from} | chars=${decodedPrompt.length} preview="${decodedPrompt.slice(0, SMS_LOG_PREVIEW)}"`
     );
 
     try {

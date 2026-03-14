@@ -1,7 +1,8 @@
+import base91 from "node-base91";
 import { SMSPacket, PacketType } from "./sms.types";
 
 export const parsePacket = (raw: string): SMSPacket => {
-  const bytes = Buffer.from(raw, "base64");
+  const bytes = Buffer.from(base91.decode(raw));
   if (bytes.length < 5) throw new Error(`Packet too short: ${bytes.length} bytes`);
 
   return {
@@ -27,7 +28,8 @@ export const buildPacket = (
     total,
     type,
   ]);
-  return Buffer.concat([header, payload]).toString("base64");
+  const combined = Buffer.concat([header, payload]);
+  return base91.encode(combined);
 };
 
 export const randomSID = (): string => {

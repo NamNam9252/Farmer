@@ -41,4 +41,5 @@ class RouteNames {
   static const String myRentalActivity = '/marketplace-new/rental/my-activity';
   static const String myRentals = '/marketplace-new/rental/my-rentals';
   static const String myBids = '/marketplace-new/rental/my-bids';
+  static const String offlineChat = '/offline-chat';
 }
