@@ -8,6 +8,7 @@ import '../../../../shared/widgets/shared_app_bar.dart';
 import '../providers/rental_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/state/auth_state.dart';
+import '../../../marketplace_new/presentation/widgets/marketplace_rental_toggle.dart';
 
 class RentalHomeScreen extends ConsumerStatefulWidget {
   const RentalHomeScreen({super.key});
@@ -49,6 +50,10 @@ class _RentalHomeScreenState extends ConsumerState<RentalHomeScreen> {
                 ? 'उपकरण और जमीन किराए पर लें या दें'
                 : 'Rent or Lease Equipment & Land',
             onLeadingPressed: () => context.go(RouteNames.marketplaceNew),
+          ),
+          MarketplaceRentalToggle(
+            isHindi: isHindi,
+            marketplaceSelected: false,
           ),
           Expanded(
             child: RefreshIndicator(

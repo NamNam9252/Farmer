@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/language_provider.dart';
 import '../../../../router/route_names.dart';
 import '../../../../shared/widgets/shared_app_bar.dart';
+import '../widgets/marketplace_rental_toggle.dart';
 
 class MarketplaceSelectionScreen extends ConsumerWidget {
   const MarketplaceSelectionScreen({super.key});
@@ -24,6 +25,10 @@ class MarketplaceSelectionScreen extends ConsumerWidget {
                 ? 'अपनी जरूरत चुनें: खरीदें/बेचें या किराए पर लें'
                 : 'Choose your need: Buy/Sell or Rentals',
             onLeadingPressed: () => context.go('/'),
+          ),
+          MarketplaceRentalToggle(
+            isHindi: isHindi,
+            marketplaceSelected: true,
           ),
           Expanded(
             child: Padding(

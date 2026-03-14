@@ -34,7 +34,6 @@ import '../features/marketplace_new/presentation/screens/my_demand_offers_screen
 import '../features/marketplace_new/data/models/marketplace_new_models.dart';
 import '../features/schemes/presentation/screens/schemes_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
-import '../features/marketplace_new/presentation/screens/marketplace_selection_screen.dart';
 import '../features/rental/presentation/screens/rental_home_screen.dart';
 import '../features/rental/presentation/screens/browse_rentals_screen.dart';
 import '../features/rental/presentation/screens/rental_asset_detail_screen.dart';
@@ -179,7 +178,7 @@ GoRouter appRouter(Ref ref) {
           GoRoute(
             path: RouteNames.marketplaceNew,
             name: RouteNames.marketplaceNew,
-            builder: (context, state) => const MarketplaceSelectionScreen(),
+            builder: (context, state) => const MarketplaceNewHomeScreen(),
             routes: [
               GoRoute(
                 path: 'shop',
