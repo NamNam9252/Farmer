@@ -6,6 +6,7 @@ import { parsePacket } from "./sms.parser";
 import {
   PacketType,
   SMSConfig,
+  SMSHandlerResult,
   SMSMessageHandler,
   SMSRequestEnvelope,
 } from "./sms.types";
@@ -69,16 +70,45 @@ class SMSService {
     await this.sender.send(to, compressed);
   }
 
+  async sendText(to: string, text: string): Promise<void> {
+    this.assertInitialized();
+
+    const payload = Buffer.from(text, "utf-8");
+    console.log(`[SMS] → ${to} | text payload: ${payload.length}B`);
+    await this.sender.send(to, payload);
+  }
+
   // ─── Called by router on every incoming webhook hit ───────────────────────
 
   async handleIncoming(raw: string, from: string): Promise<void> {
     this.assertInitialized();
+    console.log(`[SMS] webhook payload received from ${from} | rawChars=${raw.length}`);
 
     let packet;
     try {
       packet = parsePacket(raw);
+      console.log(
+        `[SMS] packet parsed from ${from} | sid=${packet.sid} seq=${packet.seq + 1}/${packet.total} type=${packet.type} payloadBytes=${packet.payload.length}`
+      );
     } catch (e) {
-      console.error(`[SMS] Malformed packet from ${from}:`, e);
+      console.warn(`[SMS] parsePacket failed for ${from}; treating as direct payload`);
+      await this.handleDirectPayload(raw, from);
+      return;
+    }
+
+    const packetTypeKnown = Object.values(PacketType).includes(packet.type);
+    const sidLooksValid = /^[A-Za-z0-9]{2}$/.test(packet.sid);
+    const packetLooksPlausible =
+      packetTypeKnown &&
+      sidLooksValid &&
+      packet.total > 0 &&
+      packet.seq < packet.total;
+
+    if (!packetLooksPlausible) {
+      console.warn(
+        `[SMS] packet appears invalid/incompatible from ${from}; falling back to direct payload handling`
+      );
+      await this.handleDirectPayload(raw, from);
       return;
     }
 
@@ -95,13 +125,19 @@ class SMSService {
       packet.payload
     );
 
-    if (!full) return; // still waiting for remaining chunks
+    if (!full) {
+      console.log(`[SMS] waiting for more chunks | sid=${packet.sid} from=${from}`);
+      return; // still waiting for remaining chunks
+    }
 
-    console.log(`[SMS] ✓ Session ${packet.sid} complete — processing`);
+    console.log(`[SMS] ✓ Session ${packet.sid} complete — processing fullBytes=${full.length}`);
 
     try {
       const decompressed             = await gunzip(full);
       const envelope: SMSRequestEnvelope = JSON.parse(decompressed.toString("utf-8"));
+      console.log(
+        `[SMS] envelope parsed | sid=${packet.sid} from=${from} action=${String(envelope.action)} payloadType=${typeof envelope.payload}`
+      );
 
       if (!this.handler) {
         console.warn("[SMS] No handler registered! Call SMS.onMessage() in app.ts");
@@ -109,8 +145,7 @@ class SMSService {
         return;
       }
 
-      const result = await this.handler(envelope.action, envelope.payload, from);
-      await this.send(from, { ok: true, data: result });
+      await this.dispatchToHandler(envelope.action, envelope.payload, from, packet.sid);
     } catch (e: any) {
       console.error(`[SMS] Processing error for ${from}:`, e);
       await this.send(from, { ok: false, err: e?.message ?? "Internal server error" });
@@ -122,6 +157,62 @@ class SMSService {
   private assertInitialized(): void {
     if (!this.initialized)
       throw new Error("[SMS] Call SMS.init() before using the service");
+  }
+
+  private shouldSkipDefaultResponse(result: unknown): result is SMSHandlerResult {
+    return (
+      typeof result === "object" &&
+      result !== null &&
+      "skipDefaultResponse" in result &&
+      Boolean((result as SMSHandlerResult).skipDefaultResponse)
+    );
+  }
+
+  private unwrapHandlerData(result: unknown): unknown {
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      "data" in result &&
+      Object.prototype.hasOwnProperty.call(result, "skipDefaultResponse")
+    ) {
+      return (result as SMSHandlerResult).data;
+    }
+
+    return result;
+  }
+
+  private async handleDirectPayload(raw: string, from: string): Promise<void> {
+    if (!this.handler) {
+      console.warn("[SMS] No handler registered for direct payload mode");
+      await this.send(from, { ok: false, err: "Server handler not configured" });
+      return;
+    }
+
+    console.log(`[SMS] processing direct payload mode from ${from}`);
+    await this.dispatchToHandler("sms", raw, from, "direct");
+  }
+
+  private async dispatchToHandler(
+    action: string,
+    payload: unknown,
+    from: string,
+    sid: string
+  ): Promise<void> {
+    if (!this.handler) {
+      console.warn("[SMS] No handler registered! Call SMS.onMessage() in app.ts");
+      await this.send(from, { ok: false, err: "Server handler not configured" });
+      return;
+    }
+
+    const result = await this.handler(action, payload, from);
+    console.log(`[SMS] handler completed | sid=${sid} from=${from}`);
+
+    if (this.shouldSkipDefaultResponse(result)) {
+      console.log(`[SMS] Handler opted out of default response for ${from}`);
+      return;
+    }
+
+    await this.send(from, { ok: true, data: this.unwrapHandlerData(result) });
   }
 }
 

@@ -10,13 +10,26 @@ router.post("/receive", async (req: Request, res: Response): Promise<void> => {
   // always ACK immediately — httpSMS will retry if it doesn't get 200
   res.sendStatus(200);
 
-  const raw  = req.body?.content as string | undefined;
-  const from = req.body?.from    as string | undefined;
+  const raw =
+    (req.body?.content as string | undefined) ??
+    (req.body?.data?.content as string | undefined);
+
+  const from =
+    (req.body?.from as string | undefined) ??
+    (req.body?.contact as string | undefined) ??
+    (req.body?.data?.contact as string | undefined);
 
   if (!raw || !from) {
-    console.warn("[SMS] Webhook called with missing fields:", req.body);
+    console.warn(
+      "[SMS] Webhook called with missing fields. Expected content/from or data.content/data.contact:",
+      req.body
+    );
     return;
   }
+
+  console.log(
+    `[SMS] webhook field extraction succeeded | from=${from} rawChars=${raw.length} eventType=${String(req.body?.type ?? "unknown")}`
+  );
 
   // normalize — ensure +91 prefix
   const normalized = from.startsWith("+") ? from : `+${from}`;
