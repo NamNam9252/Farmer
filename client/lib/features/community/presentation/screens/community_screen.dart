@@ -149,7 +149,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           : 'Connect with farmers in your region',
       backgroundImage: 'assets/images/service_icons/community_fund.png',
       showBackButton: true,
-      onBack: () => context.pop(),
+      onBack: () => Navigator.of(context).pop(),
     );
   }
 

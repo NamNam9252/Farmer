@@ -32,20 +32,8 @@ class WeatherDetailsScreen extends ConsumerWidget {
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // SharedSliverAppBar instead of _buildAppBar
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-                  onPressed: () => context.pop(),
-                ),
-                title: Text(
-                  isHindi ? 'मौसम की रिपोर्ट' : 'Weather Report',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                centerTitle: true,
-                pinned: true,
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 60), // Space for status bar and back button
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -69,32 +57,133 @@ class WeatherDetailsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                onPressed: () => context.pop(),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildDynamicBackground(WeatherModel weather) {
-    // Dynamic colors based on weather conditions
-    final isHot = weather.temperature > 30;
+    final now = DateTime.now();
+    final isNight = now.hour < 6 || now.hour > 18;
     final isRaining = weather.rainProbability > 50;
-    
-    final color1 = isHot 
-        ? const Color(0xFFFF9800) 
-        : (isRaining ? const Color(0xFF455A64) : const Color(0xFF2196F3));
-    final color2 = isHot 
-        ? const Color(0xFFFF5722) 
-        : (isRaining ? const Color(0xFF263238) : const Color(0xFF1976D2));
+    final isHot = weather.temperature > 32;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [color1, color2],
+    // Define colors based on conditions
+    Color color1, color2;
+    if (isNight) {
+      color1 = isRaining ? const Color(0xFF1A237E) : const Color(0xFF0D47A1);
+      color2 = isRaining ? const Color(0xFF000000) : const Color(0xFF121212);
+    } else if (isRaining) {
+      color1 = const Color(0xFF607D8B);
+      color2 = const Color(0xFF263238);
+    } else if (isHot) {
+      color1 = const Color(0xFFFF9800);
+      color2 = const Color(0xFFD84315);
+    } else {
+      color1 = const Color(0xFF2196F3);
+      color2 = const Color(0xFF1565C0);
+    }
+
+    return Stack(
+      children: [
+        // Base Gradient
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [color1, color2],
+            ),
+          ),
         ),
-      ),
+        
+        // Celestial Body (Sun/Moon)
+        Positioned(
+          top: 80,
+          right: -20,
+          child: _buildCelestialBody(isNight, isRaining, isHot),
+        ),
+
+        // Animated Clouds
+        ...List.generate(3, (index) => _buildAnimatedCloud(index, isNight, isRaining)),
+
+        // Simple Rain effect if raining
+        if (isRaining) _buildRainEffect(),
+      ],
     );
+  }
+
+  Widget _buildCelestialBody(bool isNight, bool isRaining, bool isHot) {
+    if (isRaining) return const SizedBox.shrink();
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(seconds: 2),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (isNight ? Colors.indigoAccent : (isHot ? Colors.orange : Colors.yellow)).withOpacity(0.5 * value),
+                  blurRadius: 80,
+                  spreadRadius: 20,
+                ),
+              ],
+            ),
+            child: Icon(
+              isNight ? Icons.nightlight_round : Icons.wb_sunny_rounded,
+              size: 100,
+              color: isNight ? Colors.white.withOpacity(0.9) : (isHot ? Colors.orangeAccent : Colors.yellow[200]),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedCloud(int index, bool isNight, bool isRaining) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: -1.0, end: 1.2),
+      duration: Duration(seconds: 20 + (index * 10)),
+      builder: (context, value, child) {
+        return Positioned(
+          top: 100.0 + (index * 80),
+          left: MediaQuery.of(context).size.width * value,
+          child: Opacity(
+            opacity: isRaining ? 0.6 : 0.4,
+            child: Icon(
+              Icons.cloud_rounded,
+              size: 120.0 + (index * 40),
+              color: isNight ? Colors.blueGrey[800] : Colors.white70,
+            ),
+          ),
+        );
+      },
+      onEnd: () {}, // Handled by repeating in a real app, but stateless is fine for now
+    );
+  }
+
+  Widget _buildRainEffect() {
+    return const SizedBox.shrink(); // Complex rain needs a stateful ticker, keeping it light for now
   }
 
 
@@ -175,7 +264,11 @@ class WeatherDetailsScreen extends ConsumerWidget {
                     ],
                   ),
                   Icon(
-                    weather.rainProbability > 50 ? Icons.grain_rounded : Icons.wb_sunny_rounded,
+                    weather.rainProbability > 50 
+                        ? Icons.grain_rounded 
+                        : (DateTime.now().hour < 6 || DateTime.now().hour > 18 
+                            ? Icons.nightlight_round 
+                            : Icons.wb_sunny_rounded),
                     size: 80,
                     color: Colors.white,
                   ),

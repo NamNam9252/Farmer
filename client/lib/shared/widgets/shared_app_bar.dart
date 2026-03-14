@@ -135,7 +135,7 @@ class SharedHeader extends StatelessWidget {
                         subtitle!,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white.withOpacity(0.8),
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -159,7 +159,7 @@ class _HeaderHillsPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     // Circle accent
-    paint.color = Colors.white.withValues(alpha: 0.05);
+    paint.color = Colors.white.withOpacity(0.05);
     canvas.drawCircle(
       Offset(size.width * 0.85, size.height * 0.25),
       40,
@@ -167,7 +167,7 @@ class _HeaderHillsPainter extends CustomPainter {
     );
 
     // Hill
-    paint.color = Colors.white.withValues(alpha: 0.04);
+    paint.color = Colors.white.withOpacity(0.04);
     final path = Path()
       ..moveTo(0, size.height)
       ..quadraticBezierTo(
@@ -241,6 +241,7 @@ class SharedStickyHeader extends StatelessWidget {
   final double expandedHeight;
   final double collapsedHeight;
   final String? backgroundImage;
+  final List<Color>? gradientColors;
 
   const SharedStickyHeader({
     super.key,
@@ -252,8 +253,9 @@ class SharedStickyHeader extends StatelessWidget {
     this.bottom,
     this.onBack,
     this.expandedHeight = 200,
-    this.collapsedHeight = 100,
+    this.collapsedHeight = 60,
     this.backgroundImage,
+    this.gradientColors,
   });
 
   @override
@@ -271,6 +273,7 @@ class SharedStickyHeader extends StatelessWidget {
         expandedHeight: expandedHeight,
         collapsedHeight: collapsedHeight,
         backgroundImage: backgroundImage,
+        gradientColors: gradientColors,
       ),
     );
   }

@@ -62,7 +62,7 @@ class CropRecommendationScreen extends ConsumerWidget {
           : 'AI-powered crop suggestions for your soil',
       backgroundImage: 'assets/images/service_icons/smart_farming.png',
       showBackButton: true,
-      onBack: () => context.pop(),
+      onBack: () => Navigator.of(context).pop(),
     );
   }
 

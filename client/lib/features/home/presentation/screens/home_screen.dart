@@ -213,7 +213,6 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 28),
                     _buildServicesSection(context, isHindi),
                     const SizedBox(height: 28),
-                    _buildMandiPricesSection(isHindi),
                   ],
                 ),
               ),
@@ -309,130 +308,175 @@ class HomeScreen extends ConsumerWidget {
     WeatherState weatherState,
   ) {
     final w = weatherState.weather;
-    final tempText = w != null ? '${w.temperature.round()}°C' : '--°C';
-    final rainProb = w?.rainProbability ?? 0;
-    final humidityVal = (w?.humidity ?? 0).toDouble();
+    if (w == null) return const SizedBox.shrink();
 
-    String subtitle;
-    if (w == null) {
-      subtitle = weatherState.isLoading
-          ? (isHindi ? 'लोड हो रहा है...' : 'Loading...')
-          : (isHindi ? 'मौसम डेटा उपलब्ध नहीं' : 'Weather data unavailable');
-    } else if (rainProb >= 50) {
-      subtitle =
-          isHindi
-              ? 'बारिश की ${rainProb.round()}% संभावना'
-              : '${rainProb.round()}% chance of rain';
-    } else if (humidityVal > 80) {
-      subtitle = isHindi ? 'उच्च नमी' : 'High humidity';
-    } else {
-      subtitle = isHindi ? 'मौसम साफ है' : 'Clear weather';
-    }
+    final tempText = '${w.temperature.round()}°';
+    final now = DateTime.now();
+    final isNight = now.hour < 6 || now.hour > 18;
+    final isRaining = w.rainProbability > 50;
+    final isHot = w.temperature > 32;
 
-    String weatherSvg;
-    if (w == null) {
-      weatherSvg = AppIcons.weatherCloud;
-    } else if (rainProb >= 50) {
-      weatherSvg = AppIcons.weatherRainy;
+    // Condition subtitle
+    String conditionText = isHindi ? 'साफ मौसम' : 'Clear Sky';
+    if (isRaining) conditionText = isHindi ? 'बारिश की संभावना' : 'Rainy';
+    else if (isHot) conditionText = isHindi ? 'तेज धूप' : 'Sunny & Hot';
+
+    // Theme colors
+    Color color1, color2;
+    if (isNight) {
+      color1 = isRaining ? const Color(0xFF1A237E) : const Color(0xFF0D47A1);
+      color2 = isRaining ? const Color(0xFF000000) : const Color(0xFF121212);
+    } else if (isRaining) {
+      color1 = const Color(0xFF607D8B);
+      color2 = const Color(0xFF263238);
+    } else if (isHot) {
+      color1 = const Color(0xFFFF9800);
+      color2 = const Color(0xFFD84315);
     } else {
-      weatherSvg = AppIcons.weatherSunny;
+      color1 = const Color(0xFF2196F3);
+      color2 = const Color(0xFF1565C0);
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: GestureDetector(
-        onTap: () {
-          if (w != null) context.push(RouteNames.weatherDetails);
-        },
+        onTap: () => context.push(RouteNames.weatherDetails),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          height: 205,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF1565C0), Color(0xFF1E88E5), Color(0xFF42A5F5)],
-            ),
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1565C0).withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: color1.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: Row(
+          child: Stack(
             children: [
-              Expanded(
+              // 1. Dynamic Background Gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color1, color2],
+                  ),
+                ),
+              ),
+
+              // 2. Celestial Body (Sun/Moon)
+              Positioned(
+                top: -20,
+                right: -20,
+                child: _buildHomeCelestialBody(isNight, isRaining, isHot),
+              ),
+
+              // 3. Floating Clouds
+              _buildHomeCloud(0, -40, 40, isNight),
+              _buildHomeCloud(1, 120, 100, isNight),
+
+              // 4. Content Overlay
+              Padding(
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        isHindi ? '☁ मौसम अपडेट' : '☁ WEATHER UPDATE',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: Colors.white70, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          isHindi ? 'अभी का मौसम' : 'LIVE WEATHER',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const Spacer(),
                     Text(
                       tempText,
                       style: const TextStyle(
-                        fontSize: 42,
-                        fontWeight: FontWeight.w800,
                         color: Colors.white,
-                        height: 1.0,
+                        fontSize: 56,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtitle,
+                      conditionText,
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
                         color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (w != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _WeatherStat(
-                            icon: Icons.water_drop_rounded,
-                            value:
-                                isHindi
-                                    ? 'नमी: ${humidityVal.round()}%'
-                                    : 'Humidity: ${humidityVal.round()}%',
-                          ),
-                          const SizedBox(width: 12),
-                          _WeatherStat(
-                            icon: Icons.umbrella_rounded,
-                            value:
-                                isHindi
-                                    ? 'वर्षा: ${rainProb.round()}%'
-                                    : 'Rain: ${rainProb.round()}%',
-                          ),
-                        ],
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _HomeWeatherStat(
+                          icon: Icons.water_drop_rounded,
+                          value: '${w.humidity.round()}%',
+                          label: isHindi ? 'नमी' : 'Humidity',
+                        ),
+                        const SizedBox(width: 24),
+                        _HomeWeatherStat(
+                          icon: Icons.umbrella_rounded,
+                          value: '${w.rainProbability.round()}%',
+                          label: isHindi ? 'बारिश' : 'Rain',
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              SvgPicture.string(weatherSvg, width: 80, height: 80),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeCelestialBody(bool isNight, bool isRaining, bool isHot) {
+    if (isRaining) return const SizedBox.shrink();
+    return Container(
+      width: 140,
+      height: 140,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: (isNight ? Colors.indigoAccent : (isHot ? Colors.orange : Colors.yellow)).withValues(alpha: 0.4),
+            blurRadius: 60,
+            spreadRadius: 10,
+          ),
+        ],
+      ),
+      child: Icon(
+        isNight ? Icons.nightlight_round : Icons.wb_sunny_rounded,
+        size: 80,
+        color: isNight ? Colors.white.withValues(alpha: 0.9) : (isHot ? Colors.orangeAccent : Colors.yellow[200]),
+      ),
+    );
+  }
+
+  Widget _buildHomeCloud(int index, double top, double left, bool isNight) {
+    return Positioned(
+      top: top,
+      left: left,
+      child: Opacity(
+        opacity: 0.3,
+        child: Icon(
+          Icons.cloud_rounded,
+          size: 100 + (index * 20),
+          color: isNight ? Colors.blueGrey[800] : Colors.white70,
         ),
       ),
     );
@@ -576,87 +620,12 @@ class HomeScreen extends ConsumerWidget {
         bgColor: AppColors.cardPeach,
         onTap: () => context.push(RouteNames.cropRecommendation),
       ),
-      _ServiceItem(
-        labelEn: 'Get\nHelper',
-        labelHi: 'मददगार\nखोजें',
-        svgData: AppIcons.community,
-        imageAsset: 'assets/icons/ic_get_helper.png',
-        bgColor: AppColors.cardSky,
-        onTap: () => context.push(RouteNames.laborListing),
-      ),
     ];
   }
 
   // ──────────────────────────────────────────────────────────
   //  MANDI PRICES
   // ──────────────────────────────────────────────────────────
-  Widget _buildMandiPricesSection(bool isHindi) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 22,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFF57C00), Color(0xFFFFB74D)],
-                  ),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                isHindi ? 'लाइव मंडी भाव' : 'Live Crop Prices',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 96,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _MandiPriceTile(
-                  emoji: '🌾',
-                  cropName: isHindi ? 'गेहूं' : 'Wheat',
-                  price: '₹2,450',
-                  unit: '/qt',
-                  isUp: true,
-                ),
-                const SizedBox(width: 12),
-                _MandiPriceTile(
-                  emoji: '🌻',
-                  cropName: isHindi ? 'सरसों' : 'Mustard',
-                  price: '₹5,100',
-                  unit: '/qt',
-                  isUp: false,
-                ),
-                const SizedBox(width: 12),
-                _MandiPriceTile(
-                  emoji: '🌽',
-                  cropName: isHindi ? 'मक्का' : 'Maize',
-                  price: '₹1,980',
-                  unit: '/qt',
-                  isUp: true,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ──────────────────────────────────────────────────────────
   //  ALL FEATURES BOTTOM SHEET
@@ -760,6 +729,17 @@ class HomeScreen extends ConsumerWidget {
                 onTap: () {
                   Navigator.pop(ctx);
                   context.push(RouteNames.laborListing);
+                },
+              ),
+              _ServiceItem(
+                labelEn: 'Warehouse\nStorage',
+                labelHi: 'भंडारण\nसेवा',
+                svgData: AppIcons.warehouse,
+                imageAsset: 'assets/images/service_icons/warehouse.png',
+                bgColor: const Color(0xFFEFEBE9),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showComingSoon(context, isHindi);
                 },
               ),
             ];
@@ -1099,112 +1079,85 @@ class _ServiceCardState extends State<_ServiceCard>
   }
 }
 
-// ──────────────────────────────────────────────────────────
-//  MANDI PRICE TILE
-// ──────────────────────────────────────────────────────────
-class _MandiPriceTile extends StatelessWidget {
-  const _MandiPriceTile({
-    required this.emoji,
-    required this.cropName,
-    required this.price,
-    required this.unit,
-    required this.isUp,
-  });
+void _showComingSoon(BuildContext context, bool isHindi) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          const Icon(Icons.stars_rounded, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(
+            isHindi ? 'जल्द आ रहा है' : 'Coming Soon',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+      content: Text(
+        isHindi
+            ? 'यह सुविधा जल्द ही उपलब्ध होगी। हमारे साथ बने रहें!'
+            : 'This feature will be available soon. Stay tuned!',
+        style: const TextStyle(fontSize: 15),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            isHindi ? 'ठीक है' : 'OK',
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-  final String emoji;
-  final String cropName;
-  final String price;
-  final String unit;
-  final bool isUp;
+class _HomeWeatherStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _HomeWeatherStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 150,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: (isUp ? AppColors.success : AppColors.error)
-              .withValues(alpha: 0.1),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 14),
+            const SizedBox(width: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isUp
-                  ? const Color(0xFFE8F5E9)
-                  : const Color(0xFFFFEBEE),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 20)),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  cropName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      price,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: isUp
-                            ? const Color(0xFF2E7D32)
-                            : const Color(0xFFC62828),
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    Icon(
-                      isUp
-                          ? Icons.trending_up_rounded
-                          : Icons.trending_down_rounded,
-                      size: 14,
-                      color: isUp
-                          ? AppColors.success
-                          : AppColors.error,
-                    ),
-                  ],
-                ),
-                Text(
-                  unit,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+

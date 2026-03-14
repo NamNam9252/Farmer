@@ -16,6 +16,7 @@ class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double expandedHeight;
   final double collapsedHeight;
   final String? backgroundImage;
+  final List<Color>? gradientColors;
 
   StickyHeaderDelegate({
     required this.title,
@@ -28,6 +29,7 @@ class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.expandedHeight = 200,
     this.collapsedHeight = 100,
     this.backgroundImage,
+    this.gradientColors,
   });
 
   @override
@@ -40,7 +42,8 @@ class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant StickyHeaderDelegate old) =>
       title != old.title ||
       subtitle != old.subtitle ||
-      expandedHeight != old.expandedHeight;
+      expandedHeight != old.expandedHeight ||
+      gradientColors != old.gradientColors;
 
   @override
   Widget build(
@@ -59,6 +62,7 @@ class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
         _AnimatedBackground(
           expandRatio: expandRatio,
           backgroundImage: backgroundImage,
+          gradientColors: gradientColors,
         ),
 
         // ── Frosted overlay when collapsed ──
@@ -67,7 +71,9 @@ class StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
-                color: const Color(0xFF2E7D32).withValues(alpha: 0.85),
+                color: (gradientColors != null && gradientColors!.isNotEmpty)
+                    ? gradientColors!.first.withOpacity(0.85)
+                    : const Color(0xFF2E7D32).withOpacity(0.85),
               ),
             ),
           ),
@@ -218,7 +224,8 @@ class _BackButton extends StatelessWidget {
 class _AnimatedBackground extends StatelessWidget {
   final double expandRatio;
   final String? backgroundImage;
-  const _AnimatedBackground({required this.expandRatio, this.backgroundImage});
+  final List<Color>? gradientColors;
+  const _AnimatedBackground({required this.expandRatio, this.backgroundImage, this.gradientColors});
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +236,7 @@ class _AnimatedBackground extends StatelessWidget {
             : LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
+                colors: gradientColors ?? [
                   const Color(0xFF1B5E20),
                   Color.lerp(
                     const Color(0xFF2E7D32),

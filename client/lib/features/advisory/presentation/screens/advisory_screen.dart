@@ -82,7 +82,7 @@ class AdvisoryScreen extends ConsumerWidget {
           : 'Expert advice for your farming needs',
       backgroundImage: 'assets/images/service_icons/crop_advisory.png',
       showBackButton: true,
-      onBack: () => context.pop(),
+      onBack: () => Navigator.of(context).pop(),
     );
   }
 
