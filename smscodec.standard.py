@@ -159,7 +159,7 @@ if __name__ == '__main__':
     print(f"Original : {len(msg)} chars")
     print(f"Encoded  : {len(enc)} chars")
     print(f"Decoded  : {decode('l_^!$m3iaFEAr%@@6E6gd~#A')}")
-    print("||", encode("when should i use pesticide?"), "||", sep='')
+    print("||", encode("Tell me about wheat"), "||", sep='')
     assert decode(enc) == msg, "Round-trip failed!"
     print("Round-trip OK")
     print(decode("VowW$Al_x:a}p5}Er}!lIEy`L>A"))

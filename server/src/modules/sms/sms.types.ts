@@ -1,25 +1,3 @@
-export enum PacketType {
-  REQUEST  = 0x01,
-  RESPONSE = 0x02,
-  ACK      = 0x03,
-  ERROR    = 0x04,
-}
-
-export interface SMSPacket {
-  sid:     string;
-  seq:     number;
-  total:   number;
-  type:    PacketType;
-  payload: Buffer;
-}
-
-export interface ChunkBuffer {
-  chunks:     (Buffer | null)[];
-  total:      number;
-  from:       string;
-  receivedAt: number;
-}
-
 export interface SMSConfig {
   httpSmsApiKey:    string;
   httpSmsFromPhone: string;
