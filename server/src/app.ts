@@ -11,6 +11,7 @@ const SMS_REPLY_MAX_CHARS = 280;
 const SMS_MODEL_NAME = 'openai/gpt-oss-120b';
 const SMS_LOG_PREVIEW = 180;
 const SMS_CHUNK_SEND_DELAY_MS = 1200;
+const SMS_REQUIRED_PREFIX = ')]k';
 
 const nvidiaClient = new OpenAI({
     baseURL: 'https://integrate.api.nvidia.com/v1',
@@ -187,12 +188,28 @@ SMS.onMessage(async (action, payload, from) => {
         return { skipDefaultResponse: true, data: { ignored: true, reason: 'empty-prompt' } };
     }
 
+    if (!promptText.startsWith(SMS_REQUIRED_PREFIX)) {
+        console.warn(
+            `[SMS] ignoring prompt from ${from}: missing required prefix ${SMS_REQUIRED_PREFIX}`
+        );
+        return {
+            skipDefaultResponse: true,
+            data: { ignored: true, reason: 'missing-required-prefix' },
+        };
+    }
+
+    const promptBody = promptText.slice(SMS_REQUIRED_PREFIX.length).trim();
+    if (!promptBody) {
+        console.warn(`[SMS] ignoring prompt from ${from}: prefix present but body is empty`);
+        return { skipDefaultResponse: true, data: { ignored: true, reason: 'empty-prefixed-body' } };
+    }
+
     console.log(
-        `[SMS] prompt from ${from} | chars=${promptText.length} preview="${promptText.slice(0, SMS_LOG_PREVIEW)}"`
+        `[SMS] accepted prefixed prompt from ${from} | chars=${promptBody.length} preview="${promptBody.slice(0, SMS_LOG_PREVIEW)}"`
     );
 
     try {
-        const modelReply = await createSmsReply(promptText, action);
+        const modelReply = await createSmsReply(promptBody, action);
         const replyBytes = Buffer.byteLength(modelReply, 'utf-8');
 
         console.log(
