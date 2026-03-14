@@ -109,4 +109,12 @@ export class RentalController {
       next(e);
     }
   };
+
+  getMyAssets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      this.ok(res, await this.service.getMyAssets(req));
+    } catch (e) {
+      next(e);
+    }
+  };
 }

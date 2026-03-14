@@ -76,7 +76,7 @@ class _BrowseItemsScreenState extends ConsumerState<BrowseItemsScreen> {
                   : state.items.isEmpty
                     ? const _EmptyState(message: 'No items found matching your criteria')
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                         itemCount: state.items.length,
                         itemBuilder: (context, index) {
                           final item = state.items[index];

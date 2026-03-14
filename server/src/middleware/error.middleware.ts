@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 import { AppError } from '../core/errors/custom.error.js';
 import { errorResponse } from '../core/utils/response.util.js';
 
 export const errorMiddleware = (
-    err: Error | AppError,
+    err: Error | AppError | ZodError,
     req: Request,
     res: Response,
     next: NextFunction
@@ -15,6 +16,10 @@ export const errorMiddleware = (
     if (err instanceof AppError) {
         statusCode = err.statusCode;
         message = err.message;
+    } else if (err instanceof ZodError) {
+        statusCode = 400;
+        message = 'Validation Error';
+        errorData = { details: err.issues.map((issue: any) => ({ path: issue.path, message: issue.message })) };
     } else {
         // For non-operational errors (like unhandled exceptions)
         console.error('Unhandled Exception:', err);

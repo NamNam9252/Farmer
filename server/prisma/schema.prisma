@@ -1582,7 +1582,7 @@ model NewsArticle {
   state    State?    @relation(fields: [stateId], references: [id])
   district District? @relation("DistrictNewsArticle", fields: [districtId], references: [id])
 
-  @@unique([sourceUrl])
+  @@index([sourceUrl])
   @@index([isNational])
   @@index([stateId])
   @@index([districtId])
@@ -2453,7 +2453,7 @@ model Notification {
   body       String
   imageUrl   String?
   actionType String?
-  actionId   String?             @db.ObjectId
+  actionId   String?
   isRead     Boolean             @default(false)
   readAt     DateTime?
   sentAt     DateTime?

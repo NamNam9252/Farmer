@@ -16,6 +16,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../core/errors/custom.error";
+import * as NotificationService from "../notifications/notification.service.js";
 
 const prisma = new PrismaClient();
 
@@ -36,7 +37,7 @@ export class RentalService {
     if (type) where.type = type;
     if (status) where.status = status;
     if (minPrice != null || maxPrice != null) {
-      where.basedPrice = {
+      where.basePrice = {
         ...(minPrice != null ? { gte: minPrice } : {}),
         ...(maxPrice != null ? { lte: maxPrice } : {}),
       };
@@ -120,7 +121,7 @@ export class RentalService {
     if (existing)
       throw new ConflictError("You already have a pending bid on this asset");
 
-    return prisma.bid.create({
+    const bid = await prisma.bid.create({
       data: {
         assetId,
         bidderId: user!.id,
@@ -131,6 +132,21 @@ export class RentalService {
       },
       include: { bidder: { select: { id: true, email: true } } },
     });
+
+    // Notify Owner
+    try {
+      await NotificationService.createNotification({
+        userId: asset.ownerId,
+        title: 'New Rental Bid',
+        body: `You received a bid of ₹${data.amount}/day for "${asset.title}".`,
+        actionType: 'RENTAL_BID',
+        actionId: bid.id,
+      });
+    } catch (error) {
+      console.error('Notification failed:', error);
+    }
+
+    return bid;
   }
 
   async getBidsForAsset(req: Request) {
@@ -178,20 +194,26 @@ export class RentalService {
       if (bid.status !== BidStatus.PENDING)
         throw new ConflictError("Bid is no longer pending");
 
+      // 1. Accept this bid
+      const acceptedBid = await tx.bid.update({
+        where: { id: bidId },
+        data: { status: BidStatus.ACCEPTED },
+      });
+
+      // 2. Reject other bids for this asset
+      await tx.bid.updateMany({
+        where: { assetId, id: { not: bidId }, status: BidStatus.PENDING },
+        data: { status: BidStatus.REJECTED },
+      });
+
+      // 3. Lock asset
       await tx.asset.update({
         where: { id: assetId },
         data: { status: AssetStatus.LOCKED },
       });
-      await tx.bid.update({
-        where: { id: bidId },
-        data: { status: BidStatus.ACCEPTED },
-      });
-      await tx.bid.updateMany({
-        where: { assetId, status: BidStatus.PENDING, id: { not: bidId } },
-        data: { status: BidStatus.REJECTED },
-      });
 
-      return tx.rental.create({
+      // 4. Create rental order
+      const rental = await tx.rental.create({
         data: {
           assetId,
           bidId,
@@ -209,6 +231,21 @@ export class RentalService {
           asset: { select: { id: true, title: true } },
         },
       });
+
+      // Notify Bidder
+      try {
+        await NotificationService.createNotification({
+          userId: bid.bidderId,
+          title: 'Bid Accepted!',
+          body: `Your bid for "${asset.title}" has been accepted. Rental starts on ${bid.startDate.toLocaleDateString()}.`,
+          actionType: 'RENTAL_ACCEPTED',
+          actionId: rental.id,
+        });
+      } catch (error) {
+        console.error('Notification failed:', error);
+      }
+
+      return rental;
     });
   }
 
@@ -242,6 +279,16 @@ export class RentalService {
       where: { tenantId: (req as any).user.id },
       orderBy: { startDate: "desc" },
       include: { asset: { select: { id: true, title: true, type: true } } },
+    });
+  }
+
+  async getMyAssets(req: Request) {
+    return prisma.asset.findMany({
+      where: { ownerId: (req as any).user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: { select: { bids: true } },
+      },
     });
   }
 

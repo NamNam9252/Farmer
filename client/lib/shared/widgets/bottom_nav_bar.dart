@@ -82,7 +82,7 @@ class AppBottomNavBar extends ConsumerWidget {
     ];
 
     return Scaffold(
-      extendBody: true,
+      extendBody: false,
       body: child,
       bottomNavigationBar: Stack(
         clipBehavior: Clip.none,
