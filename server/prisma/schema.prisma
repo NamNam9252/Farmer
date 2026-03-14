@@ -753,6 +753,7 @@ model Location {
   orderDeliveries     Order[]              @relation("OrderDeliveryLocation")
   laborProfiles       LaborProfile[]
   communities         Community[]          @relation("CommunityLocation")
+  expertVisits        ExpertVisit[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -803,6 +804,7 @@ model FarmerProfile {
   schemeApplications    SchemeApplication[]
   laborBookingsAsFarmer LaborBooking[]         @relation("LaborBookingFarmer")
   laborEmployments      LaborEmployment[]
+  expertVisits          ExpertVisit[]
 
   //laborers LaborEmployment[]
 
@@ -841,6 +843,7 @@ model Land {
   crops            Crop[]
   weatherSnapshots WeatherSnapshot[]
   laborBookings    LaborBooking[]
+  expertVisits     ExpertVisit[]
 
   @@index([farmerId])
   @@index([locationId])
@@ -1941,10 +1944,10 @@ model LoanRequest {
   farmer     FarmerProfile   @relation(fields: [farmerId], references: [id])
   community  Community?      @relation(fields: [communityId], references: [id])
   fundWallet LoanFundWallet?
-  milestones LoanMilestone[]
-  pledges    LoanPledge[]
-  repayments LoanRepayment[]
-  votes      LoanVote[]
+  milestones     LoanMilestone[]
+  pledges        LoanPledge[]
+  repayments     LoanRepayment[]
+  votes          LoanVote[]
 
   @@index([farmerId])
   @@index([communityId])
@@ -2433,10 +2436,59 @@ model ExpertProfile {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+  expertVisits ExpertVisit[]
 
   @@index([isVerified])
   @@index([isDeleted])
   @@map("expert_profiles")
+}
+
+// ─────────────────────────────────────────────
+// EXPERT VISITS
+// ─────────────────────────────────────────────
+
+enum VisitStatus {
+  REQUESTED
+  ASSIGNED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model ExpertVisit {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  farmerId  String   @db.ObjectId
+  expertId  String?  @db.ObjectId
+
+  locationId String? @db.ObjectId
+  landId     String? @db.ObjectId
+
+  problemDescription String
+  cropName           String?
+  urgencyLevel       String?
+
+  scheduledAt DateTime?
+  completedAt DateTime?
+
+  status VisitStatus @default(REQUESTED)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  farmer   FarmerProfile  @relation(fields: [farmerId], references: [id])
+  expert   ExpertProfile? @relation(fields: [expertId], references: [id])
+  location Location?      @relation(fields: [locationId], references: [id])
+  land     Land?          @relation(fields: [landId], references: [id])
+
+  @@index([farmerId])
+  @@index([expertId])
+  @@index([locationId])
+  @@index([status])
+  @@map("expert_visits")
 }
 
 // ─────────────────────────────────────────────
