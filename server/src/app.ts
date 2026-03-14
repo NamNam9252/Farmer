@@ -100,7 +100,7 @@ const createSmsReply = async (decodedPrompt: string, action?: string): Promise<s
         messages: [
             {
                 role: 'system',
-                content: 'You are an SMS farming assistant for Indian users. Reply with plain text only, no markdown, no JSON, no lists with bullets, no emojis. Keep it concise, practical, and under 280 characters. Prefer one or two short sentences that are still useful.',
+                content: 'You are an SMS farming assistant for Indian users. Reply with plain text only, no markdown, no JSON, no bullet lists, and no emojis. Give practical and specific advice in 2-4 short sentences. Target roughly 320-450 characters when useful, but avoid fluff and repetition. Keep language simple and actionable.',
             },
             {
                 role: 'user',
@@ -108,7 +108,7 @@ const createSmsReply = async (decodedPrompt: string, action?: string): Promise<s
             },
         ],
         temperature: 0.2,
-        max_tokens: 120,
+        max_tokens: 500,
     });
 
     const raw = response.choices[0]?.message?.content?.trim() || 'Unable to process your request right now.';

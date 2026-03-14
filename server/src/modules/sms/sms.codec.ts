@@ -39,7 +39,7 @@ export const decode = (smsText: string): string => {
   const decoded = base91.decode(smsText);
   const payload = Buffer.isBuffer(decoded)
     ? new Uint8Array(decoded)
-    : new Uint8Array(Buffer.from(decoded, "utf-8"));
+    : new Uint8Array(Buffer.from(decoded, "latin1")); // ← fix: latin1, not utf-8
 
   if (!payload.length) return "";
 
